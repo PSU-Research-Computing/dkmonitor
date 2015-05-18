@@ -1,5 +1,5 @@
 import os
-import pickle
+import dill
 import time
 from pwd import getpwuid
 import operator
@@ -30,7 +30,11 @@ class dk_stat:
         self.search_time = 0
         """
         self.search_directory = search_dir
-        self.user_hash = pickle.load(open("../user_hash_dump.p", 'rb')).user_hash
+        print("Loading pickle")
+        pfile = open("../user_hash_dump.p", "rb")
+        self.user_hash = dill.load(pfile)
+        pfile.close()
+        print("Loaded")
         #self.user_hash = {}
 
 
@@ -62,9 +66,8 @@ class dk_stat:
 
 
     def export_users(self, db_obj):
-        for user in user_hash.keys():
-            user_hash[user_hash].get_set_query_data(db_obj.query_date_compare)
-            user_hash[user_hash].insert_db_row(db_obj.store_row)
+        for user in self.user_hash.keys():
+            self.user_hash[user].export_user(db_obj)
 
 
     def format_stat_tuple(self, in_tuple): #TODO I need to add ' marks to string output so that postgres accepts it
