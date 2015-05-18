@@ -1,5 +1,8 @@
 import os
-from dk_stat import User_file
+from collections import namedtuple
+#from dk_stat import User_file
+
+User_file = namedtuple('User_file', 'file_path file_size last_access')
 
 class User():
     def __init__(self, name, search_dir=None, datetime=None, total_file_size=None, use_percent=None, average_access=None):
@@ -10,7 +13,7 @@ class User():
         self.file_list = []
 
     def add_file(self, file_to_add):
-        file_list.append(file_to_add)
+        self.file_list.append(file_to_add)
 
     def get_total_user_space(self):
         total_space = 0
