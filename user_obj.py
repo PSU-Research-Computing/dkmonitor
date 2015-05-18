@@ -71,8 +71,16 @@ class User():
         self.collumn_dict["disk_use_change"] = query_data[1]
         self.collumn_dict["access_averaage_change"] = query_data[0]
 
+    def insert_db_row(self, db_insertion_function):
+        table_name = "user_stats"
+        column_str = ""
+        value_str = ""
 
+        for column in self.collumn_dict.keys():
+            column_str += column + " "
+            value_str += self.collumn_dict[column] + " "
 
+        db_insertion_function(table_name, [column_str, value_str])
 
 
 

@@ -36,7 +36,6 @@ class data_base:
         except psycopg2.DatabaseError as db_error:
             print ("Connection Error")
 
-<<<<<<< HEAD
     def query_date_compare(self, table, query_list, compare_list):
         #table: table name to be queried
         #query_list: nested list of items to query on. [[column_name, value], [...]]
@@ -56,7 +55,6 @@ class data_base:
             db_cursor.execute("SELECT {compares} FROM {tab} WHERE {querys} ORDER BY datetime DESC LIMIT 1;".format(compares=compare_string, tab=table, querys=joined_query_string))
             return db_cursor.fetchone()
 
-=======
     def query_date_compare(self, table, query_str, compare_str):
         #table: table name to be queried
         #query_str: String of items to query FORMAT: "collumn_name1 = value AND collumn_name2 = value2 ...
@@ -67,7 +65,6 @@ class data_base:
             return db_cursor.fetchone()
 
 
->>>>>>> User_branch
     def store_row(self, table, data_list): #data_list is a list with joined collumn names as index 0 and values as index 1
         with self.connect() as db_cursor:
         #deleted all of the formatting here and moved it to formate stat_tuple in dk_stat.py

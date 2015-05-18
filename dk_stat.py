@@ -5,6 +5,7 @@ from pwd import getpwuid
 import operator
 from collections import namedtuple
 import user_obj
+import db_interface
 import datetime
 
 #User = namedtuple('User', 'tota_size use_percent average_access old_file_list')
@@ -20,15 +21,17 @@ class dk_stat:
     def __init__(self, search_dir):
 
         #Input search directory path verification exception
+        """
         try:
             os.listdir(search_dir)
         except:
             raise Exception("Directory path: {dir} is invalid.".format(dir=search_dir))
 
         self.search_time = 0
+        """
         self.search_directory = search_dir
-        #self.user_hash = pickle.load(open("dk_stat_object.p", 'rb')).user_hash
-        self.user_hash = {}
+        self.user_hash = pickle.load(open("../user_hash_dump.p", 'rb')).user_hash
+        #self.user_hash = {}
 
 
     def dir_search(self, recursive_dir=None): #possibly divide into multiple fucntions
@@ -53,83 +56,16 @@ class dk_stat:
 
                 name = getpwuid(os.stat(recursive_dir).st_uid).pw_name #get modify time of file 
                 if name in self.user_hash.keys(): #if name has already be found then add to hashed list 
-                    #self.user_hash[name].append(User_file(recursive_dir, file_size, last_access))
                     self.user_hash[name].add_file(User_file(recursive_dir, file_size, last_access))
                 else:                    #else append name list and create a new list in hash with username as the key
-                    #self.user_hash[name] = [User_file(recursive_dir, file_size, last_access)]
                     self.user_hash[name] = user_obj.User(name, search_dir=self.search_directory, datetime=self.search_time)
 
-    """
-    def get_total_user_space(self): #possibly have optional argument that lets user get output in mb or gb
-        user_file_size_dict = {}
-        for name in self.user_hash.keys(): #For each user file list in user_hash.
-            total_space = 0
-            for file in self.user_hash[name]:
-                total_space += int(file.file_size)
-            user_file_size_dict[name] = total_space #Divide into bytes
 
-        return user_file_size_dict
+    def export_users(self, db_obj):
+        for user in user_hash.keys():
+            user_hash[user_hash].get_set_query_data(db_obj.query_date_compare)
+            user_hash[user_hash].insert_db_row(db_obj.store_row)
 
-
-    def get_disk_use_percentage(self):
-        users = self.get_total_user_space()
-        percent_dict = {}
-
-        st = os.statvfs(self.search_directory)
-        total = st.f_blocks * st.f_frsize
-
-        for user in users.keys():
-            user_percentage = 100* float(users[user])/float(total)
-            percent_dict[user] = user_percentage
-
-        return percent_dict
-
-
-    def get_user_access_average(self):
-        user_file_access_dict = {}
-        for name in self.user_hash.keys():
-            total_time = 0
-            for count, file in enumerate(self.user_hash[name]):
-                total_time += file.last_access
-
-            try: #possibly change this to an if statement
-                average_last_access = total_time / count
-            except ZeroDivisionError:
-                average_last_access = total_time
-
-            user_file_access_dict[name] = average_last_access
-
-        return user_file_access_dict
-
-
-    #Gets List of files last accessed before 
-    def get_old_file_list(self, minimum_day_num):
-        old_file_dict = {}
-        for user in self.user_hash.keys():
-            flaged_files = []
-            for file in self.user_hash[user]:
-                if file.last_access > minimum_day_num:
-                    flaged_files.append(file.file_path)
-            old_file_dict[user] = flaged_files
-
-        return old_file_dict
-
-
-    def get_all_stats(self, minimum_day_num):
-        all_stat_dict = {}
-
-        #user_hash = self.dir_search() #disabled. Needs error checking 
-        user_space = self.get_total_user_space()
-        user_percent = self.get_disk_use_percentage()
-        access_averages = self.get_user_access_average()
-        #old_user_files = self.get_old_file_list(minimum_day_num)
-
-        for user in self.user_hash.keys():
-            user_tuple = User(user_space[user], user_percent[user], access_averages[user]) #fixed this to only have collumns keep an eye out though
-            all_stat_dict[user] = user_tuple
-
-        return all_stat_dict
-    """
 
     def format_stat_tuple(self, in_tuple): #TODO I need to add ' marks to string output so that postgres accepts it
         collunm_names = in_tuple._fields
@@ -157,9 +93,8 @@ class dk_stat:
 
 if __name__ == "__main__":
     dk1 = dk_stat("/disk/scratch")
-    print ("searching")
-    dk1.dir_search()
-    print ("built")
-    pickle.dump(dk1.user_hash, open("../user_hash_dump.p", "wb"))
+    db = db_interface.data_base('dkmonitor', 'root', '')
+    dk1.export_users(db)
+
 
 
