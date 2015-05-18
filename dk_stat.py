@@ -1,5 +1,6 @@
 import os
 import pickle
+import dill
 import time
 from pwd import getpwuid
 import operator
@@ -160,6 +161,6 @@ if __name__ == "__main__":
     print ("searching")
     dk1.dir_search()
     print ("built")
-    pickle.dump(dk1.user_hash, open("../user_hash_dump.p", "wb"))
+    dill.dump(dk1.user_hash, open("../user_hash_dump.p", "wb"))
 
 
