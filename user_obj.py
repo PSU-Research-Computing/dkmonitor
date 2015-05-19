@@ -24,27 +24,30 @@ class User():
 
 
     def get_disk_use_percentage(self):
-        if collumn_dict["total_file_size"] == None:
+        if self.collumn_dict["total_file_size"] == None:
             self.get_total_user_space()
 
-        st = os.statvfs(self.collumn_dict["search_dir"]) #TODO try except
+        st = os.statvfs(self.collumn_dict["searched_directory"]) #TODO try except
         total = st.f_blocks * st.f_frsize
 
-        user_percentage = 100 * float(collumn_dict["total_file_size"])/float(total)
+        user_percentage = 100 * float(self.collumn_dict["total_file_size"])/float(total)
         self.collumn_dict["use_percent"] = user_percentage
 
 
     def get_user_access_average(self):
         total_time = 0
-        for count, user_file in enumerate(self.file_list):
+        file_count = 0
+        for user_file in self.file_list:
             total_time += user_file.last_access
+            file_count += 1
+
 
         try: #possibly change this to an if statement
-            average_last_access = total_time / count
+            average_last_access = total_time / file_count
         except ZeroDivisionError:
             average_last_access = total_time
 
-        self.collumn_dict["average_access"] = average_access
+        self.collumn_dict["average_access"] = average_last_access
 
 
     def get_old_file_list(self, minimum_day_num):
@@ -70,6 +73,11 @@ class User():
 
         self.collumn_dict["disk_use_change"] = query_data[1]
         self.collumn_dict["access_averaage_change"] = query_data[0]
+
+    def export_data(self):
+        self.calculate_stats()
+        join_list = [self.collumn_dict["user_name"], str(self.collumn_dict["datetime"]), self.collumn_dict["searched_directory"], str(self.collumn_dict["total_file_size"]), str(self.collumn_dict["use_percent"]), str(self.collumn_dict["average_access"])]
+        return " ".join(join_list)
 
 
 
