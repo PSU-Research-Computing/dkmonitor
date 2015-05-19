@@ -1,4 +1,8 @@
 import os
+<<<<<<< HEAD
+=======
+import pickle
+>>>>>>> 17a4456835421be19dc65b30ce422c284cd8a115
 import dill
 import time
 from pwd import getpwuid
@@ -93,11 +97,26 @@ class dk_stat:
         for user in db_export_dict.keys():
             yield format_tuple_query(db_export_dict[user], user)
 
+    def save_users_to_file(self):
+        with open("../user_txt_file.txt", 'w') as ufile:
+            for user in self.user_hash.keys():
+                ufile.write(self.user_hash[user].export_data() + '\n')
+
+
 
 if __name__ == "__main__":
     dk1 = dk_stat("/disk/scratch")
+<<<<<<< HEAD
     db = db_interface.data_base('dkmonitor', 'root', '')
     dk1.export_users(db)
 
+=======
+    print ("searching")
+    dk1.dir_search()
+    print ("built")
+    #dill.dump(dk1.user_hash, open("../user_hash_dump.p", "wb"))
+    print ("writing file")
+    dk1.save_users_to_file()
+>>>>>>> 17a4456835421be19dc65b30ce422c284cd8a115
 
 
