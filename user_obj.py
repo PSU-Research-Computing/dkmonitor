@@ -71,32 +71,6 @@ class User():
 
         query_data = db_query_function("user_stats", query_str, compare_str)
 
-<<<<<<< HEAD
-        if query_data != None:
-            self.collumn_dict["disk_use_change"] = query_data[1]
-            self.collumn_dict["access_averaage_change"] = query_data[0]
-        else:
-            self.collumn_dict["disk_use_change"] = 0
-            self.collumn_dict["access_averaage_change"] = 0
-
-        return query_data
-
-    def insert_db_row(self, db_insertion_function):
-        table_name = "user_stats"
-        column_str = ""
-        value_str = ""
-
-        for column in self.collumn_dict.keys():
-            print (column)
-            column_str += column + " "
-            value_str += self.collumn_dict[column] + " "
-
-        db_insertion_function(table_name, [column_str, value_str])
-
-    def export_user(self, db_obj):
-        self.get_set_query_data(db_obj.query_date_compare)
-        self.insert_db_row(db_obj.store_row)
-=======
         self.collumn_dict["disk_use_change"] = query_data[1]
         self.collumn_dict["access_averaage_change"] = query_data[0]
 
@@ -106,7 +80,6 @@ class User():
         return " ".join(join_list)
 
 
->>>>>>> 17a4456835421be19dc65b30ce422c284cd8a115
 
 
 
