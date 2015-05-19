@@ -1,8 +1,5 @@
 import os
-<<<<<<< HEAD
-=======
 import pickle
->>>>>>> 17a4456835421be19dc65b30ce422c284cd8a115
 import dill
 import time
 from pwd import getpwuid
@@ -33,13 +30,14 @@ class dk_stat:
 
         self.search_time = 0
         """
+        self.user_hash = {}
         self.search_directory = search_dir
-        print("Loading pickle")
-        pfile = open("../user_hash_dump.p", "rb")
-        self.user_hash = dill.load(pfile)
-        pfile.close()
-        print("Loaded")
-        #self.user_hash = {}
+        self.load_users_file("../user_txt_file.txt")
+        #print("Loading pickle")
+        #pfile = open("../user_hash_dump.p", "rb")
+        #self.user_hash = dill.load(pfile)
+        #pfile.close()
+        #print("Loaded")
 
 
     def dir_search(self, recursive_dir=None): #possibly divide into multiple fucntions
@@ -102,21 +100,25 @@ class dk_stat:
             for user in self.user_hash.keys():
                 ufile.write(self.user_hash[user].export_data() + '\n')
 
+    def load_users_file(self, user_file_name):
+        with open(user_file_name, 'r') as ufile:
+            for line in ufile:
+                dilim_list = line.split(" ")
+                print (dilim_list)
+                self.user_hash[dilim_list[0]] = user_obj.User(dilim_list[0], search_dir=str(dilim_list[3]), datetime=dilim_list[1], total_file_size=float(dilim_list[4]), use_percent=float(dilim_list[5]), average_access=float(dilim_list[6]))
+
 
 
 if __name__ == "__main__":
     dk1 = dk_stat("/disk/scratch")
-<<<<<<< HEAD
     db = db_interface.data_base('dkmonitor', 'root', '')
     dk1.export_users(db)
 
-=======
     print ("searching")
     dk1.dir_search()
     print ("built")
     #dill.dump(dk1.user_hash, open("../user_hash_dump.p", "wb"))
     print ("writing file")
     dk1.save_users_to_file()
->>>>>>> 17a4456835421be19dc65b30ce422c284cd8a115
 
 
