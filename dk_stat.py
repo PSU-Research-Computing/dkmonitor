@@ -71,7 +71,6 @@ class dk_stat:
         for user in self.user_hash.keys():
             self.user_hash[user].export_user(db_obj)
 
-
     def format_stat_tuple(self, in_tuple): #TODO I need to add ' marks to string output so that postgres accepts it
         collunm_names = in_tuple._fields
         values = (value for value in in_tuple)
@@ -96,7 +95,7 @@ class dk_stat:
             yield format_tuple_query(db_export_dict[user], user)
 
     def save_users_to_file(self):
-        with open("../user_txt_file.txt", 'w') as ufile:
+        with open("../user_txt_file2.txt", 'w') as ufile:
             for user in self.user_hash.keys():
                 ufile.write(self.user_hash[user].export_data() + '\n')
 
@@ -105,20 +104,22 @@ class dk_stat:
             for line in ufile:
                 dilim_list = line.split(" ")
                 print (dilim_list)
-                self.user_hash[dilim_list[0]] = user_obj.User(dilim_list[0], search_dir=str(dilim_list[3]), datetime=dilim_list[1], total_file_size=float(dilim_list[4]), use_percent=float(dilim_list[5]), average_access=float(dilim_list[6]))
+                self.user_hash[dilim_list[0]] = user_obj.User(dilim_list[0], search_dir=str(dilim_list[3]), datetime=dilim_list[1], total_file_size=float(dilim_list[4]), use_percent=float(dilim_list[5]), average_access=float(dilim_list[6]), use_percent_change=0.0,
+avrg_access_change=0.0)
 
 
 
 if __name__ == "__main__":
     dk1 = dk_stat("/disk/scratch")
     db = db_interface.data_base('dkmonitor', 'root', '')
+    #db.test_connection();
     dk1.export_users(db)
 
-    print ("searching")
-    dk1.dir_search()
-    print ("built")
+    #print ("searching")
+    #dk1.dir_search()
+    #print ("built")
     #dill.dump(dk1.user_hash, open("../user_hash_dump.p", "wb"))
-    print ("writing file")
-    dk1.save_users_to_file()
+    #print ("writing file")
+    #dk1.save_users_to_file()
 
 

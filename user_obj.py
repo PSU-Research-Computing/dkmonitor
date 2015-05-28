@@ -5,11 +5,19 @@ from collections import namedtuple
 User_file = namedtuple('User_file', 'file_path file_size last_access')
 
 class User():
-    def __init__(self, name, search_dir=None, datetime=None, total_file_size=None, use_percent=None, average_access=None):
+    def __init__(self, name, search_dir=None, datetime=None, total_file_size=None, use_percent=None, use_percent_change=0.0, average_access=None, avrg_access_change=0.0):
 
-        self.collumn_dict = {'user_name': name, 'datetime': datetime, 'searched_directory': search_dir, 'total_file_size': total_file_size,
-                            'use_percent': use_percent, 'average_access': average_access, 'use_percent_change': None,
-                            'access_change': None}
+        self.collumn_dict = {
+            'user_name': name,
+            'datetime': datetime,
+            'searched_directory': search_dir,
+            'total_file_size': total_file_size,
+            'disk_use_percent': use_percent,
+            'last_access_average': average_access,
+            'disk_use_change': use_percent_change,
+            'access_average_change': avrg_access_change
+        }
+
         self.file_list = []
 
     def add_file(self, file_to_add):
@@ -47,7 +55,7 @@ class User():
         except ZeroDivisionError:
             average_last_access = total_time
 
-        self.collumn_dict["average_access"] = average_last_access
+        self.collumn_dict["access_average_change"] = average_last_access
 
 
     def get_old_file_list(self, minimum_day_num):
@@ -65,27 +73,40 @@ class User():
 
     #TODO test this function
     def get_set_query_data(self, db_query_function):
-        query_str = "user_name = {name} AND searched_directory = {sdir}".format(name=self.collumn_dict["user_name"],
+        query_str = "user_name = '{name}' AND searched_directory = '{sdir}'".format(name=self.collumn_dict["user_name"],
                 sdir=self.collumn_dict["searched_directory"])
         compare_str = "disk_use_percent, last_access_average"
 
+        print ("querying Data... ")
         query_data = db_query_function("user_stats", query_str, compare_str)
 
-        self.collumn_dict["disk_use_change"] = query_data[1]
-        self.collumn_dict["access_averaage_change"] = query_data[0]
+        print (query_data)
+        if query_data != None:
+            self.collumn_dict["disk_use_change"] = query_data[1]
+            self.collumn_dict["access_average_change"] = query_data[0]
 
 
     def insert_db_row(self, db_insertion_function):
         table_name = "user_stats"
+        column_list = []
+        value_list = []
         column_str = ""
         value_str = ""
 
         for column in self.collumn_dict.keys():
-            print (column)
-            column_str += column + " "
-            value_str += self.collumn_dict[column] + " "
+            column_list.append(column)
+            if type(self.collumn_dict[column]) is float or type(self.collumn_dict[column]) is int:
+                value_list.append(str(self.collumn_dict[column]))
+            else:
+                value_list.append("'" + str(self.collumn_dict[column]) + "'")
 
-        db_insertion_function(table_name, [column_str, value_str])
+            column_str += column + ", "
+            value_str += "'" + str(self.collumn_dict[column]) + "'" + ", "
+
+        ", ".join(column_list)
+        ", ".join(value_list)
+
+        db_insertion_function(table_name, [", ".join(column_list), ", ".join(value_list)])
 
     def export_user(self, db_obj):
         self.get_set_query_data(db_obj.query_date_compare)
@@ -93,7 +114,7 @@ class User():
 
     def export_data(self):
         self.calculate_stats()
-        join_list = [self.collumn_dict["user_name"], str(self.collumn_dict["datetime"]), self.collumn_dict["searched_directory"], str(self.collumn_dict["total_file_size"]), str(self.collumn_dict["use_percent"]), str(self.collumn_dict["average_access"])]
+        join_list = [self.collumn_dict["user_name"], str(self.collumn_dict["datetime"]), self.collumn_dict["searched_directory"], str(self.collumn_dict["total_file_size"]), str(self.collumn_dict["disk_use_percent"]), str(self.collumn_dict["last_access_average"])]
         return " ".join(join_list)
 
 

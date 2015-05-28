@@ -25,7 +25,8 @@ class data_base:
         try:
             psycopg2.connect(database=self.db_name, user=self.user, password=self.password)
         except psycopg2.DatabaseError as db_error:
-            print ("Connection Error")
+            print ("Test Connection Error")
+        print ("Connection Successful")
 
     @contextmanager
     def connect(self): #connects with database using the contextmanager decorator
@@ -34,6 +35,7 @@ class data_base:
                 with connection.cursor() as cursor:
                     yield cursor
         except psycopg2.DatabaseError as db_error:
+            print (db_error)
             print ("Connection Error")
 
     def query_date_compare(self, table, query_list, compare_list):
@@ -43,6 +45,7 @@ class data_base:
 
         with self.connect() as db_cursor:
 
+            print ("Connected")
             #Joining the nested lists in query_list
             joined_subsets = []
             for column in query_list:
