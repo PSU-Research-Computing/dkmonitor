@@ -32,7 +32,7 @@ class dk_stat:
         """
         self.user_hash = {}
         self.search_directory = search_dir
-        self.load_users_file("../user_txt_file.txt")
+        self.load_users_file("../user_txt_file2.txt")
         #print("Loading pickle")
         #pfile = open("../user_hash_dump.p", "rb")
         #self.user_hash = dill.load(pfile)

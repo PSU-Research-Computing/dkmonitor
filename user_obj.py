@@ -73,17 +73,41 @@ class User():
 
     #TODO test this function
     def get_set_query_data(self, db_query_function):
-        query_str = "user_name = '{name}' AND searched_directory = '{sdir}'".format(name=self.collumn_dict["user_name"],
+        query_str = "user_name = '{name}' AND searched_directory = '{sdir}'".format(
+                name=self.collumn_dict["user_name"],
                 sdir=self.collumn_dict["searched_directory"])
+
         compare_str = "disk_use_percent, last_access_average"
 
-        print ("querying Data... ")
         query_data = db_query_function("user_stats", query_str, compare_str)
-
         print (query_data)
+        print (self.collumn_dict["last_access_average"])
+        print (self.collumn_dict["disk_use_percent"])
+
         if query_data != None:
-            self.collumn_dict["disk_use_change"] = query_data[1]
-            self.collumn_dict["access_average_change"] = query_data[0]
+            disk_change = 0.0
+            access_change = 0.0
+
+            if self.collumn_dict["disk_use_percent"] == query_data[0]:
+                disk_change = 0
+            elif self.collumn_dict["disk_use_percent"] == 0:
+                disk_change = -100.0
+            elif query_data[0] == 0:
+                disk_change = 100.0
+            else:
+                disk_change = self.collumn_dict["disk_use_percent"]/query_data[0]
+
+            if self.collumn_dict["last_access_average"] == query_data[1]:
+                access_change = 0
+            elif self.collumn_dict["last_access_average"] == 0:
+                access_change = -100.0
+            elif query_data[1] == 0:
+                access_change = 100.0
+            else:
+                access_change = self.collumn_dict["last_access_average"]/query_data[1]
+
+            self.collumn_dict["disk_use_change"] = disk_change
+            self.collumn_dict["access_average_change"] = access_change
 
 
     def insert_db_row(self, db_insertion_function):
@@ -114,7 +138,15 @@ class User():
 
     def export_data(self):
         self.calculate_stats()
-        join_list = [self.collumn_dict["user_name"], str(self.collumn_dict["datetime"]), self.collumn_dict["searched_directory"], str(self.collumn_dict["total_file_size"]), str(self.collumn_dict["disk_use_percent"]), str(self.collumn_dict["last_access_average"])]
+        join_list = [
+                self.collumn_dict["user_name"],
+                str(self.collumn_dict["datetime"]),
+                self.collumn_dict["searched_directory"],
+                str(self.collumn_dict["total_file_size"]),
+                str(self.collumn_dict["disk_use_percent"]),
+                str(self.collumn_dict["last_access_average"])
+            ]
+
         return " ".join(join_list)
 
 
