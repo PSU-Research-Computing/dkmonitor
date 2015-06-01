@@ -1,6 +1,6 @@
 import stat_obj
 
-class User(stat_obj.Stat_obj):
+class Direcorty(stat_obj.Stat_obj):
     def __init__(self,
             name,
             search_dir=None,
@@ -13,7 +13,7 @@ class User(stat_obj.Stat_obj):
             ):
 
         stat_obj.Stat_obj.__init__(self,
-                "user_stats",
+                "directory_stats",
                 search_dir = search_dir,
                 datetime = datetime,
                 total_file_size = total_file_size,
@@ -23,32 +23,8 @@ class User(stat_obj.Stat_obj):
                 avrg_access_change = avrg_access_change
                 )
 
-        self.collumn_dict["user_name"] = name
-
     def build_query_str(self):
-        query_str = "user_name = '{name}' AND searched_directory = '{sdir}'".format(
-                name=self.collumn_dict["user_name"],
+        query_str = "searched_directory = '{sdir}'".format(
                 sdir=self.collumn_dict["searched_directory"])
         return query_str
-
-
-    def save_data(self):
-        self.calculate_stats()
-        join_list = [
-                self.collumn_dict["user_name"],
-                str(self.collumn_dict["datetime"]),
-                self.collumn_dict["searched_directory"],
-                str(self.collumn_dict["total_file_size"]),
-                str(self.collumn_dict["disk_use_percent"]),
-                str(self.collumn_dict["last_access_average"])
-            ]
-
-        return " ".join(join_list)
-
-
-
-
-
-
-
 
