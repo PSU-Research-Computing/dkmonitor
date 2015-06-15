@@ -1,9 +1,27 @@
 import json
 
 def generate_json(file_name):
-    task_dict = {"Directory_Path" : "", "Days_Between_Runs" : 30, "Email_Users" : ""}
-    db_dict = {"User_name" : "", "Password" : "", "DataBase" : ""}
-    email_dict = {"User_name" : "", "Password" : ""}
+    flag_dict = {
+            "Access_day_threshold" : 30,
+            "Total_file_size_threshold" : 500,
+            "Use_percentage_threshold" : 5}
+
+    task_dict = {
+            "System_name" : "",
+            "Directory_Path" : "",
+            "Days_Between_Runs" : 30,
+            "Email_Users" : "",
+            "Email_flags" : flag_dict}
+
+    db_dict = {
+            "User_name" : "",
+            "Password" : "",
+            "DataBase" : ""}
+
+    email_dict = {
+            "User_name" : "",
+            "Password" : ""}
+
     data_dict = {
             "Scheduled_Tasks" : {"Scratch" : task_dict, "Scratch2" : task_dict},
             "Database_info" : db_dict,

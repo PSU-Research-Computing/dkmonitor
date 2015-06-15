@@ -3,19 +3,32 @@ import settings_obj
 
 server.sendmail("wpatt2@pdx.edu", "willsnore@gmail.com", "testmessage")
 
-class emailer(settings_obj.Settings_interface):
-    def __init__(self):
-        settings_obj.Settings_interface.__init__(self)
+class emailer:
+    def __init__(self, user_name, password, suffix):
+
+        self.user_name = user
+        self.password = passw
+        self.suffix = suff
 
         self.server = smtplib.SMTP('smtp.gmail.com', 587)
         self.server.ehlo()
         self.server.starttls()
         self.server.ehlo()
 
+        self.server.login(self.user_name, self.password)
 
-        self.server.login(self.settings["Email_API"]["User_name"], self.settings["Email_API"]["Password"])
 
+    def send_email(self, prefix):
+        server.sendmail(self.user_name, prefix + self.suffix, self.message(odin_name))
 
-    def send_mail(self, odin_name):
-        pass
+    def message(self, prefix):
+        return_message ="""
+        Dear {name},
+        You have been flagged by ARC's monitoring software for you inaproprate use of the scratch space.
+        Please review your usege (delete or move old files, move or delete large files).
+        Thank you for your time,
+        --ARC staff
+        """.format(name=prefix)
+
+        return return_message
 

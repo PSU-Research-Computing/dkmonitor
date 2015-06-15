@@ -116,7 +116,6 @@ class Stat_obj():
             total_time += file_tuple.last_access
             file_count += 1
 
-
         try: #possibly change this to an if statement
             average_last_access = total_time / file_count
         except ZeroDivisionError:
@@ -132,6 +131,8 @@ class Stat_obj():
                 flaged_files.append(file_tuple.file_path)
 
         return flaged_files
+
+
 
     def calculate_stats(self):
         self.get_total_space()

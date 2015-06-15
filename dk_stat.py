@@ -72,6 +72,12 @@ class dk_stat:
         for user in self.user_hash.keys():
             self.user_hash[user].export_data(db_obj)
 
+    def email_users(self, email_obj, access_day_threshold, file_size_threshold, percentage_threshold):
+        for user in self.user_hash.keys():
+            self.user_hash[user].email_user(email_obj)
+
+
+
     #Utility Functions##########################
     def save_users_to_file(self):
         with open("../user_txt_file2.txt", 'w') as ufile:
