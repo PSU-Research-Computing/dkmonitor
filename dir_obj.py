@@ -1,8 +1,7 @@
 import stat_obj
 
-class Direcorty(stat_obj.Stat_obj):
+class Directory(stat_obj.Stat_obj):
     def __init__(self,
-            name,
             search_dir=None,
             datetime=None,
             total_file_size=None,
@@ -27,4 +26,17 @@ class Direcorty(stat_obj.Stat_obj):
         query_str = "searched_directory = '{sdir}'".format(
                 sdir=self.collumn_dict["searched_directory"])
         return query_str
+
+    def save_data(self):
+        self.calculate_stats()
+        join_list = [
+                str(self.collumn_dict["datetime"]),
+                self.collumn_dict["searched_directory"],
+                str(self.collumn_dict["total_file_size"]),
+                str(self.collumn_dict["disk_use_percent"]),
+                str(self.collumn_dict["last_access_average"])
+            ]
+
+        return " ".join(join_list)
+
 

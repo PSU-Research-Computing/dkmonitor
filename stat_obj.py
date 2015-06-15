@@ -106,7 +106,7 @@ class Stat_obj():
         total = st.f_blocks * st.f_frsize
 
         user_percentage = 100 * float(self.collumn_dict["total_file_size"])/float(total)
-        self.collumn_dict["use_percent"] = user_percentage
+        self.collumn_dict["disk_use_percent"] = user_percentage
 
 
     def get_access_average(self):
@@ -122,7 +122,7 @@ class Stat_obj():
         except ZeroDivisionError:
             average_last_access = total_time
 
-        self.collumn_dict["access_average_change"] = average_last_access
+        self.collumn_dict["last_access_average"] = average_last_access
 
 
     def get_old_file_list(self, minimum_day_num):
