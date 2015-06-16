@@ -29,7 +29,7 @@ def generate_json(file_name):
             }
 
     with open(file_name, 'w') as jfile:
-        json.dump(data_dict, jfile)
+        json.dump(data_dict, jfile, indent=4, separators=(",", ":"))
 
 if __name__ == "__main__":
     generate_json("settings.json")
