@@ -1,7 +1,7 @@
 import smtplib
 import settings_obj
 
-server.sendmail("wpatt2@pdx.edu", "willsnore@gmail.com", "testmessage")
+#server.sendmail("wpatt2@pdx.edu", "willsnore@gmail.com", "testmessage")
 
 class emailer:
     def __init__(self, user_name, password, suffix):
@@ -16,6 +16,8 @@ class emailer:
         self.server.ehlo()
 
         self.server.login(self.user_name, self.password)
+
+    #def build_and_send(self, access_val, file_size_val, percent_val):
 
 
     def send_email(self, prefix):
