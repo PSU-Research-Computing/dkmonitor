@@ -19,8 +19,7 @@ file_tuple = namedtuple('file_tuple', 'file_path file_size last_access')
 
 class dk_stat:
 
-
-    def __init__(self, search_dir):
+    def __init__(self, system, search_dir):
 
         #Input search directory path verification exception
         """
@@ -33,6 +32,7 @@ class dk_stat:
         self.search_time = 0
         self.user_hash = {}
         self.directory_obj = None
+        self.system = system
         self.search_directory = search_dir
         self.load_users_file("../user_txt_file2.txt")
         #print("Loaded")
@@ -42,8 +42,8 @@ class dk_stat:
 
         if recursive_dir == None:
             self.search_time = datetime.datetime.now()
-            self.directory_obj = dir_obj.Directory(search_dir=self.search_directory, datetime=self.search_time) #Creates dir_obj
-            self.dir_search(recursive_dir = self.search_directory)
+            self.directory_obj = dir_obj.Directory(search_dir=self.search_directory, system=self.system, datetime=self.search_time) #Creates dir_obj
+            self.dir_search(recursive_dir=self.search_directory)
 
         else:
             if os.path.isdir(recursive_dir):
@@ -62,9 +62,9 @@ class dk_stat:
                 file_tup = file_tuple(recursive_dir, file_size, last_access)
                 self.directory_obj.add_file(file_tup) #Add file to directory obj
 
-                name = getpwuid(os.stat(recursive_dir).st_uid).pw_name # 
+                name = getpwuid(os.stat(recursive_dir).st_uid).pw_name #gets user name 
                 if name not in self.user_hash.keys(): #if name has not already be found then add to user_hash
-                    self.user_hash[name] = user_obj.User(name, search_dir=self.search_directory, datetime=self.search_time)
+                    self.user_hash[name] = user_obj.User(name, search_dir=self.search_directory, system=self.system, datetime=self.search_time)
                 self.user_hash[name].add_file(file_tup)
 
     def export_data(self, db_obj):
@@ -74,8 +74,7 @@ class dk_stat:
 
     def email_users(self, email_obj, access_day_threshold, file_size_threshold, percentage_threshold):
         for user in self.user_hash.keys():
-            self.user_hash[user].email_user(email_obj)
-
+            self.user_hash[user].email_user(email_obj, access_day_threshold, file_size_threshold, percentage_threshold)
 
 
     #Utility Functions##########################
@@ -106,7 +105,7 @@ avrg_access_change=0.0)
 
 
 if __name__ == "__main__":
-    dk1 = dk_stat("/disk/scratch")
+    dk1 = dk_stat("/disk/scratch", "hecate")
     #dk1.dir_search();
     db = db_interface.data_base('dkmonitor', 'root', '')
     dk1.load_users_file("../user_txt_file3.txt")

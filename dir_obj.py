@@ -3,6 +3,7 @@ import stat_obj
 class Directory(stat_obj.Stat_obj):
     def __init__(self,
             search_dir=None,
+            system=None,
             datetime=None,
             total_file_size=None,
             use_percent=None,
@@ -14,6 +15,7 @@ class Directory(stat_obj.Stat_obj):
         stat_obj.Stat_obj.__init__(self,
                 "directory_stats",
                 search_dir = search_dir,
+                system = system,
                 datetime = datetime,
                 total_file_size = total_file_size,
                 use_percent = use_percent,
@@ -23,8 +25,10 @@ class Directory(stat_obj.Stat_obj):
                 )
 
     def build_query_str(self):
-        query_str = "searched_directory = '{sdir}'".format(
-                sdir=self.collumn_dict["searched_directory"])
+        query_str = "searched_directory = '{sdir}' AND system = '{sys}'".format(
+                sdir=self.collumn_dict["searched_directory"],
+                sys=self.collumn_dict["system"]
+                )
         return query_str
 
     def save_data(self):

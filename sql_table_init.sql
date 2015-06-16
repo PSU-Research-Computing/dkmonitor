@@ -2,6 +2,7 @@ CREATE TABLE IF NOT EXISTS directory_stats
 (
     datetime timestamp without time zone,
     searched_directory character varying(512),
+    system character varying(64),
     total_file_size bigint,
     disk_use_percent float,
     disk_use_change float,
@@ -17,6 +18,7 @@ CREATE TABLE IF NOT EXISTS user_stats
 (
     datetime timestamp without time zone NULL,
     searched_directory character varying(512) NULL,
+    system character varying(64),
     user_name character varying(64) NULL,
     total_file_size bigint NULL,
     disk_use_percent float NULL,

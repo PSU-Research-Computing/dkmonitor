@@ -7,6 +7,7 @@ class Stat_obj():
     def __init__(self,
             tname,
             search_dir=None,
+            system=None,
             datetime=None,
             total_file_size=None,
             use_percent=None,
@@ -21,6 +22,7 @@ class Stat_obj():
         self.collumn_dict = {
             'datetime': datetime,
             'searched_directory': search_dir,
+            'system': system,
             'total_file_size': total_file_size,
             'disk_use_percent': use_percent,
             'last_access_average': average_access,
@@ -56,7 +58,7 @@ class Stat_obj():
 
         db_insertion_function(self.table_name, [", ".join(column_list), ", ".join(value_list)])
 
-    def build_query_str(self): #This function must be impleneted
+    def build_query_str(self): #This function must be impleneted in the derived class
         raise NotImplementedError()
 
     def get_set_query_data(self, db_query_function):
@@ -65,6 +67,7 @@ class Stat_obj():
 
         query_data = db_query_function(self.table_name, query_str, compare_str)
 
+        #Checks for exsisting entries
         if query_data != None:
             disk_change = 0.0
             access_change = 0.0
