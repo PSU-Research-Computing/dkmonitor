@@ -39,27 +39,6 @@ class data_base:
             print ("Connection Error")
 
     #TODO Test this again. Not sure if this function is used
-    """
-    def query_date_compare(self, table, query_list, compare_list):
-        #table: table name to be queried
-        #query_list: nested list of items to query on. [[column_name, value], [...]]
-        #compare_list: list of columns to return from query
-
-        with self.connect() as db_cursor:
-
-            print ("Connected")
-            #Joining the nested lists in query_list
-            joined_subsets = []
-            for column in query_list:
-                joined_subsets.append(" = ".join(column))
-            joined_query_string = " AND ".join(joined_subsets)
-
-            #Joining the column names in compare list
-            compare_string = ", ".join(compare_list)
-
-            db_cursor.execute("SELECT {compares} FROM {tab} WHERE {querys} ORDER BY datetime DESC LIMIT 1;".format(compares=compare_string, tab=table, querys=joined_query_string))
-            return db_cursor.fetchone()
-    """
 
     def query_date_compare(self, table, query_str, compare_str):
         #table: table name to be queried
