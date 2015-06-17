@@ -35,6 +35,9 @@ class User(stat_obj.Stat_obj):
                 )
         return query_str
 
+    #TODO Figure out how to organize the email interface. 
+    # 1) Needs to flag users based on pre-set parameters
+    # 2) Then builds a message and uses the email objet to send them (possibly using an other class)
     def email_user(self, email_obj, access_day_threshold, file_size_threshold, percentage_threshold):
         access_passval = None
         size_passval = None
@@ -48,7 +51,6 @@ class User(stat_obj.Stat_obj):
             percent_passval = self.collumn_dict["disk_use_percent"]
 
         email_obj.send_email(self.collumn_dict["user_name"])
-        #TODO left off here. Need to work on flagging users to send emails.
 
     def save_data(self):
         self.calculate_stats()
