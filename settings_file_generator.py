@@ -20,7 +20,8 @@ def generate_json(file_name):
 
     email_dict = {
             "User_name" : "",
-            "Password" : ""}
+            "Password" : "",
+            "User_postfix" : ""}
 
     data_dict = {
             "Scheduled_Tasks" : {"Scratch" : task_dict, "Scratch2" : task_dict},
