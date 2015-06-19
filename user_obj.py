@@ -1,4 +1,5 @@
 import stat_obj
+import email_obj
 
 class User(stat_obj.Stat_obj):
     def __init__(self,
@@ -35,22 +36,37 @@ class User(stat_obj.Stat_obj):
                 )
         return query_str
 
-    #TODO Figure out how to organize the email interface. 
-    # 1) Needs to flag users based on pre-set parameters
-    # 2) Then builds a message and uses the email objet to send them (possibly using an other class)
-    def email_user(self, email_obj, access_day_threshold, file_size_threshold, percentage_threshold):
-        access_passval = None
-        size_passval = None
-        percent_passval = None
+    def email_user(self, emailer_obj, postfix, access_day_threshold, file_size_threshold, percentage_threshold):
 
+        message = None
         if (access_day_threshold > 0) and (access_day_threshold <= self.collumn_dict["last_access_average"]):
-            access_passval = self.collumn_dict["last_access_average"]
-        if (file_size_threshold  > 0) and (file_size_threshold <= self.collumn_dict["total_file_size"]):
-            size_passval = self.collumn_dict["total_file_size"]
-        if (percentage_threshold > 0) and (percentage_threshold <= self.collumn_dict["disk_use_percent"]):
-            percent_passval = self.collumn_dict["disk_use_percent"]
+            #TODO This method needs to get a list of old files, save their paths to a file
+            #TODO and attach them to the email document
+            if message == None:
+                message = self.create_message(postfix)
+            message.add_access_warning(self.collumn_dict["last_access_average"], access_day_threshold)
 
-        email_obj.send_email(self.collumn_dict["user_name"])
+        if (file_size_threshold > 0) and (file_size_threshold <= self.collumn_dict["total_file_size"]):
+            if message == None:
+                message = self.create_message(postfix)
+            message.add_size_warning(self.collumn_dict["total_file_size"], file_size_threshold)
+
+        if (percentage_threshold > 0) and (percentage_threshold <= self.collumn_dict["disk_use_percent"]):
+            if message == None:
+                message = self.create_message(postfix)
+            message.add_percent_warning(self.collumn_dict["disk_use_percent"], percentage_threshold)
+
+        if message != None:
+            emailer_obj.send_email(message)
+
+    def create_message(self, postfix):
+        address = self.collumn_dict["user_name"] + "@" + postfix
+        message = email_obj.Email(
+                address,
+                self.collumn_dict["system"],
+                self.collumn_dict["searched_directory"])
+
+        return message
 
     def save_data(self):
         self.calculate_stats()

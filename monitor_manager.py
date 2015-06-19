@@ -26,6 +26,7 @@ class Monitor_manager(settings_obj.Settings_interface):
         dk_stat_obj.export_data(self.database)
         dk_stat_obj.email_users(
                 self.emailer,
+                self.settings["Email_API"]["User_postfix"],
                 task["Email_flags"]["Access_day_threshold"],
                 task["Email_flags"]["Total_file_size_threshold"],
                 task["Email_flags"]["Use_percentage_threshold"])
