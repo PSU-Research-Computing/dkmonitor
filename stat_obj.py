@@ -1,5 +1,6 @@
 import os
 from collections import namedtuple
+from io import StringIO
 
 file_tuple = namedtuple('file_tuple', 'file_path file_size last_access')
 
@@ -127,14 +128,13 @@ class Stat_obj():
         self.collumn_dict["last_access_average"] = average_last_access
 
 
-    def get_old_file_list(self, minimum_day_num):
-        flaged_files = []
+    def build_old_file_attachment(self, minimum_day_num):
+        attachment = StringIO()
         for file_tuple in self.file_list:
             if file_tuple.last_access > minimum_day_num:
-                flaged_files.append(file_tuple.file_path)
+                attachment.write(file_tuple.file_tuple + '\n')
 
-        return flaged_files
-
+        return attachment
 
 
     def calculate_stats(self):

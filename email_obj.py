@@ -1,4 +1,5 @@
 from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
 class Email:
     def __init__(self, address, system, directory):
@@ -8,7 +9,7 @@ class Email:
 
         self.body = ""
 
-        self.msg = MIMEMultipart
+        self.msg = MIMEMultipart()
         self.msg["To"] = self.address
         self.msg["Subject"] = "Usage Warning on {sys}".format(sys=self.system)
 
@@ -23,10 +24,7 @@ class Email:
         """.format(user=self.address, dk=self.directory, sys=self.system)
         self.body += message
 
-    def add_access_warning(self, last_access, threshold):
-        #TODO this method also needs to be able to add an attached file with all old file paths
-        #TODO The file attachment could possibly be in an other method
-        #TODO Also need to address deleting the file after its sent to the user.
+    def add_access_warning(self, last_access, threshold, old_file_stream):
         message = """
         The average last access time for all of your files is too high.
         Your access average: {acc}
@@ -35,6 +33,8 @@ class Email:
         deleted, moved or used.
         """.format(acc=last_access, thresh=threshold)
         self.body += message
+        self.attach_file_stream(old_file_stream, "Old_file_list.txt")
+
 
     def add_size_warning(self, total_size, threshold):
         message = """
@@ -53,4 +53,10 @@ class Email:
         Please delete or move some of your data.
         """.format(per=percent, max_percent=threshold)
         self.body += message
+
+    def attach_file_stream(self, stream, attached_file_name):
+        stream.seek(0)
+        attachment = MIMEText(stream.read())
+        attachment.add_header('Content-Disposition', 'attachment', filename=attached_file_name)
+        self.msg.attach(attachment)
 

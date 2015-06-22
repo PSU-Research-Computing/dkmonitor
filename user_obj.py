@@ -44,7 +44,8 @@ class User(stat_obj.Stat_obj):
             #TODO and attach them to the email document
             if message == None:
                 message = self.create_message(postfix)
-            message.add_access_warning(self.collumn_dict["last_access_average"], access_day_threshold)
+            old_file_stream = self.build_old_file_attachment(access_day_threshold)
+            message.add_access_warning(self.collumn_dict["last_access_average"], access_day_threshold, old_file_stream)
 
         if (file_size_threshold > 0) and (file_size_threshold <= self.collumn_dict["total_file_size"]):
             if message == None:
