@@ -16,7 +16,8 @@ class data_base:
         self.password = password
 
         with self.connect() as db_cursor:
-            db_cursor.execute("select relname from pg_class where relkind='r' and relname !~ '^(pg_|sql_)';")
+            table_q = "select relname from pg_class where relkind='r' and relname !~ '^(pg_|sql_)';"
+            db_cursor.execute(table_q) #get table names
             self.tables = [table[0] for table in db_cursor.fetchall()]
 
 
@@ -25,35 +26,43 @@ class data_base:
         try:
             psycopg2.connect(database=self.db_name, user=self.user, password=self.password)
         except psycopg2.DatabaseError as db_error:
-            print ("Test Connection Error")
-        print ("Connection Successful")
+            print("Test Connection Error")
+        print("Connection Successful")
 
     @contextmanager
     def connect(self): #connects with database using the contextmanager decorator
         try:
-            with psycopg2.connect(database=self.db_name, user=self.user, password=self.password) as connection:
+            with psycopg2.connect(database=self.db_name,
+                                  user=self.user,
+                                  password=self.password) as connection:
                 with connection.cursor() as cursor:
                     yield cursor
         except psycopg2.DatabaseError as db_error:
-            print (db_error)
-            print ("Connection Error")
+            print(db_error)
+            print("Connection Error")
 
     #TODO Test this again. Not sure if this function is used
 
-    def query_date_compare(self, table, query_str, compare_str):
+    def query_date_compare(self, table_name, query_str, compare_str):
         #table: table name to be queried
         #query_str: String of items to query FORMAT: "collumn_name1 = value AND collumn_name2 = value2 ...
         #compare_str: string of collumn names to retrieve separated by commas FORMAT "collumn_name1, collumn_name2 ..."
 
         with self.connect() as db_cursor:
-            db_cursor.execute("SELECT {compares} FROM {tab} WHERE {querys} ORDER BY datetime DESC LIMIT 1;".format(compares=compare_str, tab=table, querys=query_str))
+            query = "SELECT {compares} FROM {tab} WHERE {querys} ORDER BY datetime DESC LIMIT 1;"
+            query.format(compares=compare_str, tab=table_name, querys=query_str)
+            db_cursor.execute(query)
             return db_cursor.fetchone()
 
 
     def store_row(self, table, data_list): #data_list is a list with joined collumn names as index 0 and values as index 1
         with self.connect() as db_cursor:
-        #deleted all of the formatting here and moved it to formate stat_tuple in dk_stat.py
-            db_cursor.execute("INSERT INTO {table_name} ({joined_collumn_list}) VALUES ({joined_value_list})".format(table_name=table, joined_collumn_list=data_list[0], joined_value_list=data_list[1]))
+            #deleted all of the formatting here and moved it to formate stat_tuple in dk_stat.py
+            in_str = "INSERT INTO {table_name} ({joined_collumn_list}) VALUES ({joined_value_list})"
+            in_str.format(table_name=table, #Add values to string
+                          joined_collumn_list=data_list[0],
+                          joined_value_list=data_list[1])
+            db_cursor.execute(in_str)
 
 if __name__ == '__main__':
     data = data_base('dkmonitor', 'root', '')

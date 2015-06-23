@@ -20,8 +20,9 @@ class emailer:
     #def build_and_send(self, access_val, file_size_val, percent_val):
 
 
-    def send_email(self, prefix):
-        self.server.sendmail(self.user_name, prefix + self.suffix, self.message(prefix))
+    def send_email(self, message):
+        self.server.sendmail(self.user_name, message["To"], message.as_string())
+        #pass
 
     def message(self, prefix):
         return_message = """

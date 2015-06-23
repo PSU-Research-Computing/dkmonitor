@@ -13,9 +13,9 @@ class Email:
         self.msg["To"] = self.address
         self.msg["Subject"] = "Usage Warning on {sys}".format(sys=self.system)
 
-    def build_message(self, last_access, file_size, use_percentage):
-        #TODO Implement this method next
-        pass
+    def build_message(self):
+        body = MIMEText(self.body, 'plain')
+        self.msg.attach(body)
 
     def main_message(self):
         message = """

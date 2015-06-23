@@ -42,15 +42,18 @@ class dk_stat:
 
         if recursive_dir == None:
             self.search_time = datetime.datetime.now()
-            self.directory_obj = dir_obj.Directory(search_dir=self.search_directory, system=self.system, datetime=self.search_time) #Creates dir_obj
-            self.dir_search(recursive_dir=self.search_directory)
+            self.directory_obj = dir_obj.Directory(search_dir=self.search_directory,
+                                                   system=self.system,
+                                                   datetime=self.search_time) #Creates dir_obj
+
+            self.dir_search(recursive_dir=self.search_directory) #starts recursive call
 
         else:
             if os.path.isdir(recursive_dir):
                 content_list = os.listdir(recursive_dir)
                 for i in content_list:
                     try:
-                        self.dir_search(recursive_dir = (recursive_dir + '/' + i)) #recursive call on every item
+                        self.dir_search(recursive_dir=(recursive_dir + '/' + i)) #recursive call on every item
                     except OSError:
                         pass
 
@@ -64,7 +67,10 @@ class dk_stat:
 
                 name = getpwuid(os.stat(recursive_dir).st_uid).pw_name #gets user name 
                 if name not in self.user_hash.keys(): #if name has not already be found then add to user_hash
-                    self.user_hash[name] = user_obj.User(name, search_dir=self.search_directory, system=self.system, datetime=self.search_time)
+                    self.user_hash[name] = user_obj.User(name,
+                                                         search_dir=self.search_directory,
+                                                         system=self.system,
+                                                         datetime=self.search_time)
                 self.user_hash[name].add_file(file_tup)
 
     def export_data(self, db_obj):
@@ -72,9 +78,19 @@ class dk_stat:
         for user in self.user_hash.keys():
             self.user_hash[user].export_data(db_obj)
 
-    def email_users(self, emailer_obj, postfix, access_day_threshold, file_size_threshold, percentage_threshold):
+    def email_users(self,
+                    emailer_obj,
+                    postfix,
+                    access_day_threshold,
+                    file_size_threshold,
+                    percentage_threshold):
+
         for user in self.user_hash.keys():
-            self.user_hash[user].email_user(emailer_obj, posfix, access_day_threshold, file_size_threshold, percentage_threshold)
+            self.user_hash[user].email_user(emailer_obj,
+                                            postfix,
+                                            access_day_threshold,
+                                            file_size_threshold,
+                                            percentage_threshold)
 
 
     #Utility Functions##########################
@@ -91,16 +107,27 @@ class dk_stat:
         with open(file_tuple_name, 'r') as ufile:
             for line in ufile:
                 dilim_list = line[:-1].split(" ")
-                print (dilim_list)
-                self.user_hash[dilim_list[0]] = user_obj.User(dilim_list[0], search_dir=str(dilim_list[3]), datetime=dilim_list[1], total_file_size=float(dilim_list[4]), use_percent=float(dilim_list[5]), average_access=float(dilim_list[6]), use_percent_change=0.0,
-avrg_access_change=0.0)
+                self.user_hash[dilim_list[0]] = user_obj.User(dilim_list[0],
+                                                              search_dir=str(dilim_list[3]),
+                                                              datetime=dilim_list[1],
+                                                              total_file_size=float(dilim_list[4]),
+                                                              use_percent=float(dilim_list[5]),
+                                                              average_access=float(dilim_list[6]),
+                                                              use_percent_change=0.0,
+                                                              avrg_access_change=0.0)
 
     def load_dir_obj(self, file_tuple_name):
         with open(file_tuple_name, 'r') as dfile:
             line = dfile.readline()
             dilim_list = line[:-1].split(" ")
             print (dilim_list[5])
-            self.directory_obj = dir_obj.Directory(datetime=dilim_list[0], search_dir=dilim_list[2], total_file_size=dilim_list[3], use_percent=float(dilim_list[4]), average_access=float(dilim_list[5]), use_percent_change=0.0, avrg_access_change=0.0)
+            self.directory_obj = dir_obj.Directory(datetime=dilim_list[0],
+                                                   search_dir=dilim_list[2],
+                                                   total_file_size=dilim_list[3],
+                                                   use_percent=float(dilim_list[4]),
+                                                   average_access=float(dilim_list[5]),
+                                                   use_percent_change=0.0,
+                                                   avrg_access_change=0.0)
 
 
 
