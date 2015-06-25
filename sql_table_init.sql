@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS directory_stats
     last_access_average float,
     access_average_change float,
 
-    PRIMARY KEY (datetime, searched_directory, total_file_size, disk_use_percent, disk_use_change, last_access_average, access_average_change)
+    PRIMARY KEY (datetime, searched_directory, system, total_file_size, disk_use_percent, disk_use_change, last_access_average, access_average_change)
 )
 
 WITH ( OIDS=FALSE );
@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS user_stats
     last_access_average float NULL,
     access_average_change float NULL,
 
-    PRIMARY KEY (datetime, searched_directory, user_name, total_file_size, disk_use_percent, disk_use_change, last_access_average, access_average_change)
+    PRIMARY KEY (datetime, searched_directory, system, user_name, total_file_size, disk_use_percent, disk_use_change, last_access_average, access_average_change)
 )
 
 WITH ( OIDS=FALSE );

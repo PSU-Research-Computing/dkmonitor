@@ -28,7 +28,7 @@ class User(stat_obj.Stat_obj):
 
     def build_query_str(self):
         query_str = "user_name = '{name}' AND searched_directory = '{sdir}' AND system = '{sys}'"
-        query_str.format(name=self.collumn_dict["user_name"],
+        query_str = query_str.format(name=self.collumn_dict["user_name"],
                          sdir=self.collumn_dict["searched_directory"],
                          sys=self.collumn_dict["system"])
 

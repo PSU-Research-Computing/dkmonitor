@@ -32,6 +32,7 @@ class Stat_obj():
         self.file_list.append(file_to_add)
 
     def export_data(self, db_obj):
+        self.calculate_stats()
         self.get_set_query_data(db_obj.query_date_compare)
         self.insert_db_row(db_obj.store_row)
 
@@ -124,7 +125,7 @@ class Stat_obj():
         attachment = StringIO()
         for file_tup in self.file_list:
             if file_tup.last_access > minimum_day_num:
-                attachment.write(file_tup.file_tuple + '\n')
+                attachment.write(file_tup.file_path + '\n')
 
         return attachment
 

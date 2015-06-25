@@ -10,10 +10,11 @@ from dk_stat import dk_stat
 
 class data_base:
 
-    def __init__(self, db_name, user, password):
+    def __init__(self, db_name, user, password, host):
         self.db_name = db_name
         self.user = user
         self.password = password
+        self.host = host
 
         with self.connect() as db_cursor:
             table_q = "select relname from pg_class where relkind='r' and relname !~ '^(pg_|sql_)';"
@@ -24,7 +25,7 @@ class data_base:
 
     def test_connection(self):
         try:
-            psycopg2.connect(database=self.db_name, user=self.user, password=self.password)
+            psycopg2.connect(database=self.db_name, user=self.user, password=self.password, host=self.host)
         except psycopg2.DatabaseError as db_error:
             print("Test Connection Error")
         print("Connection Successful")
@@ -34,7 +35,8 @@ class data_base:
         try:
             with psycopg2.connect(database=self.db_name,
                                   user=self.user,
-                                  password=self.password) as connection:
+                                  password=self.password,
+                                  host=self.host) as connection:
                 with connection.cursor() as cursor:
                     yield cursor
         except psycopg2.DatabaseError as db_error:
@@ -50,7 +52,7 @@ class data_base:
 
         with self.connect() as db_cursor:
             query = "SELECT {compares} FROM {tab} WHERE {querys} ORDER BY datetime DESC LIMIT 1;"
-            query.format(compares=compare_str, tab=table_name, querys=query_str)
+            query = query.format(compares=compare_str, tab=table_name, querys=query_str)
             db_cursor.execute(query)
             return db_cursor.fetchone()
 
@@ -58,10 +60,13 @@ class data_base:
     def store_row(self, table, data_list): #data_list is a list with joined collumn names as index 0 and values as index 1
         with self.connect() as db_cursor:
             #deleted all of the formatting here and moved it to formate stat_tuple in dk_stat.py
+            print(data_list[0])
+            print(data_list[1])
+            print()
             in_str = "INSERT INTO {table_name} ({joined_collumn_list}) VALUES ({joined_value_list})"
-            in_str.format(table_name=table, #Add values to string
-                          joined_collumn_list=data_list[0],
-                          joined_value_list=data_list[1])
+            in_str = in_str.format(table_name=table, #Add values to string
+                                   joined_collumn_list=data_list[0],
+                                   joined_value_list=data_list[1])
             db_cursor.execute(in_str)
 
 if __name__ == '__main__':

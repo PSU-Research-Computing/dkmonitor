@@ -22,19 +22,17 @@ class dk_stat:
     def __init__(self, system, search_dir):
 
         #Input search directory path verification exception
-        """
         try:
             os.listdir(search_dir)
         except:
             raise Exception("Directory path: {dir} is invalid.".format(dir=search_dir))
-        """
 
         self.search_time = 0
         self.user_hash = {}
         self.directory_obj = None
         self.system = system
         self.search_directory = search_dir
-        self.load_users_file("../user_txt_file2.txt")
+        #self.load_users_file("../user_txt_file2.txt")
         #print("Loaded")
 
 
