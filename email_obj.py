@@ -25,7 +25,7 @@ class Email:
         """.format(user=self.address, dk=self.directory, sys=self.system)
         self.body += message
 
-    def add_access_warning(self, last_access, threshold, old_file_stream):
+    def add_access_warning(self, last_access, threshold):
         message = """
         The average last access time for all of your files is too high.
         Your access average: {acc} days
@@ -34,8 +34,6 @@ class Email:
         deleted, moved or used.
         """.format(acc=last_access, thresh=threshold)
         self.body += message
-        self.attach_file_stream(old_file_stream, "Old_file_list.txt")
-
 
     def add_size_warning(self, total_size, threshold):
         message = """

@@ -130,11 +130,14 @@ class Stat_obj():
 
         return attachment
 
-    def build_json_stream(self):
+    def build_json_stream(self, access_day_threshold, file_size_threshold, percentage_threshold):
         attachment = StringIO()
-        tmp_dict = {'user_name': collumn_dict["user_name"],
-                    'system': collumn_dict['system'],
-                    'directory': collumn_dict['searched_directory']}
+        tmp_dict = {'user_name': self.collumn_dict["user_name"],
+                    'system': self.collumn_dict['system'],
+                    'directory': self.collumn_dict['searched_directory'],
+                    'access_day_threshold': access_day_threshold,
+                    'file_size_threshold': file_size_threshold,
+                    'percentage_threshold': percentage_threshold}
         json.dump(tmp_dict, attachment)
         return attachment
 
