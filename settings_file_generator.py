@@ -13,14 +13,15 @@ def generate_json(file_name):
 
     db_dict = {"User_name" : "",
                "Password" : "",
-               "DataBase" : ""}
+               "DataBase" : "",
+               "Host" : ""}
 
     email_dict = {"User_name" : "",
                   "Password" : "",
                   "User_postfix" : ""}
 
-    data_dict = {"Scheduled_Tasks" : {"Scratch" : task_dict, "Scratch2" : task_dict},
-                 "Database_info" : db_dict,
+    data_dict = {"Scheduled_Tasks" : {"Scratch" : task_dict},
+                 "DataBase_info" : db_dict,
                  "Email_API" : email_dict}
 
     with open(file_name, 'w') as jfile:
