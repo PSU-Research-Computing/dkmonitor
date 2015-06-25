@@ -8,6 +8,7 @@ class Email:
         self.directory = directory
 
         self.body = ""
+        self.main_message()
 
         self.msg = MIMEMultipart()
         self.msg["To"] = self.address
@@ -27,8 +28,8 @@ class Email:
     def add_access_warning(self, last_access, threshold, old_file_stream):
         message = """
         The average last access time for all of your files is too high.
-        Your access average: {acc}
-        Max access average: {thresh}
+        Your access average: {acc} days
+        Max access average: {thresh} days
         A file is attached to this email with all of your old files that need to either be
         deleted, moved or used.
         """.format(acc=last_access, thresh=threshold)
@@ -39,8 +40,8 @@ class Email:
     def add_size_warning(self, total_size, threshold):
         message = """
         The total size of all your files is too large.
-        Your total file size: {size}
-        Max total file size: {max_size}
+        Your total file size: {size} GB
+        Max total file size: {max_size} GB
         Please delete or move some of your data.
         """.format(size=total_size, max_size=threshold)
         self.body += message
@@ -59,4 +60,7 @@ class Email:
         attachment = MIMEText(stream.read())
         attachment.add_header('Content-Disposition', 'attachment', filename=attached_file_name)
         self.msg.attach(attachment)
+
+    def as_string(self):
+        return self.msg.as_string()
 
