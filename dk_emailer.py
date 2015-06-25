@@ -1,7 +1,7 @@
 import smtplib
 import settings_obj
+import sys
 
-#server.sendmail("wpatt2@pdx.edu", "willsnore@gmail.com", "testmessage")
 
 class emailer:
     def __init__(self, user_name, password, suffix):
@@ -21,12 +21,11 @@ class emailer:
 
 
     def send_email(self, message):
-        try:
-            self.server.sendmail("Do-Not-Reply", "wpatt2@pdx.edu", message.as_string())
-        except:
-            print("++++")
-            print(message["To"])
-            print("++++")
+        print("++++")
+        print(message.msg["To"])
+        print("++++")
+        #self.server.sendmail("Do-Not-Reply", "wpatt2@pdx.edu", message.as_string())
+        print(sys.getsizeof(message.as_string()))
         #self.server.sendmail(self.user_name, message["To"], message.as_string())
         #print("Emailing: " + message["To"])
 

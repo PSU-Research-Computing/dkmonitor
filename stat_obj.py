@@ -1,6 +1,7 @@
 import os
 from collections import namedtuple
 from io import StringIO
+import json
 
 file_tuple = namedtuple('file_tuple', 'file_path file_size last_access')
 
@@ -127,6 +128,14 @@ class Stat_obj():
             if file_tup.last_access > minimum_day_num:
                 attachment.write(file_tup.file_path + '\n')
 
+        return attachment
+
+    def build_json_stream(self):
+        attachment = StringIO()
+        tmp_dict = {'user_name': collumn_dict["user_name"],
+                    'system': collumn_dict['system'],
+                    'directory': collumn_dict['searched_directory']}
+        json.dump(tmp_dict, attachment)
         return attachment
 
 
