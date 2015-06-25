@@ -50,26 +50,28 @@ class dk_stat:
             if os.path.isdir(recursive_dir):
                 content_list = os.listdir(recursive_dir)
                 for i in content_list:
-                    try:
-                        self.dir_search(recursive_dir=(recursive_dir + '/' + i)) #recursive call on every item
-                    except OSError:
-                        pass
+                    current_path = recursive_dir + '/' + i
+                    if os.path.isfile(current_path): #If the source dir is a file then check to see when it was modified
+                        last_access = (time.time() - os.path.getatime(current_path)) / 86400 #divide CPU time into days
+                        file_size = int(os.path.getsize(current_path))
 
-            if os.path.isfile(recursive_dir): #If the source dir is a file then check to see when it was modified
-                last_access = (time.time() - os.path.getatime(recursive_dir)) / 86400 #divide CPU time into days
-                file_size = os.path.getsize(recursive_dir)
-                int(file_size)
+                        file_tup = file_tuple(current_path, file_size, last_access)
+                        self.directory_obj.add_file(file_tup) #Add file to directory obj
 
-                file_tup = file_tuple(recursive_dir, file_size, last_access)
-                self.directory_obj.add_file(file_tup) #Add file to directory obj
+                        name = getpwuid(os.stat(current_path).st_uid).pw_name #gets user name 
+                        if name not in self.user_hash.keys(): #if name has not already be found then add to user_hash
+                            self.user_hash[name] = user_obj.User(name,
+                                                                 search_dir=self.search_directory,
+                                                                 system=self.system,
+                                                                 datetime=self.search_time)
+                        self.user_hash[name].add_file(file_tup)
 
-                name = getpwuid(os.stat(recursive_dir).st_uid).pw_name #gets user name 
-                if name not in self.user_hash.keys(): #if name has not already be found then add to user_hash
-                    self.user_hash[name] = user_obj.User(name,
-                                                         search_dir=self.search_directory,
-                                                         system=self.system,
-                                                         datetime=self.search_time)
-                self.user_hash[name].add_file(file_tup)
+                    else:
+                        try:
+                            self.dir_search(recursive_dir=(current_path)) #recursive call on every directory
+                        except OSError:
+                            pass
+
 
     def export_data(self, db_obj):
         self.directory_obj.export_data(db_obj)

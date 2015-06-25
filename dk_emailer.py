@@ -21,9 +21,14 @@ class emailer:
 
 
     def send_email(self, message):
-        self.server.sendmail("Do-Not-Reply", "wpatt2@pdx.edu", message.as_string())
+        try:
+            self.server.sendmail("Do-Not-Reply", "wpatt2@pdx.edu", message.as_string())
+        except:
+            print("++++")
+            print(message["To"])
+            print("++++")
         #self.server.sendmail(self.user_name, message["To"], message.as_string())
-        #pass
+        #print("Emailing: " + message["To"])
 
     def message(self, prefix):
         return_message = """

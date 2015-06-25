@@ -3,6 +3,7 @@ import db_interface
 import dk_stat
 import settings_obj
 import dk_emailer
+import time
 
 class Monitor_manager(settings_obj.Settings_interface):
 
@@ -22,7 +23,13 @@ class Monitor_manager(settings_obj.Settings_interface):
         task = self.settings["Scheduled_Tasks"][task_name]
         dk_stat_obj = dk_stat.dk_stat(task["System_name"], task["Directory_Path"])
         print("Searching {path}".format(path=task["Directory_Path"]))
+        start = time.time()
         dk_stat_obj.dir_search()
+        end = time.time()
+        total = end - start
+        print('----')
+        print(total)
+        print('----')
         print("Done. Exporting data To database...")
         dk_stat_obj.export_data(self.database)
         print("Done. Emailing Users")
