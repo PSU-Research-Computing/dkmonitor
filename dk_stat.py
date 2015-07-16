@@ -52,13 +52,14 @@ class dk_stat:
                 for i in content_list:
                     current_path = recursive_dir + '/' + i
                     if os.path.isfile(current_path): #If the source dir is a file then check to see when it was modified
+
                         last_access = (time.time() - os.path.getatime(current_path)) / 86400 #divide CPU time into days
-                        file_size = int(os.path.getsize(current_path))
+                        file_size = int(os.path.getsize(current_path)) #Gets file size
+                        name = getpwuid(os.stat(current_path).st_uid).pw_name #gets user name 
 
                         file_tup = file_tuple(current_path, file_size, last_access)
                         self.directory_obj.add_file(file_tup) #Add file to directory obj
 
-                        name = getpwuid(os.stat(current_path).st_uid).pw_name #gets user name 
                         if name not in self.user_hash.keys(): #if name has not already be found then add to user_hash
                             self.user_hash[name] = user_obj.User(name,
                                                                  search_dir=self.search_directory,
