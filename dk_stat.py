@@ -57,7 +57,7 @@ class dk_stat:
                         file_size = int(os.path.getsize(current_path)) #Gets file size
                         name = getpwuid(os.stat(current_path).st_uid).pw_name #gets user name 
 
-                        file_tup = file_tuple(current_path, file_size, last_access)
+                        file_tup = file_tuple(current_path, file_tuple_size, last_access)
                         self.directory_obj.add_file(file_tup) #Add file to directory obj
 
                         if name not in self.user_hash.keys(): #if name has not already be found then add to user_hash
