@@ -68,6 +68,9 @@ class dir_purge:
                         except OSError:
                             pass
 
+    def run_purge(self):
+        pass
+
 
 if __name__ == "__main__":
     descript = """This is a file purging script provided by ARC staff
