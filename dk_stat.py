@@ -83,21 +83,14 @@ class dk_stat:
     def email_users(self,
                     emailer_obj,
                     postfix,
-                    access_day_threshold,
-                    file_size_threshold,
-                    percentage_threshold):
+                    problem_threshold):
 
-        problem_lists = get_problem_users(problem_threshold) #TODO implement problem_threshold
-        for large_user, old_user in zip(problem_lists[0], problem_lists[1]):
-            self.user_hash[large_user[0]].large_problem_email(emailer_obj, postfix)
-            self.user_hash[old_user[0]].old_problem_email(emailer_obj, postfix)
-
+        problem_lists = get_problem_users(problem_threshold)
         for user in self.user_hash.keys():
             self.user_hash[user].email_user(emailer_obj,
                                             postfix,
-                                            access_day_threshold,
-                                            file_size_threshold,
-                                            percentage_threshold)
+                                            access_threshold,
+                                            problem_lists)
 
 
     def get_disk_use_percent():
@@ -105,15 +98,16 @@ class dk_stat:
         use_percentage = use.used / use.total
         return use_percentage
 
+
     def get_problem_users(problem_threshold):
         stat_list = []
-        flag_user_number = len(self.user_hash.keys()) * problem_threshold
+        flag_user_number = int(len(self.user_hash.keys()) * problem_threshold)
         for user in self.user_hash.keys():
             stats = self.user_hash[user].get_stats()
             stat_list.append([user, stats[0], stats[1]])
 
-        large_list = sorted(stat_list, key=operator.itemgetter(2), reverse=True)[:flag_user_number]
-        old_list = sorted(stat_list, key=operator.itemgetter(1), reverse=True)[:flag_user_number]
+        large_list = sorted(stat_list, key=operator.itemgetter(2), reverse=True)[:flag_user_number][0] #TODO could fail 
+        old_list = sorted(stat_list, key=operator.itemgetter(1), reverse=True)[:flag_user_number][0]
 
         return [large_list, old_list]
 

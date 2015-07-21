@@ -51,13 +51,9 @@ class Monitor_manager(settings_obj.Settings_interface):
         dk_stat_obj.dir_search() #Searches the Directory 
         dk_stat_obj.export_data(self.database) #Exports data from dk_stat_obj to the database
         if dk_stat_obj.get_disk_use_percent > task["Disk_Use_Threshold"]: #TODO Implement Use threshold
-            #dk_stat_obj.email_biggest_oldest()
-            #dk_stat_obj.move_oldest()
             dk_stat_obj.email_users(self.emailer, #Emails users
                                     self.settings["Email_API"]["User_postfix"],
-                                    task["Email_flags"]["Access_day_threshold"],
-                                    task["Email_flags"]["Total_file_size_threshold"],
-                                    task["Email_flags"]["Use_percentage_threshold"])
+                                    task["Bad_flag_percent"])
 
 
     #Runs all tasks in the json settings file

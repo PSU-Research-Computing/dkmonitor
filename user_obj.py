@@ -34,39 +34,19 @@ class User(stat_obj.Stat_obj):
 
         return query_str
 
-    def email_user(self, emailer_obj, postfix, access_threshold):
-        old_file_info = self.find_old(access_threshold)
+    def email_user(self, emailer_obj, postfix, access_threshold, problem_lists):
+        old_info = self.find_old_info(access_threshold)
+        message = self.create_message(postfix)
+        if self.collumn_dict["user_name"] in problem_lists[0]: #Adds top size use warning to message
+            message.add_top_use_warning(self.collumn_dict["total_file_size"])
+        if self.collumn_dict["user_name"] in problem_lists[1]: #Adds top old file warning to message
+            message.add_top_old_warning(self.collumn_dict["last_access_average"], self.collumn_dict["disk_use_percent"])
+
         if old_file_info[1] > 0:
-            message = self.create_message(postfix)
-            message.add_access_warning(old_file_info, access_threshold)
+            message.add_access_warning(old_file_info, access_threshold) #Adds general old file warning to message
             message.build_message()
             emailer_obj.send_email(message)
 
-    def email_user_depricated(self, emailer_obj, postfix, access_day_threshold, file_size_threshold, percentage_threshold):
-
-        message = None
-        if (access_day_threshold > 0) and (access_day_threshold <= self.collumn_dict["last_access_average"]):
-            if message == None:
-                message = self.create_message(postfix)
-            message.add_access_warning(self.collumn_dict["last_access_average"], access_day_threshold)
-
-        if (file_size_threshold > 0) and (file_size_threshold <= self.collumn_dict["total_file_size"]):
-            if message == None:
-                message = self.create_message(postfix)
-            message.add_size_warning(self.collumn_dict["total_file_size"], file_size_threshold)
-
-        if (percentage_threshold > 0) and (percentage_threshold <= self.collumn_dict["disk_use_percent"]):
-            if message == None:
-                message = self.create_message(postfix)
-            message.add_percent_warning(self.collumn_dict["disk_use_percent"], percentage_threshold)
-
-        if message != None:
-            message.attach_file_stream(self.build_json_stream(access_day_threshold,
-                                                              file_size_threshold,
-                                                              percentage_threshold),
-                                       "purge_file.json")
-            message.build_message()
-            emailer_obj.send_email(message)
 
     def create_message(self, postfix):
         address = self.collumn_dict["user_name"] + "@" + postfix
@@ -75,6 +55,16 @@ class User(stat_obj.Stat_obj):
                                   self.collumn_dict["searched_directory"])
 
         return message
+
+    def find_old_info(self, access_threshold):
+        total_old_file_size = 0
+        count = 0
+        for fi in self.file_list:
+            if fi.last_access > access_threshold:
+                total_old_file_size += fi.file_size
+                count += 1
+
+        return [total_old_file_size, count]
 
     def save_data(self):
         self.calculate_stats()
@@ -87,21 +77,13 @@ class User(stat_obj.Stat_obj):
 
         return " ".join(join_list)
 
-    def find_old(self, access_threshold):
-        total_old_file_size = 0
-        count = 0
+    def move_old_files(self, move_to, old_threshold):
+        root_dir = move_to + self.collumn_dict["user_name"] + "_oldFiles"
+        if not os.path.exists(root_dir):
+            os.mkdir(root_dir)
         for fi in self.file_list:
-            if fi.last_access > access_threshold:
-                total_old_file_size += fi.file_size
-                count += 1
-
-        return [total_old_file_size, count]
-
-
-
-
-
-
+            if fi.last_access >= old_threshold:
+                pass #TODO copy to new location
 
 
 

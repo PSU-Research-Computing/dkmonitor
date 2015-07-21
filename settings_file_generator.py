@@ -1,16 +1,13 @@
 import json
 
 def generate_json(file_name):
-    flag_dict = {"Access_day_threshold" : 30,
-                 "Total_file_size_threshold" : 500,
-                 "Use_percentage_threshold" : 5}
-
     task_dict = {"System_name" : "",
                  "Directory_Path" : "",
                  "Days_Between_Runs" : 30,
+                 "Last_Access_Threshold" : 14,
+                 "Bad_flag_percent" : .25,
                  "Disk_Use_Threshold" : .8,
-                 "Email_Users" : "",
-                 "Email_flags" : flag_dict}
+                 "Email_Users" : ""}
 
     db_dict = {"User_name" : "",
                "Password" : "",

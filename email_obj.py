@@ -22,35 +22,36 @@ class Email:
         message = """
         Dear {user},
         You have been flagged for improper use of {dk} on {sys}. Please address the message(s) below to fix the problem.
+
         """.format(user=self.address, dk=self.directory, sys=self.system)
         self.body += message
 
-    def add_access_warning(self, last_access, threshold):
+    def add_access_warning(self, old_file_info, threshold):
         message = """
-        The average last access time for all of your files is too high.
-        Your access average: {acc} days
-        Max access average: {thresh} days
-        A file is attached to this email with all of your old files that need to either be
-        deleted, moved or used.
-        """.format(acc=last_access, thresh=threshold)
+        WARNING: All files accessed less than {thresh} days ago will be moved to /tmp
+        Number of old files: {old_num}
+        Combined size of old files: {size}
+
+        """.format(size=old_file_info[0], old_num=old_file_info[1], thresh=threshold)
         self.body += message
 
-    def add_size_warning(self, total_size, threshold):
+    def add_top_use_warning(self, total_size, dk_usage):
         message = """
-        The total size of all your files is too large.
-        Your total file size: {size} GB
-        Max total file size: {max_size} GB
-        Please delete or move some of your data.
-        """.format(size=total_size, max_size=threshold)
+        WARNING: You have been flagged as a top space user of {dk} on {sys}.
+        {dk} is over it's use threshold. Please reduce your data usage.
+        Total size of all files: {size}
+        Total disk use: {dk_use}
+
+        """.format(dk=self.directory, sys=self.system, size=total_size, dk_use=dk_usage)
         self.body += message
 
-    def add_percent_warning(self, percent, threshold):
+    def add_top_old_warning(self, access_arvg):
         message = """
-        You are using to large of a percentage of disk space.
-        Your disk use percentage: {per}%
-        Max disk use percent: {max_percent}%
-        Please delete or move some of your data.
-        """.format(per=percent, max_percent=threshold)
+        WARNING: You have been flagged as a top holder of old files in {dk} on {sys}.
+        Please use or remove all of your old files or they will be removed for you.
+        Last access average of all your files: {acc}
+
+        """.format(dk=self.directory, sys=self.system, acc=access_arvg)
         self.body += message
 
     def attach_file_stream(self, stream, attached_file_name):
