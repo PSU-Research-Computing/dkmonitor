@@ -8,6 +8,7 @@ def generate_json(file_name):
     task_dict = {"System_name" : "",
                  "Directory_Path" : "",
                  "Days_Between_Runs" : 30,
+                 "Disk_Use_Threshold" : .8,
                  "Email_Users" : "",
                  "Email_flags" : flag_dict}
 

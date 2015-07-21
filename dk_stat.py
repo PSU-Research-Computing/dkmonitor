@@ -1,4 +1,5 @@
 import os
+import shutil
 import time
 from pwd import getpwuid
 import operator
@@ -92,6 +93,28 @@ class dk_stat:
                                             access_day_threshold,
                                             file_size_threshold,
                                             percentage_threshold)
+
+
+    def get_disk_use_percent():
+        use = shutil.disk_usage(self.search_directory)
+        use_percentage = use.used / use.total
+        return use_percentage
+
+    def get_problem_users(problem_threshold):
+        stat_list = []
+        flag_user_number = len(self.user_hash.keys()) * problem_threshold
+        for user in self.user_hash.keys():
+            stats = self.user_hash[user].get_stats()
+            stat_list.append([user, stats[0], stats[1]])
+
+        large_list = sorted(stat_list, key=operator.itemgetter(2), reverse=True)[:flag_user_number]
+        old_list = sorted(stat_list, key=operator.itemgetter(1), reverse=True)[:flag_user_number]
+
+        return [large_list, old_list]
+
+
+    def get_oldest():
+        pass
 
 
     #Utility Functions##########################

@@ -38,8 +38,6 @@ class User(stat_obj.Stat_obj):
 
         message = None
         if (access_day_threshold > 0) and (access_day_threshold <= self.collumn_dict["last_access_average"]):
-            #TODO This method needs to get a list of old files, save their paths to a file
-            #TODO and attach them to the email document
             if message == None:
                 message = self.create_message(postfix)
             message.add_access_warning(self.collumn_dict["last_access_average"], access_day_threshold)

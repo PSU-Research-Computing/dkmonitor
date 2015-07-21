@@ -88,6 +88,10 @@ class Stat_obj():
             self.collumn_dict["disk_use_change"] = disk_change
             self.collumn_dict["access_average_change"] = access_change
 
+    def get_stats():
+        self.calculate_stats()
+        return [self.collumn_dict["use_percent"], self.collumn_dict["last_access_average"]]
+
 #####DATA PROCESSING FUCNTIONS##################
     def get_total_space(self):
         total_space = 0
