@@ -87,6 +87,11 @@ class dk_stat:
                     file_size_threshold,
                     percentage_threshold):
 
+        problem_lists = get_problem_users(problem_threshold) #TODO implement problem_threshold
+        for large_user, old_user in zip(problem_lists[0], problem_lists[1]):
+            self.user_hash[large_user[0]].large_problem_email(emailer_obj, postfix)
+            self.user_hash[old_user[0]].old_problem_email(emailer_obj, postfix)
+
         for user in self.user_hash.keys():
             self.user_hash[user].email_user(emailer_obj,
                                             postfix,
@@ -111,10 +116,6 @@ class dk_stat:
         old_list = sorted(stat_list, key=operator.itemgetter(1), reverse=True)[:flag_user_number]
 
         return [large_list, old_list]
-
-
-    def get_oldest():
-        pass
 
 
     #Utility Functions##########################

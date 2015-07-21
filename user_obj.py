@@ -34,7 +34,15 @@ class User(stat_obj.Stat_obj):
 
         return query_str
 
-    def email_user(self, emailer_obj, postfix, access_day_threshold, file_size_threshold, percentage_threshold):
+    def email_user(self, emailer_obj, postfix, access_threshold):
+        old_file_info = self.find_old(access_threshold)
+        if old_file_info[1] > 0:
+            message = self.create_message(postfix)
+            message.add_access_warning(old_file_info, access_threshold)
+            message.build_message()
+            emailer_obj.send_email(message)
+
+    def email_user_depricated(self, emailer_obj, postfix, access_day_threshold, file_size_threshold, percentage_threshold):
 
         message = None
         if (access_day_threshold > 0) and (access_day_threshold <= self.collumn_dict["last_access_average"]):
@@ -78,6 +86,19 @@ class User(stat_obj.Stat_obj):
                      str(self.collumn_dict["last_access_average"])]
 
         return " ".join(join_list)
+
+    def find_old(self, access_threshold):
+        total_old_file_size = 0
+        count = 0
+        for fi in self.file_list:
+            if fi.last_access > access_threshold:
+                total_old_file_size += fi.file_size
+                count += 1
+
+        return [total_old_file_size, count]
+
+
+
 
 
 
