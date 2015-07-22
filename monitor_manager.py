@@ -61,6 +61,12 @@ class Monitor_manager(settings_obj.Settings_interface):
         for task in self.settings["Scheduled_Tasks"].keys():
             self.run_task(task)
 
+    def schedule_clean(self):
+        pass
+
+    def clean_disk(self):
+        pass
+
 
 if __name__ == "__main__":
     mon_man = Monitor_manager()
