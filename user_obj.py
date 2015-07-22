@@ -1,3 +1,6 @@
+import re
+import os
+import shutil
 import stat_obj
 import email_obj
 
@@ -66,6 +69,23 @@ class User(stat_obj.Stat_obj):
 
         return [total_old_file_size, count]
 
+
+    #Moves old files over to an archive disk while hopefuly maintaining file structure
+    def move_old_files(self, move_to, old_threshold):
+        root_dir = move_to + self.collumn_dict["user_name"] + "_oldFiles"
+        if not os.path.exists(root_dir):
+            os.mkdir(root_dir)
+        for fi in self.file_list:
+            if fi.last_access >= old_threshold:
+                new_file_path = re.sub("^{old_path}", root_dir, fi.file_path)
+                last = new_file_path.rfind('/')
+                dir_path = new_file_path[:last]
+                if not os.path.exists(dir_path):
+                    os.makedirs(dir_path)
+                shutil.move(fi.file_path, new_file_path)
+
+
+
     def save_data(self):
         self.calculate_stats()
         join_list = [self.collumn_dict["user_name"],
@@ -76,16 +96,4 @@ class User(stat_obj.Stat_obj):
                      str(self.collumn_dict["last_access_average"])]
 
         return " ".join(join_list)
-
-    def move_old_files(self, move_to, old_threshold):
-        root_dir = move_to + self.collumn_dict["user_name"] + "_oldFiles"
-        if not os.path.exists(root_dir):
-            os.mkdir(root_dir)
-        for fi in self.file_list:
-            if fi.last_access >= old_threshold:
-                pass #TODO copy to new location
-
-
-
-
 
