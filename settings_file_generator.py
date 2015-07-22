@@ -3,6 +3,8 @@ import json
 def generate_json(file_name):
     task_dict = {"System_name" : "",
                  "Directory_Path" : "",
+                 "File_Relocation_Path" : "",
+                 "Relocation_After_Warning_Message" : 2,
                  "Days_Between_Runs" : 30,
                  "Last_Access_Threshold" : 14,
                  "Bad_flag_percent" : .25,
