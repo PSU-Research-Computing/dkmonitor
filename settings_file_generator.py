@@ -6,8 +6,8 @@ def generate_json(file_name):
                  "File_Relocation_Path" : "/tmp",
                  "Days_Between_Runs" : 1,
                  "Last_Access_Threshold" : 14,
-                 "Bad_flag_percent" : .25,
-                 "Disk_Use_Threshold" : .8,
+                 "Bad_flag_percent" : 25.0,
+                 "Disk_Use_Percent_Threshold" : 40.0,
                  "Email_Users" : "yes"}
 
     db_dict = {"User_name" : "",

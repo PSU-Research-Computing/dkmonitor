@@ -106,7 +106,7 @@ class dk_stat:
     def get_disk_use_percent(self):
         use = shutil.disk_usage(self.search_directory)
         use_percentage = use.used / use.total
-        return use_percentage
+        return use_percentage * 100
 
 
     #Returns a list of lists
@@ -114,6 +114,7 @@ class dk_stat:
     #List two is the largest holders of old data
     def get_problem_users(self, problem_threshold):
         stat_list = []
+        problem_threshold = problem_threshold / 100
         flag_user_number = int(len(self.user_hash.keys()) * problem_threshold)
         for user in self.user_hash.keys():
             stats = self.user_hash[user].get_stats()

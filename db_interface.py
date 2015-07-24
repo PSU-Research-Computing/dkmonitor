@@ -16,6 +16,8 @@ class data_base:
         self.password = password
         self.host = host
 
+        #Add Connection Tesing
+        #TODO Delete this safely
         with self.connect() as db_cursor:
             table_q = "select relname from pg_class where relkind='r' and relname !~ '^(pg_|sql_)';"
             db_cursor.execute(table_q) #get table names

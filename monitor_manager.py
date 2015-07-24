@@ -21,12 +21,10 @@ class Monitor_manager(settings_obj.Settings_interface):
                                                self.settings["DataBase_info"]["Password"],
                                                self.settings["DataBase_info"]["Host"])
 
-        #Checks for cleaning routines
-        self.check_clean()
-
     #Rus a single task from the settings json file loaded
     def run_task_time(self, task_name):
         task = self.settings["Scheduled_Tasks"][task_name]
+        self.check_clean_task(task)
         dk_stat_obj = dk_stat.dk_stat(task["System_name"], task["Directory_Path"]) #Instanciates the disk statistics object
         print("Searching {path}".format(path=task["Directory_Path"]))
         start = time.time()
@@ -52,6 +50,7 @@ class Monitor_manager(settings_obj.Settings_interface):
 
     def run_task(self, task_name):
         task = self.settings["Scheduled_Tasks"][task_name]
+        self.check_clean_task(task)
         dk_stat_obj = dk_stat.dk_stat(task["System_name"], task["Directory_Path"]) #Instanciates the disk statistics object
         dk_stat_obj.dir_search() #Searches the Directory 
         dk_stat_obj.export_data(self.database) #Exports data from dk_stat_obj to the database
@@ -73,25 +72,25 @@ class Monitor_manager(settings_obj.Settings_interface):
         for task in self.settings["Scheduled_Tasks"].keys():
             self.run_task_time(task)
 
-    def check_clean(self):
-        for task in self.settings["Scheduled_Tasks"].keys():
-            if task["File_Relocation_Path"] != "":
-                query_str = build_query_str(task)
-                collumn_names = "*"
-                query_data = self.database.query_date_compare(query_str, collumn_names, "directory_stats")
-                if query_data != None:
-                    self.clean_disk(task["Directory_Path"], task["File_Relocation_Path"])
+    def check_clean_task(self, task):
+        if task["File_Relocation_Path"] != "":
+            query_str = self.build_query_str(task)
+            collumn_names = "disk_use_percent"
+
+            query_data = self.database.query_date_compare("directory_stats", query_str, collumn_names)
+            if query_data == None:
+                pass
+            elif query_data[0] > task["Disk_Use_Percent_Threshold"]:
+                self.clean_disk(task["Directory_Path"], task["File_Relocation_Path"])
 
     def clean_disk(self, directory, relocation_path):
-        pass
+        print("CLeaning...")
 
-    def build_query_str(self, task_name):
-        task = self.settings["Scheduled_Tasks"][task_name]
-        query_str = "disk_use_percent > '{dkp}' AND searched_directory = '{sdir}' AND system = '{sys}'"
-        query_str = query_str.format(dkp=task["Disk_Use_Threshold"],
+    def build_query_str(self, task):
+        query_str = "searched_directory = '{sdir}' AND system = '{sys}'"
+        query_str = query_str.format(dkp=task["Disk_Use_Percent_Threshold"],
                                      sdir=task["Directory_Path"],
                                      sys=task["System_name"])
-
         return query_str
 
 
