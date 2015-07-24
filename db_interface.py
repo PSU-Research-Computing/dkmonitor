@@ -45,6 +45,7 @@ class data_base:
 
     #TODO Test this again. Not sure if this function is used
 
+    #This function gets the most recent row with certain collumn values
     def query_date_compare(self, table_name, query_str, compare_str):
         #table: table name to be queried
         #query_str: String of items to query FORMAT: "collumn_name1 = value AND collumn_name2 = value2 ...

@@ -4,7 +4,6 @@ def generate_json(file_name):
     task_dict = {"System_name" : "Circe",
                  "Directory_Path" : "/disk/scratch",
                  "File_Relocation_Path" : "/tmp",
-                 "Relocation_After_Warning_Message" : 2,
                  "Days_Between_Runs" : 1,
                  "Last_Access_Threshold" : 14,
                  "Bad_flag_percent" : .25,

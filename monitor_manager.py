@@ -21,6 +21,9 @@ class Monitor_manager(settings_obj.Settings_interface):
                                                self.settings["DataBase_info"]["Password"],
                                                self.settings["DataBase_info"]["Host"])
 
+        #Checks for cleaning routines
+        self.check_clean()
+
     #Rus a single task from the settings json file loaded
     def run_task_time(self, task_name):
         task = self.settings["Scheduled_Tasks"][task_name]
@@ -70,11 +73,28 @@ class Monitor_manager(settings_obj.Settings_interface):
         for task in self.settings["Scheduled_Tasks"].keys():
             self.run_task_time(task)
 
-    def schedule_clean(self):
+    def check_clean(self):
+        for task in self.settings["Scheduled_Tasks"].keys():
+            if task["File_Relocation_Path"] != "":
+                query_str = build_query_str(task)
+                collumn_names = "*"
+                query_data = self.database.query_date_compare(query_str, collumn_names, "directory_stats")
+                if query_data != None:
+                    self.clean_disk(task["Directory_Path"], task["File_Relocation_Path"])
+
+    def clean_disk(self, directory, relocation_path):
         pass
 
-    def clean_disk(self):
-        pass
+    def build_query_str(self, task_name):
+        task = self.settings["Scheduled_Tasks"][task_name]
+        query_str = "disk_use_percent > '{dkp}' AND searched_directory = '{sdir}' AND system = '{sys}'"
+        query_str = query_str.format(dkp=task["Disk_Use_Threshold"],
+                                     sdir=task["Directory_Path"],
+                                     sys=task["System_name"])
+
+        return query_str
+
+
 
 
 if __name__ == "__main__":
