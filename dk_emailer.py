@@ -21,13 +21,12 @@ class emailer:
 
 
     def send_email(self, message):
-        print("++++")
-        print(message.msg["To"])
-        print("++++")
-        #self.server.sendmail("Do-Not-Reply", "wpatt2@pdx.edu", message.as_string())
-        print(sys.getsizeof(message.as_string()))
-        #self.server.sendmail(self.user_name, message["To"], message.as_string())
+        #print("++++")
         #print("Emailing: " + message["To"])
+        #print(sys.getsizeof(message.as_string()))
+        #print("++++")
+        self.server.sendmail("Do-Not-Reply", "wpatt2@pdx.edu", message.as_string())
+        #self.server.sendmail(self.user_name, message["To"], message.as_string())
 
     def message(self, prefix):
         return_message = """

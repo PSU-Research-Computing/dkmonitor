@@ -17,6 +17,7 @@ import db_interface
 
 #User = namedtuple('User', 'tota_size use_percent average_access')
 file_tuple = namedtuple('file_tuple', 'file_path file_size last_access')
+stat_tuple = namedtuple('stat_tuple', 'total_file_size last_access_average')
 
 class dk_stat:
 
@@ -37,6 +38,8 @@ class dk_stat:
         #print("Loaded")
 
 
+    #Searches through entire directory tree recursively
+    #Saves file info in a dict sorted by user
     def dir_search(self, recursive_dir=None): #possibly divide into multiple fucntions
 
         if recursive_dir == None:
@@ -54,11 +57,12 @@ class dk_stat:
                     current_path = recursive_dir + '/' + i
                     if os.path.isfile(current_path): #If the source dir is a file then check to see when it was modified
 
+                        #TODO consolidate all of these lines into a add_file function call
                         last_access = (time.time() - os.path.getatime(current_path)) / 86400 #divide CPU time into days
                         file_size = int(os.path.getsize(current_path)) #Gets file size
                         name = getpwuid(os.stat(current_path).st_uid).pw_name #gets user name 
 
-                        file_tup = file_tuple(current_path, file_tuple_size, last_access)
+                        file_tup = file_tuple(current_path, file_size, last_access)
                         self.directory_obj.add_file(file_tup) #Add file to directory obj
 
                         if name not in self.user_hash.keys(): #if name has not already be found then add to user_hash
@@ -75,6 +79,7 @@ class dk_stat:
                             pass
 
 
+    #Exports the file data from the User dict to a database object
     def export_data(self, db_obj):
         self.directory_obj.export_data(db_obj)
         for user in self.user_hash.keys():
@@ -83,36 +88,53 @@ class dk_stat:
     def email_users(self,
                     emailer_obj,
                     postfix,
+                    last_access_threshold,
+                    days_between_runs,
+                    move_dir,
                     problem_threshold):
 
-        problem_lists = get_problem_users(problem_threshold)
+        problem_lists = self.get_problem_users(problem_threshold)
         for user in self.user_hash.keys():
             self.user_hash[user].email_user(emailer_obj,
                                             postfix,
-                                            access_threshold,
+                                            last_access_threshold,
+                                            days_between_runs,
+                                            move_dir,
                                             problem_lists)
 
 
-    def get_disk_use_percent():
+    def get_disk_use_percent(self):
         use = shutil.disk_usage(self.search_directory)
         use_percentage = use.used / use.total
         return use_percentage
 
 
-    def get_problem_users(problem_threshold):
+    #Returns a list of lists
+    #List in item one is the largest users of space
+    #List two is the largest holders of old data
+    def get_problem_users(self, problem_threshold):
         stat_list = []
         flag_user_number = int(len(self.user_hash.keys()) * problem_threshold)
         for user in self.user_hash.keys():
             stats = self.user_hash[user].get_stats()
             stat_list.append([user, stats[0], stats[1]])
 
-        large_list = sorted(stat_list, key=operator.itemgetter(2), reverse=True)[:flag_user_number][0] #TODO could fail 
-        old_list = sorted(stat_list, key=operator.itemgetter(1), reverse=True)[:flag_user_number][0]
+        print("Total users: {flag}".format(flag=len(self.user_hash.keys())))
+        print("Total Flagged users: {flag}".format(flag=flag_user_number))
+        large_list = sorted(stat_list, key=operator.itemgetter(1), reverse=True)[:flag_user_number] #TODO could fail 
+        print(large_list)
+        old_list = sorted(stat_list, key=operator.itemgetter(2), reverse=True)[:flag_user_number]
 
-        return [large_list, old_list]
+        large_names = []
+        old_names = []
+        for i in range(flag_user_number):
+            large_names.append(large_list[i][0])
+            old_names.append(old_list[i][0])
+
+        return [large_names, old_names] #TODO change to a named tuple
 
 
-    #Utility Functions##########################
+#####Utility Functions##########################
     def save_users_to_file(self):
         with open("../user_txt_file2.txt", 'w') as ufile:
             for user in self.user_hash.keys():

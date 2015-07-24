@@ -4,6 +4,7 @@ from io import StringIO
 import json
 
 file_tuple = namedtuple('file_tuple', 'file_path file_size last_access')
+stat_tuple = namedtuple('stat_tuple', 'total_file_size last_access_average')
 
 class Stat_obj():
     def __init__(self,
@@ -88,9 +89,10 @@ class Stat_obj():
             self.collumn_dict["disk_use_change"] = disk_change
             self.collumn_dict["access_average_change"] = access_change
 
-    def get_stats():
+    def get_stats(self):
         self.calculate_stats()
-        return [self.collumn_dict["use_percent"], self.collumn_dict["last_access_average"]]
+        #return_stat = stat_tuple(self.collumn_dict["total_file_size"], self.collumn_dict["last_access_average"])
+        return [self.collumn_dict["total_file_size"], self.collumn_dict["last_access_average"]]
 
 #####DATA PROCESSING FUCNTIONS##################
     def get_total_space(self):

@@ -60,9 +60,9 @@ class data_base:
     def store_row(self, table, data_list): #data_list is a list with joined collumn names as index 0 and values as index 1
         with self.connect() as db_cursor:
             #deleted all of the formatting here and moved it to formate stat_tuple in dk_stat.py
-            print(data_list[0])
-            print(data_list[1])
-            print()
+            #print(data_list[0])
+            #print(data_list[1])
+            #print()
             in_str = "INSERT INTO {table_name} ({joined_collumn_list}) VALUES ({joined_value_list})"
             in_str = in_str.format(table_name=table, #Add values to string
                                    joined_collumn_list=data_list[0],

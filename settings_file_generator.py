@@ -1,24 +1,24 @@
 import json
 
 def generate_json(file_name):
-    task_dict = {"System_name" : "",
-                 "Directory_Path" : "",
-                 "File_Relocation_Path" : "",
+    task_dict = {"System_name" : "Circe",
+                 "Directory_Path" : "/disk/scratch",
+                 "File_Relocation_Path" : "/tmp",
                  "Relocation_After_Warning_Message" : 2,
-                 "Days_Between_Runs" : 30,
+                 "Days_Between_Runs" : 1,
                  "Last_Access_Threshold" : 14,
                  "Bad_flag_percent" : .25,
                  "Disk_Use_Threshold" : .8,
-                 "Email_Users" : ""}
+                 "Email_Users" : "yes"}
 
     db_dict = {"User_name" : "",
                "Password" : "",
-               "DataBase" : "",
-               "Host" : ""}
+               "DataBase" : "diskspace_monitor",
+               "Host" : "pgsql.rc.pdx.edu"}
 
     email_dict = {"User_name" : "",
                   "Password" : "",
-                  "User_postfix" : ""}
+                  "User_postfix" : "pdx.edu"}
 
     data_dict = {"Scheduled_Tasks" : {"Scratch" : task_dict},
                  "DataBase_info" : db_dict,

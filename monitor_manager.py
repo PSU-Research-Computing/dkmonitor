@@ -31,17 +31,19 @@ class Monitor_manager(settings_obj.Settings_interface):
         end = time.time()
         total = end - start
         print('----')
-        print(total)
+        print("Total time: {t}".format(t=total))
         print('----')
         print("Done. Exporting data To database...")
         dk_stat_obj.export_data(self.database) #Exports data from dk_stat_obj to the database
         print("Done. Emailing Users")
         #Emails users with bad data
-        dk_stat_obj.email_users(self.emailer,
-                                self.settings["Email_API"]["User_postfix"],
-                                task["Email_flags"]["Access_day_threshold"],
-                                task["Email_flags"]["Total_file_size_threshold"],
-                                task["Email_flags"]["Use_percentage_threshold"])
+        if dk_stat_obj.get_disk_use_percent() > task["Disk_Use_Threshold"]: #TODO Implement Use threshold
+            dk_stat_obj.email_users(self.emailer, #Emails users
+                                    self.settings["Email_API"]["User_postfix"],
+                                    task["Last_Access_Threshold"],
+                                    task["Days_Between_Runs"],
+                                    task["File_Relocation_Path"],
+                                    task["Bad_flag_percent"])
         print("Done")
 
 
@@ -50,9 +52,12 @@ class Monitor_manager(settings_obj.Settings_interface):
         dk_stat_obj = dk_stat.dk_stat(task["System_name"], task["Directory_Path"]) #Instanciates the disk statistics object
         dk_stat_obj.dir_search() #Searches the Directory 
         dk_stat_obj.export_data(self.database) #Exports data from dk_stat_obj to the database
-        if dk_stat_obj.get_disk_use_percent > task["Disk_Use_Threshold"]: #TODO Implement Use threshold
+        if dk_stat_obj.get_disk_use_percent() > task["Disk_Use_Threshold"]: #TODO Implement Use threshold
             dk_stat_obj.email_users(self.emailer, #Emails users
                                     self.settings["Email_API"]["User_postfix"],
+                                    task["Last_Access_Threshold"],
+                                    task["Days_Between_Runs"],
+                                    task["File_Relocation_Path"],
                                     task["Bad_flag_percent"])
 
 
@@ -60,6 +65,10 @@ class Monitor_manager(settings_obj.Settings_interface):
     def run_tasks(self):
         for task in self.settings["Scheduled_Tasks"].keys():
             self.run_task(task)
+
+    def run_tasks_time(self):
+        for task in self.settings["Scheduled_Tasks"].keys():
+            self.run_task_time(task)
 
     def schedule_clean(self):
         pass
@@ -70,5 +79,5 @@ class Monitor_manager(settings_obj.Settings_interface):
 
 if __name__ == "__main__":
     mon_man = Monitor_manager()
-    mon_man.run_tasks()
+    mon_man.run_tasks_time()
 
