@@ -22,7 +22,7 @@ class Monitor_manager(settings_obj.Settings_interface):
                                                self.settings["DataBase_info"]["Host"])
 
     #Rus a single task from the settings json file loaded
-    def run_task_time(self, task_name):
+    def run_task(self, task_name):
         task = self.settings["Scheduled_Tasks"][task_name]
         self.check_clean_task(task)
         dk_stat_obj = dk_stat.dk_stat(task["System_name"], task["Directory_Path"]) #Instanciates the disk statistics object
@@ -38,7 +38,7 @@ class Monitor_manager(settings_obj.Settings_interface):
         dk_stat_obj.export_data(self.database) #Exports data from dk_stat_obj to the database
         print("Done. Emailing Users")
         #Emails users with bad data
-        if dk_stat_obj.get_disk_use_percent() > task["Disk_Use_Percent_Threshold"]: #TODO Implement Use threshold
+        if dk_stat_obj.get_disk_use_percent() > task["Disk_Use_Percent_Threshold"]:
             dk_stat_obj.email_users(self.emailer, #Emails users
                                     self.settings["Email_API"]["User_postfix"],
                                     task["Last_Access_Threshold"],
@@ -48,19 +48,6 @@ class Monitor_manager(settings_obj.Settings_interface):
         print("Done")
 
 
-    def run_task(self, task_name):
-        task = self.settings["Scheduled_Tasks"][task_name]
-        self.check_clean_task(task)
-        dk_stat_obj = dk_stat.dk_stat(task["System_name"], task["Directory_Path"]) #Instanciates the disk statistics object
-        dk_stat_obj.dir_search() #Searches the Directory 
-        dk_stat_obj.export_data(self.database) #Exports data from dk_stat_obj to the database
-        if dk_stat_obj.get_disk_use_percent() > task["Disk_Use_Percent_Threshold"]: #TODO Implement Use threshold
-            dk_stat_obj.email_users(self.emailer, #Emails users
-                                    self.settings["Email_API"]["User_postfix"],
-                                    task["Last_Access_Threshold"],
-                                    task["Days_Between_Runs"],
-                                    task["File_Relocation_Path"],
-                                    task["Bad_flag_percent"])
 
 
     #Runs all tasks in the json settings file
@@ -71,16 +58,6 @@ class Monitor_manager(settings_obj.Settings_interface):
     def run_tasks_threading(self):
         for task in self.settings["Scheduled_Tasks"].keys():
             t = threading.Thread(target=self.run_task, args=task)
-            t.daemon = False
-            t.start()
-
-    def run_tasks_time(self):
-        for task in self.settings["Scheduled_Tasks"].keys():
-            self.run_task_time(task)
-
-    def run_tasks_time_threading(self):
-        for task in self.settings["Scheduled_Tasks"].keys():
-            t = threading.Thread(target=self.run_task_time, args=(task,))
             t.daemon = False
             t.start()
 
@@ -106,9 +83,7 @@ class Monitor_manager(settings_obj.Settings_interface):
         return query_str
 
 
-
-
 if __name__ == "__main__":
     mon_man = Monitor_manager()
-    mon_man.run_tasks_time_threading()
+    mon_man.run_tasks_threading()
 
