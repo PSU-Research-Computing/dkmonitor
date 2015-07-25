@@ -15,11 +15,10 @@ def generate_json(file_name):
                "DataBase" : "diskspace_monitor",
                "Host" : "pgsql.rc.pdx.edu"}
 
-    email_dict = {"User_name" : "",
-                  "Password" : "",
-                  "User_postfix" : "pdx.edu"}
+    email_dict = {"User_postfix" : "pdx.edu"}
 
-    data_dict = {"Scheduled_Tasks" : {"Scratch" : task_dict},
+    data_dict = {"Scheduled_Tasks" : {"Scratch" : task_dict,
+                                      "Will": task_dict},
                  "DataBase_info" : db_dict,
                  "Email_API" : email_dict}
 

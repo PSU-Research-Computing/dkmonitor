@@ -4,27 +4,13 @@ import sys
 
 
 class emailer:
-    def __init__(self, user_name, password, suffix):
-
-        self.user_name = user_name
-        self.password = password
+    def __init__(self, suffix):
         self.suffix = suffix
-
         self.server = smtplib.SMTP('localhost')
-        #self.server.ehlo()
-        #self.server.starttls()
-        #self.server.ehlo()
-
-        #self.server.login(self.user_name, self.password)
-
-    #def build_and_send(self, access_val, file_size_val, percent_val):
 
 
     def send_email(self, message):
-        #print("++++")
         #print("Emailing: " + message["To"])
-        #print(sys.getsizeof(message.as_string()))
-        #print("++++")
         self.server.sendmail("Do-Not-Reply", "wpatt2@pdx.edu", message.as_string())
         #self.server.sendmail(self.user_name, message["To"], message.as_string())
 
