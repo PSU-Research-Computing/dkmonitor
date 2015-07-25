@@ -1,9 +1,11 @@
 import json
+import time
+import threading
+
 import db_interface
 import dk_stat
 import settings_obj
 import dk_emailer
-import time
 
 class Monitor_manager(settings_obj.Settings_interface):
 
@@ -11,9 +13,7 @@ class Monitor_manager(settings_obj.Settings_interface):
         settings_obj.Settings_interface.__init__(self)
 
         #Configures Email api
-        self.emailer = dk_emailer.emailer(self.settings["Email_API"]["User_name"],
-                                          self.settings["Email_API"]["Password"],
-                                          self.settings["Email_API"]["User_postfix"])
+        self.emailer = dk_emailer.emailer(self.settings["Email_API"]["User_postfix"])
 
         #Configures database
         self.database = db_interface.data_base(self.settings["DataBase_info"]["DataBase"],
@@ -38,7 +38,7 @@ class Monitor_manager(settings_obj.Settings_interface):
         dk_stat_obj.export_data(self.database) #Exports data from dk_stat_obj to the database
         print("Done. Emailing Users")
         #Emails users with bad data
-        if dk_stat_obj.get_disk_use_percent() > task["Disk_Use_Threshold"]: #TODO Implement Use threshold
+        if dk_stat_obj.get_disk_use_percent() > task["Disk_Use_Percent_Threshold"]: #TODO Implement Use threshold
             dk_stat_obj.email_users(self.emailer, #Emails users
                                     self.settings["Email_API"]["User_postfix"],
                                     task["Last_Access_Threshold"],
@@ -54,7 +54,7 @@ class Monitor_manager(settings_obj.Settings_interface):
         dk_stat_obj = dk_stat.dk_stat(task["System_name"], task["Directory_Path"]) #Instanciates the disk statistics object
         dk_stat_obj.dir_search() #Searches the Directory 
         dk_stat_obj.export_data(self.database) #Exports data from dk_stat_obj to the database
-        if dk_stat_obj.get_disk_use_percent() > task["Disk_Use_Threshold"]: #TODO Implement Use threshold
+        if dk_stat_obj.get_disk_use_percent() > task["Disk_Use_Percent_Threshold"]: #TODO Implement Use threshold
             dk_stat_obj.email_users(self.emailer, #Emails users
                                     self.settings["Email_API"]["User_postfix"],
                                     task["Last_Access_Threshold"],
@@ -68,9 +68,21 @@ class Monitor_manager(settings_obj.Settings_interface):
         for task in self.settings["Scheduled_Tasks"].keys():
             self.run_task(task)
 
+    def run_tasks_threading(self):
+        for task in self.settings["Scheduled_Tasks"].keys():
+            t = threading.Thread(target=self.run_task, args=task)
+            t.daemon = False
+            t.start()
+
     def run_tasks_time(self):
         for task in self.settings["Scheduled_Tasks"].keys():
             self.run_task_time(task)
+
+    def run_tasks_time_threading(self):
+        for task in self.settings["Scheduled_Tasks"].keys():
+            t = threading.Thread(target=self.run_task_time, args=(task,))
+            t.daemon = False
+            t.start()
 
     def check_clean_task(self, task):
         if task["File_Relocation_Path"] != "":
@@ -98,5 +110,5 @@ class Monitor_manager(settings_obj.Settings_interface):
 
 if __name__ == "__main__":
     mon_man = Monitor_manager()
-    mon_man.run_tasks_time()
+    mon_man.run_tasks_time_threading()
 
