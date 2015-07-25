@@ -24,7 +24,6 @@ class data_base:
             self.tables = [table[0] for table in db_cursor.fetchall()]
 
 
-
     def test_connection(self):
         try:
             psycopg2.connect(database=self.db_name, user=self.user, password=self.password, host=self.host)
@@ -45,8 +44,6 @@ class data_base:
             print(db_error)
             print("Connection Error")
 
-    #TODO Test this again. Not sure if this function is used
-
     #This function gets the most recent row with certain collumn values
     def query_date_compare(self, table_name, query_str, compare_str):
         #table: table name to be queried
@@ -59,13 +56,10 @@ class data_base:
             db_cursor.execute(query)
             return db_cursor.fetchone()
 
-
-    def store_row(self, table, data_list): #data_list is a list with joined collumn names as index 0 and values as index 1
+    #Stores a row in the database
+    def store_row(self, table, data_list):
+        #data_list is a list with joined collumn names as index 0 and values as index 1
         with self.connect() as db_cursor:
-            #deleted all of the formatting here and moved it to formate stat_tuple in dk_stat.py
-            #print(data_list[0])
-            #print(data_list[1])
-            #print()
             in_str = "INSERT INTO {table_name} ({joined_collumn_list}) VALUES ({joined_value_list})"
             in_str = in_str.format(table_name=table, #Add values to string
                                    joined_collumn_list=data_list[0],
@@ -75,7 +69,6 @@ class data_base:
 if __name__ == '__main__':
     data = data_base('dkmonitor', 'root', '')
     #data.store_row(data.tables[1], ["searched_directory", "asdfasdf"])
-    #data_base.store_row(
     compares = ["total_file_size"]
     table = "user_stats"
     querys = [["user_name", "'nametest'"]]
