@@ -51,7 +51,10 @@ class Email:
         Total size of all files: {size} GBs
         Total disk use: {dk_use} %
 
-        """.format(dk=self.directory, sys=self.system, size=total_size, dk_use=dk_usage)
+        """.format(dk=self.directory,
+                   sys=self.system,
+                   size=total_size,
+                   dk_use=dk_usage)
         self.body += message
 
     def add_top_old_warning(self, access_arvg):

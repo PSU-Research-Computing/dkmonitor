@@ -1,5 +1,7 @@
 import os
+import re
 import time
+from pwd import getpwuid
 
 import threading
 from queue import Queue
@@ -57,4 +59,15 @@ class dk_clean:
 
 
     def move_file(self, file_path):
-        print("Moving_file {f}".format(f=file_path))
+        user = getpwuid(os.stat(file_path).st_uid).pw_name
+        root_dir = self.move_to + '/' + user
+        print("ROOT: " + root_dir)
+        #if not os.path.exists(root_dir):
+            #os.makedir(root_dir)
+        new_file_path = re.sub(r"^{old_path}".format(old_path=self.search_dir), root_dir, file_path)
+        last_slash = new_file_path.rfind('/')
+        dir_path = new_file_path[:last_slash]
+        print("NEW: " + new_file_path)
+        #if not os.path.exists(dir_path):
+            #os.makedirs(dir_path)
+        #shutil.move(file_path, new_file_path)
