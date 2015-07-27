@@ -6,6 +6,7 @@ import db_interface
 import dk_stat
 import settings_obj
 import dk_emailer
+import dk_clean
 
 class Monitor_manager(settings_obj.Settings_interface):
 
@@ -57,7 +58,7 @@ class Monitor_manager(settings_obj.Settings_interface):
 
     def run_tasks_threading(self):
         for task in self.settings["Scheduled_Tasks"].keys():
-            t = threading.Thread(target=self.run_task, args=task)
+            t = threading.Thread(target=self.run_task, args=(task,))
             t.daemon = False
             t.start()
 
@@ -70,10 +71,12 @@ class Monitor_manager(settings_obj.Settings_interface):
             if query_data == None:
                 pass
             elif query_data[0] > task["Disk_Use_Percent_Threshold"]:
-                self.clean_disk(task["Directory_Path"], task["File_Relocation_Path"])
+                self.clean_disk(task["Directory_Path"], task["File_Relocation_Path"], task["Last_Access_Threshold"], 4) #TODO Implement threads arguemnt
 
-    def clean_disk(self, directory, relocation_path):
+    def clean_disk(self, directory, relocation_path, access_threshold, threads):
         print("CLeaning...")
+        clean_obj = dk_clean.dk_clean(directory, relocation_path, access_threshold, thread_number=threads)
+        clean_obj.move_all_threaded()
 
     def build_query_str(self, task):
         query_str = "searched_directory = '{sdir}' AND system = '{sys}'"
