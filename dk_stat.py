@@ -118,7 +118,8 @@ class dk_stat:
         flag_user_number = int(len(self.user_hash.keys()) * problem_threshold)
         for user in self.user_hash.keys():
             stats = self.user_hash[user].get_stats()
-            stat_list.append([user, stats[0], stats[1]])
+            bpad = stats[0]/stats[1] #Bytes per access day
+            stat_list.append([user, stats[0], bpad])
 
         print("Total users: {flag}".format(flag=len(self.user_hash.keys())))
         print("Total Flagged users: {flag}".format(flag=flag_user_number))
