@@ -17,8 +17,12 @@ def generate_json(file_name):
 
     email_dict = {"User_postfix" : "pdx.edu"}
 
+    thread_dict = {"Thread_Mode" : "yes",
+                   "Thread_Number" : 5}
+
     data_dict = {"Scheduled_Tasks" : {"Scratch" : task_dict,
                                       "Will": task_dict},
+                 "Thread_Settings" : thread_dict,
                  "DataBase_info" : db_dict,
                  "Email_API" : email_dict}
 

@@ -7,11 +7,10 @@ import threading
 from queue import Queue
 
 class dk_clean:
-    def __init__(self, search_dir, move_to, access_threshold, thread_number=0):
+    def __init__(self, search_dir, move_to, access_threshold):
         self.search_dir = search_dir
         self.move_to = move_to
         self.access_threshold = access_threshold
-        self.thread_number = thread_number
         self.que = Queue()
 
 
@@ -21,8 +20,8 @@ class dk_clean:
             self.move_file(path)
             self.que.task_done()
 
-    def build_pool(self):
-        for i in range(self.thread_number):
+    def build_pool(self, thread_number):
+        for i in range(thread_number):
             t = threading.Thread(target=self.worker)
             t.daemon = True
             t.start()
@@ -43,8 +42,8 @@ class dk_clean:
                     except OSError:
                         pass
 
-    def move_all_threaded(self):
-        self.build_pool()
+    def move_all_threaded(self, thread_number):
+        self.build_pool(thread_number)
         self.build_file_que(self.search_dir)
         self.que.join()
 

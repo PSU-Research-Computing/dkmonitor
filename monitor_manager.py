@@ -71,12 +71,18 @@ class Monitor_manager(settings_obj.Settings_interface):
             if query_data == None:
                 pass
             elif query_data[0] > task["Disk_Use_Percent_Threshold"]:
-                self.clean_disk(task["Directory_Path"], task["File_Relocation_Path"], task["Last_Access_Threshold"], 4) #TODO Implement threads arguemnt
+                self.clean_disk(task["Directory_Path"],
+                                task["File_Relocation_Path"],
+                                task["Last_Access_Threshold"])
 
-    def clean_disk(self, directory, relocation_path, access_threshold, threads):
+    def clean_disk(self, directory, relocation_path, access_threshold):
         print("CLeaning...")
-        clean_obj = dk_clean.dk_clean(directory, relocation_path, access_threshold, thread_number=threads)
-        clean_obj.move_all_threaded()
+        thread_settings = self.settings["Thread_Settings"]
+        clean_obj = dk_clean.dk_clean(directory, relocation_path, access_threshold)
+        if thread_settings["Thread_Mode"] == "yes":
+            clean_obj.move_all_threaded(thread_settings["Thread_Number"])
+        else:
+            clean_obj.move_all()
 
     def build_query_str(self, task):
         query_str = "searched_directory = '{sdir}' AND system = '{sys}'"
@@ -84,6 +90,7 @@ class Monitor_manager(settings_obj.Settings_interface):
                                      sdir=task["Directory_Path"],
                                      sys=task["System_name"])
         return query_str
+
 
 
 if __name__ == "__main__":
