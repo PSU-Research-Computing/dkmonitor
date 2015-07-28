@@ -10,18 +10,17 @@ from dk_stat import dk_stat
 
 class data_base:
 
-    def __init__(self, db_name, user, password, host):
+    def __init__(self, db_name, user, password, host, clean_days):
         self.db_name = db_name
         self.user = user
         self.password = password
         self.host = host
 
+        self.clean_data_base(clean_days)
+
         #Add Connection Tesing
         #TODO Delete this safely
-        with self.connect() as db_cursor:
-            table_q = "select relname from pg_class where relkind='r' and relname !~ '^(pg_|sql_)';"
-            db_cursor.execute(table_q) #get table names
-            self.tables = [table[0] for table in db_cursor.fetchall()]
+
 
 
     def test_connection(self):
@@ -65,6 +64,17 @@ class data_base:
                                    joined_collumn_list=data_list[0],
                                    joined_value_list=data_list[1])
             db_cursor.execute(in_str)
+
+    def clean_data_base(self, days):
+        with self.connect() as db_cursor:
+            table_q = "select relname from pg_class where relkind='r' and relname !~ '^(pg_|sql_)';"
+            db_cursor.execute(table_q) #get table names
+            tables = [table[0] for table in db_cursor.fetchall()]
+
+        for table in tables:
+            clean_statment = "DELETE FROM {tab} WHERE datetime < NOW() - INTERVAL '{day} days';".format(tab=table, day=days)
+            with self.connect() as db_cursor:
+                db_cursor.execute(clean_statment)
 
 if __name__ == '__main__':
     data = data_base('dkmonitor', 'root', '')

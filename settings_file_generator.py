@@ -13,7 +13,8 @@ def generate_json(file_name):
     db_dict = {"User_name" : "",
                "Password" : "",
                "DataBase" : "diskspace_monitor",
-               "Host" : "pgsql.rc.pdx.edu"}
+               "Host" : "pgsql.rc.pdx.edu",
+               "Purge_After_Day_Number" : 30}
 
     email_dict = {"User_postfix" : "pdx.edu"}
 
