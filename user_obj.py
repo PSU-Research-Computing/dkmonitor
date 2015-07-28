@@ -29,6 +29,7 @@ class User(stat_obj.Stat_obj):
 
         self.collumn_dict["user_name"] = name
 
+    #Builds a string to query querying on user name, searched directory and system name.
     def build_query_str(self):
         query_str = "user_name = '{name}' AND searched_directory = '{sdir}' AND system = '{sys}'"
         query_str = query_str.format(name=self.collumn_dict["user_name"],
@@ -37,6 +38,7 @@ class User(stat_obj.Stat_obj):
 
         return query_str
 
+    #Emails the user associated with the object if they are flagged
     def email_user(self, emailer_obj, postfix, last_access_threshold, days_between_runs, move_dir, problem_lists):
         old_file_info = self.find_old_file_info(last_access_threshold)
         message = self.create_message(postfix)
@@ -60,6 +62,7 @@ class User(stat_obj.Stat_obj):
         print("-----------------------")
 
 
+    #Creates message to be sent to user
     def create_message(self, postfix):
         address = self.collumn_dict["user_name"] + "@" + postfix
         message = email_obj.Email(address,
@@ -68,6 +71,7 @@ class User(stat_obj.Stat_obj):
 
         return message
 
+    #Gathers data on the user's old files
     def find_old_file_info(self, last_access_threshold):
         total_old_file_size = 0
         count = 0
@@ -92,17 +96,4 @@ class User(stat_obj.Stat_obj):
                 if not os.path.exists(dir_path):
                     os.makedirs(dir_path)
                 shutil.move(fi.file_path, new_file_path)
-
-
-
-    def save_data(self):
-        self.calculate_stats()
-        join_list = [self.collumn_dict["user_name"],
-                     str(self.collumn_dict["datetime"]),
-                     self.collumn_dict["searched_directory"],
-                     str(self.collumn_dict["total_file_size"]),
-                     str(self.collumn_dict["disk_use_percent"]),
-                     str(self.collumn_dict["last_access_average"])]
-
-        return " ".join(join_list)
 

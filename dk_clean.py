@@ -14,19 +14,21 @@ class dk_clean:
         self.que = Queue()
 
 
+    #Worker Function
     def worker(self):
         while True:
             path = self.que.get()
             self.move_file(path)
             self.que.task_done()
 
+    #Builds Pool of thread workers
     def build_pool(self, thread_number):
         for i in range(thread_number):
             t = threading.Thread(target=self.worker)
             t.daemon = True
             t.start()
 
-
+    #Builds queue of old files to be moved
     def build_file_que(self, recursive_dir):
         if os.path.isdir(recursive_dir):
             content_list = os.listdir(recursive_dir)
@@ -42,21 +44,24 @@ class dk_clean:
                     except OSError:
                         pass
 
+    #Moves all files with multithreading
     def move_all_threaded(self, thread_number):
         self.build_pool(thread_number)
         self.build_file_que(self.search_dir)
-        self.que.join()
+        self.que.join() #waits for threads to finish
 
+    #Moves all files sequentailly
     def move_all(self):
         self.build_file_que()
         self.process_que()
 
+    #Moves all files in queue sequentailly
     def process_que(self):
         while not self.que.empty():
             file_path = self.que.get()
             self.move_file(file_path)
 
-
+    #Moves individual file while still preseving its file path
     def move_file(self, file_path):
         user = getpwuid(os.stat(file_path).st_uid).pw_name
         root_dir = self.move_to + '/' + user

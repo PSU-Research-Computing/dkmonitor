@@ -30,14 +30,17 @@ class Stat_obj():
                              'disk_use_change': use_percent_change,
                              'access_average_change': avrg_access_change}
 
+    #Adds file to the list of associated files
     def add_file(self, file_to_add):
         self.file_list.append(file_to_add)
 
+    #Calculates stats and exports them to a database
     def export_data(self, db_obj):
         self.calculate_stats()
         self.get_set_query_data(db_obj.query_date_compare)
         self.insert_db_row(db_obj.store_row)
 
+    #Inserts row of stats into a database
     def insert_db_row(self, db_insertion_function):
         column_list = []
         value_list = []
@@ -54,9 +57,13 @@ class Stat_obj():
 
         db_insertion_function(self.table_name, [", ".join(column_list), ", ".join(value_list)])
 
+    #Builds a query string to get data from previous entry
     def build_query_str(self): #This function must be impleneted in the derived class
         raise NotImplementedError()
 
+    #gets data from previous entry
+    #Calculates new stats with prievious data
+    #Adds new stats to the objects dictionary
     def get_set_query_data(self, db_query_function):
         query_str = self.build_query_str()
         compare_str = "disk_use_percent, last_access_average"
@@ -89,6 +96,7 @@ class Stat_obj():
             self.collumn_dict["disk_use_change"] = disk_change
             self.collumn_dict["access_average_change"] = access_change
 
+    #Returns specific stats 
     def get_stats(self):
         self.calculate_stats()
         #return_stat = stat_tuple(self.collumn_dict["total_file_size"], self.collumn_dict["last_access_average"])
