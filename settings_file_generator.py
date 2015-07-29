@@ -1,6 +1,12 @@
+"""
+This file is meant to be used to generate a new settings file
+"""
+
 import json
 
 def generate_json(file_name):
+    """This function generates a json settings file"""
+
     task_dict = {"System_name" : "Circe",
                  "Directory_Path" : "/disk/scratch",
                  "File_Relocation_Path" : "/tmp",

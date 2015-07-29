@@ -1,3 +1,6 @@
+"""This script contains the class dk_clean.
+dk_clean is used to move all old files from one directory to another"""
+
 import os
 import re
 import time
@@ -6,7 +9,9 @@ from pwd import getpwuid
 import threading
 from queue import Queue
 
-class dk_clean:
+class DkClean:
+    """The class dk_clean is used to move old files from one directory to an other.
+    The process can be run with multithreading or just iterativly"""
     def __init__(self, search_dir, move_to, access_threshold):
         self.search_dir = search_dir
         self.move_to = move_to
@@ -14,22 +19,25 @@ class dk_clean:
         self.que = Queue()
 
 
-    #Worker Function
     def worker(self):
+        """Worker Function"""
+
         while True:
             path = self.que.get()
             self.move_file(path)
             self.que.task_done()
 
-    #Builds Pool of thread workers
     def build_pool(self, thread_number):
-        for i in range(thread_number):
-            t = threading.Thread(target=self.worker)
-            t.daemon = True
-            t.start()
+        """Builds Pool of thread workers"""
 
-    #Builds queue of old files to be moved
+        for i in range(thread_number):
+            thread = threading.Thread(target=self.worker)
+            thread.daemon = True
+            thread.start()
+
     def build_file_que(self, recursive_dir):
+        """Builds queue of old files to be moved"""
+
         if os.path.isdir(recursive_dir):
             content_list = os.listdir(recursive_dir)
             for i in content_list:
@@ -44,25 +52,28 @@ class dk_clean:
                     except OSError:
                         pass
 
-    #Moves all files with multithreading
     def move_all_threaded(self, thread_number):
+        """Moves all files with multithreading"""
+
         self.build_pool(thread_number)
         self.build_file_que(self.search_dir)
         self.que.join() #waits for threads to finish
 
-    #Moves all files sequentailly
     def move_all(self):
-        self.build_file_que()
+        """Moves all files sequentailly"""
+
+        self.build_file_que(self.search_dir)
         self.process_que()
 
-    #Moves all files in queue sequentailly
     def process_que(self):
+        """Moves all files in queue sequentailly"""
         while not self.que.empty():
             file_path = self.que.get()
             self.move_file(file_path)
 
-    #Moves individual file while still preseving its file path
     def move_file(self, file_path):
+        """Moves individual file while still preseving its file path"""
+
         user = getpwuid(os.stat(file_path).st_uid).pw_name
         root_dir = self.move_to + '/' + user
         print("ROOT: " + root_dir)

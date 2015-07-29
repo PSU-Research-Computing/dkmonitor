@@ -1,12 +1,19 @@
+"""
+stat_obj contains the abstract base class for dir_obj.py and user_obj.py
+"""
+
 import os
-from collections import namedtuple
-from io import StringIO
-import json
 
-file_tuple = namedtuple('file_tuple', 'file_path file_size last_access')
-stat_tuple = namedtuple('stat_tuple', 'total_file_size last_access_average')
+#from named_tuples import FileTuple
 
-class Stat_obj():
+class StatObj():
+    """
+    StatObj is an abstract base class for both dir_obj and user_obj.
+    StatObj stores file data in a list
+    It processes the file data internally and then can store
+    it in a database or email a user if they are flagged
+    """
+
     def __init__(self,
                  tname,
                  search_dir=None,
@@ -30,24 +37,28 @@ class Stat_obj():
                              'disk_use_change': use_percent_change,
                              'access_average_change': avrg_access_change}
 
-    #Adds file to the list of associated files
     def add_file(self, file_to_add):
+        """Adds file to the list of associated files"""
+
         self.file_list.append(file_to_add)
 
-    #Calculates stats and exports them to a database
     def export_data(self, db_obj):
+        """Calculates stats and exports them to a database"""
+
         self.calculate_stats()
         self.get_set_query_data(db_obj.query_date_compare)
         self.insert_db_row(db_obj.store_row)
 
-    #Inserts row of stats into a database
     def insert_db_row(self, db_insertion_function):
+        """Inserts row of stats into a database"""
+
         column_list = []
         value_list = []
 
         for column in self.collumn_dict.keys():
             column_list.append(column)
-            if type(self.collumn_dict[column]) is float or type(self.collumn_dict[column]) is int:
+            if (isinstance(self.collumn_dict[column], float) or
+                    isinstance(self.collumn_dict[column], int)):
                 value_list.append(str(self.collumn_dict[column]))
             else:
                 value_list.append("'" + str(self.collumn_dict[column]) + "'")
@@ -57,14 +68,21 @@ class Stat_obj():
 
         db_insertion_function(self.table_name, [", ".join(column_list), ", ".join(value_list)])
 
-    #Builds a query string to get data from previous entry
-    def build_query_str(self): #This function must be impleneted in the derived class
+    def build_query_str(self):
+        """
+        Builds a query string to get data from previous entry
+        This function must be impleneted in the derived class
+        """
+
         raise NotImplementedError()
 
-    #gets data from previous entry
-    #Calculates new stats with prievious data
-    #Adds new stats to the objects dictionary
     def get_set_query_data(self, db_query_function):
+        """
+        Gets data from previous entry
+        Calculates new stats with prievious data
+        Adds new stats to the objects dictionary
+        """
+
         query_str = self.build_query_str()
         compare_str = "disk_use_percent, last_access_average"
 
@@ -96,14 +114,16 @@ class Stat_obj():
             self.collumn_dict["disk_use_change"] = disk_change
             self.collumn_dict["access_average_change"] = access_change
 
-    #Returns specific stats 
     def get_stats(self):
+        """Returns specific stats"""
+
         self.calculate_stats()
-        #return_stat = stat_tuple(self.collumn_dict["total_file_size"], self.collumn_dict["last_access_average"])
         return [self.collumn_dict["total_file_size"], self.collumn_dict["last_access_average"]]
 
 #####DATA PROCESSING FUCNTIONS##################
     def get_total_space(self):
+        """Calculates total file size of all files in file_list"""
+
         total_space = 0
         for file_tuple in self.file_list:
             total_space += int(file_tuple.file_size)
@@ -111,17 +131,21 @@ class Stat_obj():
         self.collumn_dict["total_file_size"] = total_space
 
     def get_disk_use_percentage(self):
+        """Calculates the disk use percentage of all files"""
+
         if self.collumn_dict["total_file_size"] == None:
             self.get_total_space()
 
-        st = os.statvfs(self.collumn_dict["searched_directory"]) #TODO try except
-        total = st.f_blocks * st.f_frsize
+        stat_tup = os.statvfs(self.collumn_dict["searched_directory"]) #TODO try except
+        total = stat_tup.f_blocks * stat_tup.f_frsize
 
         user_percentage = 100 * float(self.collumn_dict["total_file_size"])/float(total)
         self.collumn_dict["disk_use_percent"] = user_percentage
 
 
     def get_access_average(self):
+        """Calculates the last access average for all stored files"""
+
         total_time = 0
         file_count = 0
         for file_tuple in self.file_list:
@@ -135,28 +159,9 @@ class Stat_obj():
 
         self.collumn_dict["last_access_average"] = average_last_access
 
-
-    def build_old_file_attachment(self, minimum_day_num):
-        attachment = StringIO()
-        for file_tup in self.file_list:
-            if file_tup.last_access > minimum_day_num:
-                attachment.write(file_tup.file_path + '\n')
-
-        return attachment
-
-    def build_json_stream(self, access_day_threshold, file_size_threshold, percentage_threshold):
-        attachment = StringIO()
-        tmp_dict = {'user_name': self.collumn_dict["user_name"],
-                    'system': self.collumn_dict['system'],
-                    'directory': self.collumn_dict['searched_directory'],
-                    'access_day_threshold': access_day_threshold,
-                    'file_size_threshold': file_size_threshold,
-                    'percentage_threshold': percentage_threshold}
-        json.dump(tmp_dict, attachment)
-        return attachment
-
-
     def calculate_stats(self):
+        """Caclutes all stats"""
+
         self.get_total_space()
         self.get_disk_use_percentage()
         self.get_access_average()

@@ -1,6 +1,9 @@
 import json
 import os
 import sys
+import logging
+
+logging.basicConfig(filename="dkm_log.log")
 
 class Settings_interface():
     def __init__(self):
@@ -11,7 +14,7 @@ class Settings_interface():
             with open(self.load_file) as jfile:
                 self.settings = json.load(jfile)
         except FileNotFoundError as ferror:
-            print ("Critical: Json settings file not found")
+            print("Critical: Json settings file not found")
             raise ferror #probs doesnt work
 
     def check_settings(self):
