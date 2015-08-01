@@ -9,26 +9,30 @@ import threading
 
 import db_interface
 import dk_stat
-import settings_obj
 import dk_emailer
 import dk_clean
+import configurator_settings_obj
 
-class MonitorManager(settings_obj.Settings_interface):
+class MonitorManager():
     """This class is the main managing class for all other classes
     It runs preset tasks that are found in the json settings file"""
 
     def __init__(self):
-        settings_obj.Settings_interface.__init__(self)
+        self.set_interface = configurator_settings_obj.SettingsInterface()
+        self.settings = self.set_interface.parse_and_check_all()
 
         #Configures Email api
-        self.emailer = dk_emailer.Emailer(self.settings["Email_API"]["User_postfix"])
+        self.emailer = dk_emailer.Emailer(self.settings["Email_API"]["user_postfix"])
 
         #Configures database
-        self.database = db_interface.DataBase(self.settings["DataBase_info"]["DataBase"],
-                                              self.settings["DataBase_info"]["User_name"],
-                                              self.settings["DataBase_info"]["Password"],
-                                              self.settings["DataBase_info"]["Host"],
-                                              self.settings["DataBase_info"]["Purge_After_Day_Number"])
+        self.database = db_interface.DataBase(self.settings["DataBase_info"]["database"],
+                                              self.settings["DataBase_info"]["user_name"],
+                                              self.settings["DataBase_info"]["password"],
+                                              self.settings["DataBase_info"]["host"])
+
+        if self.settings["DataBase_info"]["purge_database"] == "yes":
+            self.database.clean_data_base(self.settings["DataBase_info"]["purge_after_day_number"])
+
 
     def run_task(self, task_name):
         """Runs a single task from the settings json file loaded"""
@@ -36,8 +40,8 @@ class MonitorManager(settings_obj.Settings_interface):
         task = self.settings["Scheduled_Tasks"][task_name]
         self.check_clean_task(task)
         #Instanciates the disk statistics object
-        dk_stat_obj = dk_stat.DkStat(task["System_name"], task["Directory_Path"])
-        print("Searching {path}".format(path=task["Directory_Path"]))
+        dk_stat_obj = dk_stat.DkStat(task["system_name"], task["directory_path"])
+        print("Searching {path}".format(path=task["directory_path"]))
         start = time.time()
         dk_stat_obj.dir_search() #Searches the Directory
         end = time.time()
@@ -49,26 +53,27 @@ class MonitorManager(settings_obj.Settings_interface):
         dk_stat_obj.export_data(self.database) #Exports data from dk_stat_obj to the database
         print("Done. Emailing Users")
         #Emails users with bad data
-        if dk_stat_obj.get_disk_use_percent() > task["Disk_Use_Percent_Threshold"]:
+        if dk_stat_obj.get_disk_use_percent() > task["disk_use_percent_threshold"]:
             dk_stat_obj.email_users(self.emailer, #Emails users
-                                    self.settings["Email_API"]["User_postfix"],
-                                    task["Last_Access_Threshold"],
-                                    task["Days_Between_Runs"],
-                                    task["File_Relocation_Path"],
-                                    task["Bad_flag_percent"])
+                                    self.settings["Email_API"]["user_postfix"],
+                                    task["last_access_threshold"],
+                                    task["days_between_runs"],
+                                    task["file_relocation_path"],
+                                    task["bad_flag_percent"])
         print("Done")
 
 
     def start(self):
         """starts all tasks"""
 
-        if self.settings["Thread_Settings"]["Thread_Mode"] == 'yes':
+        if self.settings["Thread_Settings"]["thread_mode"] == 'yes':
             self.run_tasks_threading()
         else:
             self.run_tasks()
 
     def run_tasks(self):
         """Runs all tasks in the json settings file"""
+
         for task in self.settings["Scheduled_Tasks"].keys():
             self.run_task(task)
 
@@ -86,7 +91,7 @@ class MonitorManager(settings_obj.Settings_interface):
         Starts cleaning routine if flagged
         """
 
-        if task["File_Relocation_Path"] != "":
+        if task["relocate_old_files"] == "yes":
             query_str = self.build_query_str(task)
             collumn_names = "disk_use_percent"
 
@@ -95,10 +100,10 @@ class MonitorManager(settings_obj.Settings_interface):
                                                           collumn_names)
             if query_data == None:
                 pass
-            elif query_data[0] > task["Disk_Use_Percent_Threshold"]:
-                self.clean_disk(task["Directory_Path"],
-                                task["File_Relocation_Path"],
-                                task["Last_Access_Threshold"])
+            elif query_data[0] > task["disk_use_percent_threshold"]:
+                self.clean_disk(task["directory_path"],
+                                task["file_relocation_path"],
+                                task["last_access_threshold"])
 
     def clean_disk(self, directory, relocation_path, access_threshold):
         """Cleaning routine function"""
@@ -106,8 +111,8 @@ class MonitorManager(settings_obj.Settings_interface):
         print("CLeaning...")
         thread_settings = self.settings["Thread_Settings"]
         clean_obj = dk_clean.DkClean(directory, relocation_path, access_threshold)
-        if thread_settings["Thread_Mode"] == "yes":
-            clean_obj.move_all_threaded(thread_settings["Thread_Number"])
+        if thread_settings["thread_mode"] == "yes":
+            clean_obj.move_all_threaded(thread_settings["thread_number"])
         else:
             clean_obj.move_all()
 
@@ -117,9 +122,9 @@ class MonitorManager(settings_obj.Settings_interface):
         """Builds query string used to determine if disk needs to be cleaned"""
 
         query_str = "searched_directory = '{sdir}' AND system = '{sys}'"
-        query_str = query_str.format(dkp=task["Disk_Use_Percent_Threshold"],
-                                     sdir=task["Directory_Path"],
-                                     sys=task["System_name"])
+        query_str = query_str.format(dkp=task["disk_use_percent_threshold"],
+                                     sdir=task["directory_path"],
+                                     sys=task["system_name"])
         return query_str
 
 

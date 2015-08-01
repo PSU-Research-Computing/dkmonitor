@@ -18,23 +18,6 @@ class DkClean:
         self.access_threshold = access_threshold
         self.que = Queue()
 
-
-    def worker(self):
-        """Worker Function"""
-
-        while True:
-            path = self.que.get()
-            self.move_file(path)
-            self.que.task_done()
-
-    def build_pool(self, thread_number):
-        """Builds Pool of thread workers"""
-
-        for i in range(thread_number):
-            thread = threading.Thread(target=self.worker)
-            thread.daemon = True
-            thread.start()
-
     def build_file_que(self, recursive_dir):
         """Builds queue of old files to be moved"""
 
@@ -51,26 +34,6 @@ class DkClean:
                         self.build_file_que(recursive_dir=(current_path))
                     except OSError:
                         pass
-
-    def move_all_threaded(self, thread_number):
-        """Moves all files with multithreading"""
-
-        self.build_pool(thread_number)
-        self.build_file_que(self.search_dir)
-        self.que.join() #waits for threads to finish
-
-    def move_all(self):
-        """Moves all files sequentailly"""
-
-        self.build_file_que(self.search_dir)
-        self.process_que()
-
-    def process_que(self):
-        """Moves all files in queue sequentailly"""
-        while not self.que.empty():
-            file_path = self.que.get()
-            self.move_file(file_path)
-
     def move_file(self, file_path):
         """Moves individual file while still preseving its file path"""
 
@@ -86,3 +49,43 @@ class DkClean:
         #if not os.path.exists(dir_path):
             #os.makedirs(dir_path)
         #shutil.move(file_path, new_file_path)
+
+
+####MULTI-THREADING######################################
+    def worker(self):
+        """Worker Function"""
+
+        while True:
+            path = self.que.get()
+            self.move_file(path)
+            self.que.task_done()
+
+    def build_pool(self, thread_number):
+        """Builds Pool of thread workers"""
+
+        for i in range(thread_number):
+            thread = threading.Thread(target=self.worker)
+            thread.daemon = True
+            thread.start()
+
+    def move_all_threaded(self, thread_number):
+        """Moves all files with multithreading"""
+
+        self.build_pool(thread_number)
+        self.build_file_que(self.search_dir)
+        self.que.join() #waits for threads to finish
+
+####ITERATIVE###########################################
+    def move_all(self):
+        """Moves all files sequentailly"""
+
+        self.build_file_que(self.search_dir)
+        self.process_que()
+
+    def process_que(self):
+        """Moves all files in queue sequentailly"""
+        while not self.que.empty():
+            file_path = self.que.get()
+            self.move_file(file_path)
+
+

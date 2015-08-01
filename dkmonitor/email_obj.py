@@ -46,7 +46,7 @@ class Email:
 
         old_file_info[0] = round(old_file_info[0] / 1024 / 1024 / 1024, 3)
         message = """
-        WARNING: All files accessed less than {thresh} days ago will be moved to {move}
+        WARNING: All files accessed more than {thresh} days ago will be moved to {move}
         You have {days} day(s) before your files will be moved.
         Number of old files: {old_num}
         Combined size of old files: {size} GBs

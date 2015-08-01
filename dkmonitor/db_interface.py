@@ -19,13 +19,11 @@ class DataBase:
     DataBase can also be used to do specail queries on the data as well
     """
 
-    def __init__(self, db_name, user, password, host, clean_days):
+    def __init__(self, db_name, user, password, host):
         self.db_name = db_name
         self.user = user
         self.password = password
         self.host = host
-
-        self.clean_data_base(clean_days)
 
     def test_connection(self):
         """Quick Connection check"""
@@ -94,7 +92,7 @@ class DataBase:
 
         for table_name in tables:
             clean_statment = "DELETE FROM {tab} WHERE datetime < NOW() - INTERVAL '{day} days';"
-            clean_statment.format(tab=table_name, day=days)
+            clean_statment = clean_statment.format(tab=table_name, day=days)
             with self.connect() as db_cursor:
                 db_cursor.execute(clean_statment)
 
