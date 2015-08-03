@@ -9,14 +9,19 @@ from pwd import getpwuid
 import threading
 from queue import Queue
 
+import log_setup
+
 class DkClean:
     """The class dk_clean is used to move old files from one directory to an other.
     The process can be run with multithreading or just iterativly"""
+
     def __init__(self, search_dir, move_to, access_threshold):
         self.search_dir = search_dir
         self.move_to = move_to
         self.access_threshold = access_threshold
         self.que = Queue()
+
+        self.logger = log_setup.setup_logger("../log/clean_log.log")
 
     def build_file_que(self, recursive_dir):
         """Builds queue of old files to be moved"""
@@ -32,8 +37,9 @@ class DkClean:
                 else:
                     try:
                         self.build_file_que(recursive_dir=(current_path))
-                    except OSError:
-                        pass
+                    except OSError as oerror:
+                        self.logger.info(oerror)
+
     def move_file(self, file_path):
         """Moves individual file while still preseving its file path"""
 

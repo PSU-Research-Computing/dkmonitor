@@ -12,6 +12,7 @@ import dk_stat
 import dk_emailer
 import dk_clean
 import configurator_settings_obj
+import log_setup
 
 class MonitorManager():
     """This class is the main managing class for all other classes
@@ -20,6 +21,8 @@ class MonitorManager():
     def __init__(self):
         self.set_interface = configurator_settings_obj.SettingsInterface()
         self.settings = self.set_interface.parse_and_check_all()
+
+        self.logger = log_setup.setup_logger("../log/monitor_log.log")
 
         #Configures Email api
         self.emailer = dk_emailer.Emailer(self.settings["Email_API"]["user_postfix"])
@@ -42,6 +45,7 @@ class MonitorManager():
         #Instanciates the disk statistics object
         dk_stat_obj = dk_stat.DkStat(task["system_name"], task["directory_path"])
         print("Searching {path}".format(path=task["directory_path"]))
+        self.logger.info("Searching %s", task["directory_path"])
         start = time.time()
         dk_stat_obj.dir_search() #Searches the Directory
         end = time.time()
@@ -50,8 +54,10 @@ class MonitorManager():
         print("Total time: {t}".format(t=total))
         print('----')
         print("Done. Exporting data To database...")
+        self.logger.info("Exporting %s data to database", task["directory_path"])
         dk_stat_obj.export_data(self.database) #Exports data from dk_stat_obj to the database
-        print("Done. Emailing Users")
+        print("Emailing Users")
+        self.logger.info("Emailing Users for %s", task["directory_path"])
         #Emails users with bad data
         if dk_stat_obj.get_disk_use_percent() > task["disk_use_percent_threshold"]:
             dk_stat_obj.email_users(self.emailer, #Emails users
@@ -61,6 +67,7 @@ class MonitorManager():
                                     task["file_relocation_path"],
                                     task["bad_flag_percent"])
         print("Done")
+        self.logger.info("%s scan task complete", task["directory_path"])
 
 
     def start(self):
@@ -109,6 +116,7 @@ class MonitorManager():
         """Cleaning routine function"""
 
         print("CLeaning...")
+        self.logger.info("Cleaning %s", directory)
         thread_settings = self.settings["Thread_Settings"]
         clean_obj = dk_clean.DkClean(directory, relocation_path, access_threshold)
         if thread_settings["thread_mode"] == "yes":

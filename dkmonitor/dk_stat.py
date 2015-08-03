@@ -12,7 +12,7 @@ import datetime
 
 import user_obj
 import dir_obj
-#import db_interface
+import log_setup
 from named_tuples import FileTuple
 
 
@@ -25,10 +25,13 @@ class DkStat:
 
     def __init__(self, system, search_dir):
 
+        self.logger = log_setup.setup_logger("../log/dk_stat_log.log")
+
         #Input search directory path verification exception
         try:
             os.listdir(search_dir)
         except:
+            self.logger.error("Directory path: %s is invalid", search_dir)
             raise Exception("Directory path: {dir} is invalid.".format(dir=search_dir))
 
         self.search_time = 0
@@ -84,8 +87,8 @@ class DkStat:
                         try:
                             #recursive call on every directory
                             self.dir_search(recursive_dir=(current_path))
-                        except OSError:
-                            pass
+                        except OSError as oerror:
+                            self.logger.info(oerror)
 
 
     def export_data(self, db_obj):

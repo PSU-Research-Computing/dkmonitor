@@ -5,12 +5,8 @@ remove and query data in that database
 
 import psycopg2
 from contextlib import contextmanager
-#from string import Formatter
-#from dk_stat import dk_stat
 
-#User = namedtuple('User', 'tota_size use_percent average_access old_file_list')
-#User_file = namedtuple('User_file', 'file_path file_size last_access')
-
+import log_setup
 
 class DataBase:
     """
@@ -25,18 +21,8 @@ class DataBase:
         self.password = password
         self.host = host
 
-    def test_connection(self):
-        """Quick Connection check"""
+        self.logger = log_setup.setup_logger("../log/database_log.log")
 
-        try:
-            psycopg2.connect(database=self.db_name,
-                             user=self.user,
-                             password=self.password,
-                             host=self.host)
-        except psycopg2.DatabaseError:# as db_error:
-            print("Test Connection Error")
-
-        print("Connection Successful")
 
     @contextmanager
     def connect(self):
@@ -50,8 +36,8 @@ class DataBase:
                 with connection.cursor() as cursor:
                     yield cursor
         except psycopg2.DatabaseError as db_error:
-            print(db_error)
-            print("Connection Error")
+            self.logger.error("Database Connection Error")
+            self.logger.error(db_error)
 
     def query_date_compare(self, table_name, query_str, compare_str):
         """
