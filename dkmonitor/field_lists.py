@@ -2,6 +2,8 @@
 Abstract base class that only hold lists containing the option names for configparser
 """
 
+import configparser
+
 class FieldLists():
     """
     Abstract base class that only hold lists containing the option names for configparser
@@ -30,4 +32,11 @@ class FieldLists():
 
         self.email_fields = ["user_postfix",
                              "email_list"]
+
+        self.task_config_file_name = "../tasks.cfg"
+        self.gen_config_file_name = "../general.cfg"
+
+        self.task_config = configparser.ConfigParser()
+        self.gen_config = configparser.ConfigParser()
+
 

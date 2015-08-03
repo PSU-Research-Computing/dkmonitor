@@ -1,4 +1,3 @@
-import configparser
 import field_lists
 
 class ConfigGenerator(field_lists.FieldLists):
@@ -9,12 +8,6 @@ class ConfigGenerator(field_lists.FieldLists):
 
     def __init__(self):
         field_lists.FieldLists.__init__(self)
-
-        self.task_config_file_name = "../tasks.cfg"
-        self.gen_config_file_name = "../general.cfg"
-
-        self.task_config = configparser.ConfigParser()
-        self.gen_config = configparser.ConfigParser()
 
     def add_task_section(self, task_name):
         """Adds a task section to the task_config configuration object"""
