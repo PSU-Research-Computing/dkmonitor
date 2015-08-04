@@ -6,7 +6,12 @@ remove and query data in that database
 import psycopg2
 from contextlib import contextmanager
 
-import log_setup
+import sys
+import os
+sys.path.append(os.getcwd() + "/..")
+
+import dkmonitor.log_setup as log_setup
+#import log_setup
 
 class DataBase:
     """
@@ -21,7 +26,7 @@ class DataBase:
         self.password = password
         self.host = host
 
-        self.logger = log_setup.setup_logger("../log/database_log.log")
+        self.logger = log_setup.setup_logger("database_log.log")
 
 
     @contextmanager

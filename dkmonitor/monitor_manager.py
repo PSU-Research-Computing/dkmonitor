@@ -7,12 +7,17 @@ given disk or directory that is set by the adminstrator
 import time
 import threading
 
-import db_interface
-import dk_stat
-import dk_emailer
-import dk_clean
-import configurator_settings_obj
-import log_setup
+import sys
+import os
+sys.path.append(os.getcwd() + "/..")
+
+from . import db_interface
+#import dkmonitor.db_interface as db_interface
+import dkmonitor.dk_stat as dk_stat
+import dkmonitor.dk_emailer as dk_emailer
+import dkmonitor.dk_clean as dk_clean
+import dkmonitor.configurator_settings_obj as configurator_settings_obj
+import dkmonitor.log_setup as log_setup
 
 class MonitorManager():
     """This class is the main managing class for all other classes
@@ -34,6 +39,7 @@ class MonitorManager():
                                               self.settings["DataBase_info"]["host"])
 
         if self.settings["DataBase_info"]["purge_database"] == "yes":
+            self.logger.info("Cleaning Database")
             self.database.clean_data_base(self.settings["DataBase_info"]["purge_after_day_number"])
 
 

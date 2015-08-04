@@ -3,8 +3,8 @@ This Script collects and processing information on a user's usage on a
 disk or in a directory
 """
 
-import stat_obj
-import email_obj
+import dkmonitor.stat_obj as stat_obj
+import dkmonitor.email_obj as email_obj
 
 class User(stat_obj.StatObj):
     """

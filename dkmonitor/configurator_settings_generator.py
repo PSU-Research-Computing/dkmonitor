@@ -1,4 +1,5 @@
-import field_lists
+
+import dkmonitor.field_lists as field_lists
 
 class ConfigGenerator(field_lists.FieldLists):
     """

@@ -9,8 +9,8 @@ import os
 import sys
 import psycopg2
 
-import field_lists
-import log_setup
+import dkmonitor.field_lists as field_lists
+import dkmonitor.log_setup as log_setup
 
 
 class SettingsInterface(field_lists.FieldLists):
@@ -21,7 +21,7 @@ class SettingsInterface(field_lists.FieldLists):
 
     def __init__(self):
         field_lists.FieldLists.__init__(self)
-        self.logger = log_setup.setup_logger("../log/settings_log.log")
+        self.logger = log_setup.setup_logger("settings_log.log")
 
         self.settings = {"Scheduled_Tasks" : {},
                          "DataBase_info" : None,

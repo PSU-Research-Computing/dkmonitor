@@ -9,7 +9,8 @@ from pwd import getpwuid
 import threading
 from queue import Queue
 
-import log_setup
+#from dkmonitor import log_setup
+import dkmonitor.log_setup as log_setup
 
 class DkClean:
     """The class dk_clean is used to move old files from one directory to an other.
@@ -21,7 +22,7 @@ class DkClean:
         self.access_threshold = access_threshold
         self.que = Queue()
 
-        self.logger = log_setup.setup_logger("../log/clean_log.log")
+        self.logger = log_setup.setup_logger("clean_log.log")
 
     def build_file_que(self, recursive_dir):
         """Builds queue of old files to be moved"""

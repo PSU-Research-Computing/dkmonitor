@@ -2,7 +2,7 @@
 This script is designed to collect data on an entire directory or disk
 """
 
-import stat_obj
+import dkmonitor.stat_obj as stat_obj
 
 class Directory(stat_obj.StatObj):
     """Collects data on an entire directory"""

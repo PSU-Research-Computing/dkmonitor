@@ -10,10 +10,10 @@ from pwd import getpwuid
 import operator
 import datetime
 
-import user_obj
-import dir_obj
-import log_setup
-from named_tuples import FileTuple
+import dkmonitor.user_obj as user_obj
+import dkmonitor.dir_obj as dir_obj
+import dkmonitor.log_setup as log_setup
+from dkmonitor.named_tuples import FileTuple
 
 
 class DkStat:
@@ -25,7 +25,7 @@ class DkStat:
 
     def __init__(self, system, search_dir):
 
-        self.logger = log_setup.setup_logger("../log/dk_stat_log.log")
+        self.logger = log_setup.setup_logger("dk_stat_log.log")
 
         #Input search directory path verification exception
         try:

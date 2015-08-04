@@ -3,6 +3,7 @@ Abstract base class that only hold lists containing the option names for configp
 """
 
 import configparser
+import os
 
 class FieldLists():
     """
@@ -33,8 +34,8 @@ class FieldLists():
         self.email_fields = ["user_postfix",
                              "email_list"]
 
-        self.task_config_file_name = "../tasks.cfg"
-        self.gen_config_file_name = "../general.cfg"
+        self.task_config_file_name = os.path.expanduser("~/.dkmonitor/config/tasks.cfg")
+        self.gen_config_file_name = os.path.expanduser("~/.dkmonitor/config/general.cfg")
 
         self.task_config = configparser.ConfigParser()
         self.gen_config = configparser.ConfigParser()
