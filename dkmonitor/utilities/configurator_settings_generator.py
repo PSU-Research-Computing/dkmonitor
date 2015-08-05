@@ -1,5 +1,5 @@
 
-import dkmonitor.field_lists as field_lists
+from field_lists import FieldLists
 
 class ConfigGenerator(field_lists.FieldLists):
     """

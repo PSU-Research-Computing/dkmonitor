@@ -9,9 +9,14 @@ import os
 import sys
 import psycopg2
 
-import dkmonitor.field_lists as field_lists
-import dkmonitor.log_setup as log_setup
 
+#sys.path.append("..")
+#from ..utilities import field_lists
+#from ..utilities import log_setup
+#import field_lists
+#import log_setup
+from .field_lists import FieldLists
+from .log_setup import setup_logger
 
 class SettingsInterface(field_lists.FieldLists):
     """
