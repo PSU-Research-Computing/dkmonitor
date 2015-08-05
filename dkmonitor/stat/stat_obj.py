@@ -3,8 +3,9 @@ stat_obj contains the abstract base class for dir_obj.py and user_obj.py
 """
 
 import os
+from collections import namedtuple
 
-#from named_tuples import FileTuple
+FileTuple = namedtuple('FileTuple', 'file_path file_size last_access')
 
 class StatObj():
     """
