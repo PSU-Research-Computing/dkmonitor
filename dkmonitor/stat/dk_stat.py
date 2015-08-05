@@ -3,18 +3,22 @@ This file contains the DkStat object that scans a given disk or directory
 and stores the data in user and directory objects
 """
 
-import os
+
 import shutil
 import time
 from pwd import getpwuid
 import operator
 import datetime
+from collections import namedtuple
 
-import dkmonitor.user_obj as user_obj
-import dkmonitor.dir_obj as dir_obj
-import dkmonitor.log_setup as log_setup
-from dkmonitor.named_tuples import FileTuple
+import sys, os
+sys.path.append(os.path.abspath("../.."))
 
+from dkmonitor.stat.user_obj import User
+from dkmonitor.stat.dir_obj import Directory
+from dkmonitor.utilities import log_setup
+
+FileTuple = namedtuple('FileTuple', 'file_path file_size last_access')
 
 class DkStat:
     """
@@ -51,9 +55,9 @@ class DkStat:
 
         if recursive_dir == None:
             self.search_time = datetime.datetime.now()
-            self.directory_obj = dir_obj.Directory(search_dir=self.search_directory,
-                                                   system=self.system,
-                                                   datetime=self.search_time) #Creates dir_obj
+            self.directory_obj = Directory(search_dir=self.search_directory,
+                                           system=self.system,
+                                           datetime=self.search_time) #Creates dir_obj
 
             self.dir_search(recursive_dir=self.search_directory) #starts recursive call
 
@@ -75,12 +79,13 @@ class DkStat:
                         file_tup = FileTuple(current_path, file_size, last_access)
                         self.directory_obj.add_file(file_tup) #Add file to directory obj
 
+                        #TODO Change to try except
                         #if name has not already be found then add to user_hash
                         if name not in self.user_hash.keys():
-                            self.user_hash[name] = user_obj.User(name,
-                                                                 search_dir=self.search_directory,
-                                                                 system=self.system,
-                                                                 datetime=self.search_time)
+                            self.user_hash[name] = User(name,
+                                                        search_dir=self.search_directory,
+                                                        system=self.system,
+                                                        datetime=self.search_time)
                         self.user_hash[name].add_file(file_tup)
 
                     else:

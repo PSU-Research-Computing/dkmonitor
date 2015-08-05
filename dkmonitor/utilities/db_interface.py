@@ -6,12 +6,10 @@ remove and query data in that database
 import psycopg2
 from contextlib import contextmanager
 
-import sys
-import os
-sys.path.append(os.getcwd() + "/..")
+import sys, os
+sys.path.append(os.path.abspath("../.."))
 
-import dkmonitor.log_setup as log_setup
-#import log_setup
+from dkmonitor.utilities import log_setup
 
 class DataBase:
     """

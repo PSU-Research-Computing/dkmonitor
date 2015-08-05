@@ -3,10 +3,13 @@ This Script collects and processing information on a user's usage on a
 disk or in a directory
 """
 
-import dkmonitor.stat_obj as stat_obj
-import dkmonitor.email_obj as email_obj
+import sys, os
+sys.path.append(os.path.abspath("../.."))
 
-class User(stat_obj.StatObj):
+from dkmonitor.stat.stat_obj import StatObj
+from dkmonitor.emailers.email_obj import Email
+
+class User(StatObj):
     """
     This class stores data about one user on a system
     It can email them if they are flagged
@@ -25,16 +28,16 @@ class User(stat_obj.StatObj):
                  average_access=None,
                  avrg_access_change=0.0):
 
-        stat_obj.StatObj.__init__(self,
-                                  "user_stats",
-                                  search_dir=search_dir,
-                                  system=system,
-                                  datetime=datetime,
-                                  total_file_size=total_file_size,
-                                  use_percent=use_percent,
-                                  use_percent_change=use_percent_change,
-                                  average_access=average_access,
-                                  avrg_access_change=avrg_access_change)
+        StatObj.__init__(self,
+                         "user_stats",
+                         search_dir=search_dir,
+                         system=system,
+                         datetime=datetime,
+                         total_file_size=total_file_size,
+                         use_percent=use_percent,
+                         use_percent_change=use_percent_change,
+                         average_access=average_access,
+                         avrg_access_change=avrg_access_change)
 
         self.collumn_dict["user_name"] = name
 
@@ -87,9 +90,9 @@ class User(stat_obj.StatObj):
         """Creates message to be sent to user"""
 
         address = self.collumn_dict["user_name"] + "@" + postfix
-        message = email_obj.Email(address,
-                                  self.collumn_dict["system"],
-                                  self.collumn_dict["searched_directory"])
+        message = Email(address,
+                        self.collumn_dict["system"],
+                        self.collumn_dict["searched_directory"])
 
         return message
 

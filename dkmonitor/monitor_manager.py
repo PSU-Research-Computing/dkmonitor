@@ -9,34 +9,34 @@ import threading
 
 import sys
 import os
-sys.path.append(os.getcwd() + "/..")
+sys.path.append(os.path.abspath(".."))
 
-from . import db_interface
-#import dkmonitor.db_interface as db_interface
-import dkmonitor.dk_stat as dk_stat
-import dkmonitor.dk_emailer as dk_emailer
-import dkmonitor.dk_clean as dk_clean
-import dkmonitor.configurator_settings_obj as configurator_settings_obj
-import dkmonitor.log_setup as log_setup
+from dkmonitor.utilities.db_interface import DataBase
+from dkmonitor.utilities.dk_clean import DkClean
+from dkmonitor.utilities import log_setup
+from dkmonitor.utilities.configurator_settings_obj import SettingsInterface
+
+from dkmonitor.emailers.dk_emailer import Emailer
+from dkmonitor.stat.dk_stat import DkStat
 
 class MonitorManager():
     """This class is the main managing class for all other classes
     It runs preset tasks that are found in the json settings file"""
 
     def __init__(self):
-        self.set_interface = configurator_settings_obj.SettingsInterface()
+        self.set_interface = SettingsInterface()
         self.settings = self.set_interface.parse_and_check_all()
 
         self.logger = log_setup.setup_logger("../log/monitor_log.log")
 
         #Configures Email api
-        self.emailer = dk_emailer.Emailer(self.settings["Email_API"]["user_postfix"])
+        self.emailer = Emailer(self.settings["Email_API"]["user_postfix"])
 
         #Configures database
-        self.database = db_interface.DataBase(self.settings["DataBase_info"]["database"],
-                                              self.settings["DataBase_info"]["user_name"],
-                                              self.settings["DataBase_info"]["password"],
-                                              self.settings["DataBase_info"]["host"])
+        self.database = DataBase(self.settings["DataBase_info"]["database"],
+                                 self.settings["DataBase_info"]["user_name"],
+                                 self.settings["DataBase_info"]["password"],
+                                 self.settings["DataBase_info"]["host"])
 
         if self.settings["DataBase_info"]["purge_database"] == "yes":
             self.logger.info("Cleaning Database")
@@ -49,7 +49,7 @@ class MonitorManager():
         task = self.settings["Scheduled_Tasks"][task_name]
         self.check_clean_task(task)
         #Instanciates the disk statistics object
-        dk_stat_obj = dk_stat.DkStat(task["system_name"], task["directory_path"])
+        dk_stat_obj = DkStat(task["system_name"], task["directory_path"])
         print("Searching {path}".format(path=task["directory_path"]))
         self.logger.info("Searching %s", task["directory_path"])
         start = time.time()
@@ -124,7 +124,7 @@ class MonitorManager():
         print("CLeaning...")
         self.logger.info("Cleaning %s", directory)
         thread_settings = self.settings["Thread_Settings"]
-        clean_obj = dk_clean.DkClean(directory, relocation_path, access_threshold)
+        clean_obj = DkClean(directory, relocation_path, access_threshold)
         if thread_settings["thread_mode"] == "yes":
             clean_obj.move_all_threaded(thread_settings["thread_number"])
         else:

@@ -5,27 +5,22 @@ check if the settings are correct
 and then converts them into a dictionary for monitor_manager
 """
 
-import os
-import sys
 import psycopg2
 
+import sys, os
+sys.path.append(os.path.abspath("../.."))
 
-#sys.path.append("..")
-#from ..utilities import field_lists
-#from ..utilities import log_setup
-#import field_lists
-#import log_setup
-from .field_lists import FieldLists
-from .log_setup import setup_logger
+from dkmonitor.utilities.field_lists import FieldLists
+from dkmonitor.utilities import log_setup
 
-class SettingsInterface(field_lists.FieldLists):
+class SettingsInterface(FieldLists):
     """
     The settings interface class acts as interface between the configparser ini files
     and the monitor manager class
     """
 
     def __init__(self):
-        field_lists.FieldLists.__init__(self)
+        FieldLists.__init__(self)
         self.logger = log_setup.setup_logger("settings_log.log")
 
         self.settings = {"Scheduled_Tasks" : {},

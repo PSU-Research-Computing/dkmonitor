@@ -1,14 +1,16 @@
+import sys, os
+sys.path.append(os.path.abspath("../../"))
 
-from field_lists import FieldLists
+from dkmonitor.utilities.field_lists import FieldLists
 
-class ConfigGenerator(field_lists.FieldLists):
+class ConfigGenerator(FieldLists):
     """
     ConfigGenerator Offers various functions to create and add to custom config files
     for dkmonitor
     """
 
     def __init__(self):
-        field_lists.FieldLists.__init__(self)
+        FieldLists.__init__(self)
 
     def add_task_section(self, task_name):
         """Adds a task section to the task_config configuration object"""
@@ -36,6 +38,11 @@ class ConfigGenerator(field_lists.FieldLists):
             self.gen_config.set("Thread_Settings", field, "")
 
     def generate_defaults(self):
+        try:
+            os.makedirs(os.path.expanduser("~") + "/.dkmonitor/config")
+        except OSError:
+            pass
+
         self.add_task_section("Task_Name")
         with open(self.task_config_file_name, 'w') as tconfig:
             self.task_config.write(tconfig)

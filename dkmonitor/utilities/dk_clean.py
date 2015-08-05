@@ -1,7 +1,6 @@
 """This script contains the class dk_clean.
 dk_clean is used to move all old files from one directory to another"""
 
-import os
 import re
 import time
 from pwd import getpwuid
@@ -10,7 +9,9 @@ import threading
 from queue import Queue
 
 #from dkmonitor import log_setup
-import dkmonitor.log_setup as log_setup
+import sys, os
+sys.path.append(os.path.abspath("../.."))
+from dkmonitor.utilities import log_setup
 
 class DkClean:
     """The class dk_clean is used to move old files from one directory to an other.
