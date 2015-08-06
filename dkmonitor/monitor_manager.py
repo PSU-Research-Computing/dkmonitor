@@ -47,7 +47,7 @@ class MonitorManager():
         """Runs a single task from the settings json file loaded"""
 
         task = self.settings["Scheduled_Tasks"][task_name]
-        #self.check_clean_task(task)
+        self.check_clean_task(task)
         #Instanciates the disk statistics object
         dk_stat_obj = DkStat(task["system_name"], task["directory_path"])
         print("Searching {path}".format(path=task["directory_path"])) #TODO
