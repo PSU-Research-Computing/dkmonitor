@@ -119,7 +119,8 @@ class StatObj():
         """Returns specific stats"""
 
         self.calculate_stats()
-        return [self.collumn_dict["total_file_size"], self.collumn_dict["last_access_average"]]
+        return {"total_file_size": self.collumn_dict["total_file_size"],
+                "last_access_average": self.collumn_dict["last_access_average"]}
 
 #####DATA PROCESSING FUCNTIONS##################
     def get_total_space(self):

@@ -81,12 +81,14 @@ class DkStat:
 
                         #TODO Change to try except
                         #if name has not already be found then add to user_hash
-                        if name not in self.user_hash.keys():
+                        try:
+                            self.user_hash[name].add_file(file_tup)
+                        except KeyError:
                             self.user_hash[name] = User(name,
                                                         search_dir=self.search_directory,
                                                         system=self.system,
                                                         datetime=self.search_time)
-                        self.user_hash[name].add_file(file_tup)
+                            self.user_hash[name].add_file(file_tup)
 
                     else:
                         try:
@@ -134,8 +136,11 @@ class DkStat:
         flag_user_number = int(len(self.user_hash.keys()) * problem_threshold)
         for user in self.user_hash.keys():
             stats = self.user_hash[user].get_stats()
-            bpad = stats[0]/stats[1] #Bytes per access day
-            stat_list.append([user, stats[0], bpad])
+            try:
+                bpad = stats["total_file_size"]/stats["last_access_average"] #Bytes per access day
+            except ZeroDivisionError:
+                bpad = 0
+            stat_list.append([user, stats["total_file_size"], bpad])
 
         print("Total users: {flag}".format(flag=len(self.user_hash.keys())))
         print("Total Flagged users: {flag}".format(flag=flag_user_number))
