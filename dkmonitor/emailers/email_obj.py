@@ -7,6 +7,7 @@ import sys, os
 sys.path.append(os.path.abspath("../.."))
 from dkmonitor.utilities import log_setup
 
+import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
@@ -26,11 +27,15 @@ class Email:
         self.msg["To"] = address
         self.msg["Subject"] = "Usage Warning on {system}".format(**data_dict)
 
-    def build_message(self):
+    def build_and_send_message(self):
         """Attaches all the body string to the message"""
 
         body = MIMEText(self.body, 'plain')
         self.msg.attach(body)
+
+        server = smtplib.SMTP('localhost')
+        server.sendmail("Do-Not-Reply", "wpatt2@pdx.edu", self.msg.as_string())
+        #self.server.sendmail(self.user_name, message["To"], message.as_string())
 
     def add_message(self, message_file, data_dict):
         """Loads a pre-written message from external file and adds info to it from data_dict"""
@@ -45,10 +50,6 @@ class Email:
             self.logger.error("File %s does not exist", message_file)
             print(err)
 
-    def as_string(self):
-        """Returns the message as a string"""
-
-        return self.msg.as_string()
 
     def attach_file_stream(self, stream, attached_file_name):
         """
@@ -60,3 +61,4 @@ class Email:
         attachment = MIMEText(stream.read())
         attachment.add_header('Content-Disposition', 'attachment', filename=attached_file_name)
         self.msg.attach(attachment)
+
