@@ -31,9 +31,8 @@ class Directory(StatObj):
                          avrg_access_change=avrg_access_change)
 
     def build_query_str(self):
-        query_str = "searched_directory = '{sdir}' AND system = '{sys}'"
-        query_str.format(sdir=self.collumn_dict["searched_directory"],
-                         sys=self.collumn_dict["system"])
+        query_str = "searched_directory = '{searched_directory}' AND system = '{system}'"
+        query_str.format(**self.collumn_dict)
         return query_str
 
 

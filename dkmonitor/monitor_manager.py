@@ -50,7 +50,7 @@ class MonitorManager():
         self.check_clean_task(task)
         #Instanciates the disk statistics object
         dk_stat_obj = DkStat(task["system_name"], task["directory_path"])
-        print("Searching {path}".format(path=task["directory_path"])) #TODO
+        print("Searching {directory_path}".format(**task))
         self.logger.info("Searching %s", task["directory_path"])
         start = time.time()
         dk_stat_obj.dir_search() #Searches the Directory
@@ -126,19 +126,20 @@ class MonitorManager():
             clean_obj.move_all()
 
 
-    #TODO Refactor these functions
-    def build_query_str(self, task):
+    @staticmethod
+    def build_query_str(task):
         """Builds query string used to determine if disk needs to be cleaned"""
 
-        query_str = "searched_directory = '{sdir}' AND system = '{sys}'"
-        query_str = query_str.format(dkp=task["disk_use_percent_threshold"],
-                                     sdir=task["directory_path"],
-                                     sys=task["system_name"])
+        query_str = "searched_directory = '{directory_path}' AND system = '{system_name}'"
+        query_str = query_str.format(**task)
         return query_str
 
+def main():
+    """Runs monitor_manager"""
+    monitor = MonitorManager()
+    monitor.start()
 
 
 if __name__ == "__main__":
-    monitor = MonitorManager()
-    monitor.start()
+    main()
 
