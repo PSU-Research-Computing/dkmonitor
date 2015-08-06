@@ -27,7 +27,7 @@ class MonitorManager():
         self.set_interface = SettingsInterface()
         self.settings = self.set_interface.parse_and_check_all()
 
-        self.logger = log_setup.setup_logger("../log/monitor_log.log")
+        self.logger = log_setup.setup_logger("monitor_log.log")
 
         #Configures Email api
         self.emailer = Emailer(self.settings["Email_API"]["user_postfix"])
@@ -47,7 +47,7 @@ class MonitorManager():
         """Runs a single task from the settings json file loaded"""
 
         task = self.settings["Scheduled_Tasks"][task_name]
-        self.check_clean_task(task)
+        #self.check_clean_task(task)
         #Instanciates the disk statistics object
         dk_stat_obj = DkStat(task["system_name"], task["directory_path"])
         print("Searching {directory_path}".format(**task))
