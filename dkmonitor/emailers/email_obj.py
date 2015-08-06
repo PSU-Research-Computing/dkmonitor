@@ -2,7 +2,10 @@
 This file contains the Email class. Each class acts as a separate message
 This class allows you to build customized messages that can be sent by a different object
 """
-import os
+
+import sys, os
+sys.path.append(os.path.abspath("../.."))
+from dkmonitor.utilities import log_setup
 
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -14,6 +17,8 @@ class Email:
     """
 
     def __init__(self, address, data_dict):
+        self.logger = log_setup.setup_logger("email_log.log")
+
         self.body = ""
         self.add_message("main_message.txt", data_dict)
 
@@ -30,14 +35,14 @@ class Email:
     def add_message(self, message_file, data_dict):
         """Loads a pre-written message from external file and adds info to it from data_dict"""
 
+        message_file = os.path.abspath(".") + "/emailers/messages/" + message_file
         try:
-            message_dir = os.path.abspath(".") + "/emailers/messages/"
-            with open(message_dir + message_file, 'r') as mfile:
+            with open(message_file, 'r') as mfile:
                 message_str = mfile.read()
-
             self.body += message_str.format(**data_dict)
+
         except IOError as err:
-            #TODO Add logging
+            self.logger.error("File %s does not exist", message_file)
             print(err)
 
     def as_string(self):
