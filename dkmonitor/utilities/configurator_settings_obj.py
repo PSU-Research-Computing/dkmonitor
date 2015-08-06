@@ -81,11 +81,11 @@ class SettingsInterface(FieldLists):
         bad_flag = self.check_options(self.gen_config,
                                       "DataBase_Settings",
                                       self.db_fields)
-        if bad_flag == False:
+        if bad_flag is False:
             bad_flag = self.test_db_connection()
-        if bad_flag == False:
+        if bad_flag is False:
             self.verify_db_feilds()
-        if bad_flag == False:
+        if bad_flag is False:
             self.settings["DataBase_info"] = self.config_to_dict(self.gen_config,
                                                                  "DataBase_Settings")
 
@@ -148,10 +148,10 @@ class SettingsInterface(FieldLists):
 
         bad_flag = self.check_options(self.gen_config, "Thread_Settings", self.thread_fields)
 
-        if bad_flag == False:
+        if bad_flag is False:
             self.verify_thread_fields()
 
-        if bad_flag == False:
+        if bad_flag is False:
             self.settings["Thread_Settings"] = self.config_to_dict(self.gen_config,
                                                                    "Thread_Settings")
 
@@ -164,7 +164,7 @@ class SettingsInterface(FieldLists):
         set_flag = False
         try:
             thread_mode = self.gen_config.getboolean("Thread_Settings", "thread_mode")
-            if thread_mode == True:
+            if thread_mode is True:
                 self.verify_thread_num()
                 self.gen_config.set("Thread_Settings", "thread_mode", "yes")
         except ValueError:
@@ -172,7 +172,7 @@ class SettingsInterface(FieldLists):
                                 "boolean value (yes/no, true/false, on/off, 1/0)")
             set_flag = True
 
-        if set_flag == True:
+        if set_flag is True:
             self.logger.warning("The thread mode flag will be set to default value: 'no'")
             self.gen_config.set("Thread_Settings", "thread_mode", "no")
 
@@ -189,7 +189,7 @@ class SettingsInterface(FieldLists):
             self.logger.warning("The Thread Number field must be an integer greater 0")
             set_flag = True
 
-        if set_flag == True:
+        if set_flag is True:
             self.logger.warning("The thread_num field will be set to defualt value: 4")
 
 
@@ -199,10 +199,10 @@ class SettingsInterface(FieldLists):
 
         bad_flag = self.check_options(self.gen_config, "Email_Settings", self.email_fields)
 
-        if bad_flag == False:
+        if bad_flag is False:
             self.verify_email_fields()
 
-        if bad_flag == False:
+        if bad_flag is False:
             self.settings["Email_API"] = self.config_to_dict(self.gen_config, "Email_Settings")
 
         return bad_flag
@@ -218,14 +218,14 @@ class SettingsInterface(FieldLists):
 
         list_path = self.gen_config.get("Email_Settings", "email_list")
         if list_path == "":
-            if pflag == False:
+            if pflag is False:
                 self.set_task_emails()
                 self.logger.warning("Emails will not be sent")
 
         else:
             if not os.path.exists(list_path):
                 self.logger.warning("email_list path set in Email_Settings does not exist")
-                if pflag == False:
+                if pflag is False:
                     self.set_task_emails()
                     self.logger.warning("Emails will not be sent")
 
@@ -249,10 +249,10 @@ class SettingsInterface(FieldLists):
         for section in unchecked_sections:
             bad_flag = self.check_options(self.task_config, section, self.task_fields)
 
-            if bad_flag == False:
+            if bad_flag is False:
                 bad_flag = self.verify_task_fields(section)
 
-            if bad_flag == False:
+            if bad_flag is False:
                 self.settings["Scheduled_Tasks"][section] = self.config_to_dict(self.task_config,
                                                                                 section)
             else:
@@ -284,11 +284,10 @@ class SettingsInterface(FieldLists):
             self.logger.error("Directory Path field set in: %s does not exist", section)
             bad_flag = True
 
-
     ####Relocate flag####
         try:
             r_bool = self.task_config.getboolean(section, "relocate_old_files")
-            if r_bool == True:
+            if r_bool is True:
                 self.verify_relocate_fields(section)
                 self.task_config.set(section, "relocate_old_files", "yes")
         except ValueError:
@@ -314,7 +313,7 @@ class SettingsInterface(FieldLists):
             self.logger.warning("The Relocation file path set in %s does not exist", section)
             set_flag = True
 
-        if set_flag == True:
+        if set_flag is True:
             self.logger.warning("Not Moving old files")
             self.task_config.set(section, "relocate_old_files", "no")
             set_flag = False
@@ -332,7 +331,7 @@ class SettingsInterface(FieldLists):
                                 "must me set to an integer", section)
             set_flag = True
 
-        if set_flag == True:
+        if set_flag is True:
             self.logger.warning("Setting Disk use percent threshold to default value: 75 percent")
             self.task_config.set(section, "disk_use_percent_threshold", "75")
             set_flag = False
@@ -349,7 +348,7 @@ class SettingsInterface(FieldLists):
                                 "must be an integer bigger than 1", section)
             set_flag = True
 
-        if set_flag == True:
+        if set_flag is True:
             self.logger.warning("Setting last_access_threshold field in: %s "
                                 "to defualt value: 7 days", section)
             self.task_config.set(section, "last_access_threshold", "7")
@@ -366,7 +365,7 @@ class SettingsInterface(FieldLists):
                                 " value (yes/no, true/false, on/off, 1/0)", section)
             set_flag = True
 
-        if set_flag == True:
+        if set_flag is True:
             self.logger.warning("Setting Email users flag set in %s to 'no'", section)
             self.task_config.set(section, "email_users", "no")
             set_flag = False
@@ -387,7 +386,7 @@ class SettingsInterface(FieldLists):
                                 "must me set to an integer", section)
             set_flag = True
 
-        if set_flag == True:
+        if set_flag is True:
             self.logger.warning("Setting days_between_runs field in %s "
                                 "to defualt value: 1", section)
             self.task_config.set(section, "days_between_runs", "1")
@@ -405,7 +404,7 @@ class SettingsInterface(FieldLists):
                                 "must me set to an integer", section)
             set_flag = True
 
-        if set_flag == True:
+        if set_flag is True:
             self.logger.warning("Setting bad_flag_percent field in %s "
                                 "to defualt value: 25 Percent", section)
             self.task_config.set(section, "bad_flag_percent", "25")
