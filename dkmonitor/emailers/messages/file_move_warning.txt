@@ -1,0 +1,5 @@
+WARNING: All files accessed more than {last_access_threshold} days ago will be moved to {file_relocation_path}
+You have {days_between_runs} day(s) before your files will be moved.
+Number of old files: {old_file_count}
+Combined size of old files: {total_old_file_size} GBs
+

@@ -1,0 +1,6 @@
+WARNING: You have been flagged as a top space user of {searched_directory} on
+{system}.
+{searched_directory} is over it's use threshold. Please reduce your data usage.
+Total size of all files: {total_file_size} GBs
+Total disk use: {disk_use_percent} %
+

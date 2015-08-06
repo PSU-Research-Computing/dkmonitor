@@ -51,34 +51,32 @@ class User(StatObj):
 
         return query_str
 
-    def email_user(self,
-                   emailer_obj,
-                   postfix,
-                   last_access_threshold,
-                   days_between_runs,
-                   move_dir,
-                   problem_lists):
+    def email_user(self, emailer_obj, postfix, problem_lists, task_dict):
         """Emails the user associated with the object if they are flagged"""
 
-        old_file_info = self.find_old_file_info(last_access_threshold)
+        send_flag = False
         message = self.create_message(postfix)
         print(self.collumn_dict["user_name"])
         if self.collumn_dict["user_name"] in problem_lists[0]: #Adds top size use warning to message
-            message.add_top_use_warning(self.collumn_dict["total_file_size"],
-                                        self.collumn_dict["disk_use_percent"])
+            message.add_message("top_use_warning.txt", self.collumn_dict)
+            send_flag = True
             print("BIG flag")
         if self.collumn_dict["user_name"] in problem_lists[1]: #Adds top old file warning to message
-            message.add_top_old_warning(self.collumn_dict["last_access_average"])
+            message.add_message("top_old_warning.txt", self.collumn_dict)
+            send_flag = True
             print("OLD flag")
 
-        if old_file_info[1] > 0:
-            message.add_access_warning(old_file_info,
-                                       last_access_threshold,
-                                       days_between_runs,
-                                       move_dir) #Adds general old file warning to message
+        old_file_info = self.find_old_file_info(task_dict["last_access_threshold"])
+        message_dict = task_dict.copy()
+        message_dict.update(old_file_info)
+        if old_file_info["old_file_count"] > 0:
+            message.add_message("file_move_warning.txt", message_dict)
+            send_flag = True
+            print("REG flag")
+
+        if send_flag is True:
             message.build_message()
             emailer_obj.send_email(message)
-            print("REG flag")
 
         print(self.collumn_dict["total_file_size"])
         print(self.collumn_dict["last_access_average"])
@@ -90,9 +88,7 @@ class User(StatObj):
         """Creates message to be sent to user"""
 
         address = self.collumn_dict["user_name"] + "@" + postfix
-        message = Email(address,
-                        self.collumn_dict["system"],
-                        self.collumn_dict["searched_directory"])
+        message = Email(address, self.collumn_dict)
 
         return message
 
@@ -106,6 +102,6 @@ class User(StatObj):
                 total_old_file_size += file_path.file_size
                 count += 1
 
-        return [total_old_file_size, count]
+        return {"total_old_file_size": total_old_file_size/1024/1024/1024, "old_file_count": count}
 
 

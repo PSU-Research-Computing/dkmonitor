@@ -47,10 +47,10 @@ class MonitorManager():
         """Runs a single task from the settings json file loaded"""
 
         task = self.settings["Scheduled_Tasks"][task_name]
-        self.check_clean_task(task)
+        #self.check_clean_task(task)
         #Instanciates the disk statistics object
         dk_stat_obj = DkStat(task["system_name"], task["directory_path"])
-        print("Searching {path}".format(path=task["directory_path"]))
+        print("Searching {path}".format(path=task["directory_path"])) #TODO
         self.logger.info("Searching %s", task["directory_path"])
         start = time.time()
         dk_stat_obj.dir_search() #Searches the Directory
@@ -66,12 +66,7 @@ class MonitorManager():
         self.logger.info("Emailing Users for %s", task["directory_path"])
         #Emails users with bad data
         if dk_stat_obj.get_disk_use_percent() > task["disk_use_percent_threshold"]:
-            dk_stat_obj.email_users(self.emailer, #Emails users
-                                    self.settings["Email_API"]["user_postfix"],
-                                    task["last_access_threshold"],
-                                    task["days_between_runs"],
-                                    task["file_relocation_path"],
-                                    task["bad_flag_percent"])
+            dk_stat_obj.email_users(self.emailer, self.settings["Email_API"]["user_postfix"], task)
         print("Done")
         self.logger.info("%s scan task complete", task["directory_path"])
 
