@@ -1,1 +1,2 @@
 include emailers/messages/*.txt
+include sql_table_init.sql
