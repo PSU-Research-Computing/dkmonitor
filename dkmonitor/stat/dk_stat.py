@@ -105,15 +105,12 @@ class DkStat:
         for user in self.user_hash.keys():
             self.user_hash[user].export_data(db_obj)
 
-    def email_users(self, emailer_obj, postfix, task_dict):
+    def email_users(self, postfix, task_dict, current_use):
         """Flaggs users, and then sends out email warnings"""
 
         problem_lists = self.get_problem_users(task_dict["bad_flag_percent"])
         for user in self.user_hash.keys():
-            self.user_hash[user].email_user(emailer_obj,
-                                            postfix,
-                                            problem_lists,
-                                            task_dict)
+            self.user_hash[user].email_user(postfix, problem_lists, task_dict, current_use)
 
 
     def get_disk_use_percent(self):

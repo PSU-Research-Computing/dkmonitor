@@ -4,7 +4,6 @@ This script is indented to be run as a cron job to monitor actions on any
 given disk or directory that is set by the adminstrator
 """
 
-import time
 import threading
 
 import sys
@@ -43,34 +42,53 @@ class MonitorManager():
             self.database.clean_data_base(self.settings["DataBase_info"]["purge_after_day_number"])
 
     def quick_scan(self, task_name):
+        """
+        Ment to be run hourly
+        Checks use percent on a task
+        if over quota, email users / clean disk if neccessary
+        """
+
         task = self.settings["Scheduled_Tasks"][task_name]
         dk_stat_obj = DkStat(task["system_name"], task["directory_path"])
 
-    def run_task(self, task_name):
-        """Runs a single task from the settings json file loaded"""
+        disk_use = dk_stat_obj.get_disk_use_percent()
+        if disk_use > task["disk_use_percent_warning_threshold"]:
+            dk_stat_obj.dir_search()
+            dk_stat_obj.export_data(self.database)
+            dk_stat_obj.email_users(self.settings["Email_API"]["user_postfix"], task, disk_use)
+
+        if disk_use > task["disk_use_percent_critical_threshold"]:
+            self.clean_disk(task["directory_path"],
+                            task["file_relocation_path"],
+                            task["access_threshold"])
+
+    def full_scan(self, task_name):
+        """
+        Performs full scan of directory by default
+        logs disk statistics information in db
+        if over quota, email users / clean disk if neccessary
+        """
 
         task = self.settings["Scheduled_Tasks"][task_name]
-        self.check_clean_task(task)
-        #Instanciates the disk statistics object
         dk_stat_obj = DkStat(task["system_name"], task["directory_path"])
-        print("Searching {directory_path}".format(**task))
+
         self.logger.info("Searching %s", task["directory_path"])
-        start = time.time()
         dk_stat_obj.dir_search() #Searches the Directory
-        end = time.time()
-        total = end - start
-        print('----')
-        print("Total time: {t}".format(t=total))
-        print('----')
-        print("Done. Exporting data To database...")
+
         self.logger.info("Exporting %s data to database", task["directory_path"])
         dk_stat_obj.export_data(self.database) #Exports data from dk_stat_obj to the database
-        print("Emailing Users")
+
         self.logger.info("Emailing Users for %s", task["directory_path"])
-        #Emails users with bad data
-        if dk_stat_obj.get_disk_use_percent() > task["disk_use_percent_threshold"]:
-            dk_stat_obj.email_users(self.emailer, self.settings["Email_API"]["user_postfix"], task)
-        print("Done")
+        disk_use = dk_stat_obj.get_disk_use_percent()
+        if disk_use > task["disk_use_warning_threshold"]:
+            dk_stat_obj.email_users(self.settings["Email_API"]["user_postfix"], task, disk_use)
+
+        if disk_use > task["disk_use_percent_critical_threshold"]:
+            self.clean_disk(task["directory_path"],
+                            task["file_relocation_path"],
+                            task["access_threshold"])
+
+
         self.logger.info("%s scan task complete", task["directory_path"])
 
 

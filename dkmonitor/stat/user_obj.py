@@ -50,37 +50,42 @@ class User(StatObj):
 
         return query_str
 
-    def email_user(self, emailer_obj, postfix, problem_lists, task_dict):
+    def email_user(self, postfix, problem_lists, task_dict, current_use):
         """Emails the user associated with the object if they are flagged"""
 
-        send_flag = False
-        message = self.create_message(postfix)
-        print(self.collumn_dict["user_name"])
-        if self.collumn_dict["user_name"] in problem_lists[0]: #Adds top size use warning to message
-            message.add_message("top_use_warning.txt", self.collumn_dict)
-            send_flag = True
-            print("BIG flag")
-        if self.collumn_dict["user_name"] in problem_lists[1]: #Adds top old file warning to message
-            message.add_message("top_old_warning.txt", self.collumn_dict)
-            send_flag = True
-            print("OLD flag")
+        if current_use > task_dict["disk_use_percent_warning_threshold"]:
+            send_flag = False
+            message = self.create_message(postfix)
+            print(self.collumn_dict["user_name"])
+            if self.collumn_dict["user_name"] in problem_lists[0]:
+                message.add_message("top_use_warning.txt", self.collumn_dict)
+                send_flag = True
+                print("BIG flag")
+            if self.collumn_dict["user_name"] in problem_lists[1]:
+                message.add_message("top_old_warning.txt", self.collumn_dict)
+                send_flag = True
+                print("OLD flag")
 
-        old_file_info = self.find_old_file_info(task_dict["last_access_threshold"])
-        message_dict = task_dict.copy()
-        message_dict.update(old_file_info)
-        if old_file_info["old_file_count"] > 0:
-            message.add_message("file_move_warning.txt", message_dict)
-            send_flag = True
-            print("REG flag")
+            old_file_info = self.find_old_file_info(task_dict["last_access_threshold"])
+            message_dict = task_dict.copy()
+            message_dict.update(old_file_info)
+            if old_file_info["old_file_count"] > 0:
+                if current_use > task_dict["disk_use_percent_critical_threshold"]:
+                    message.add_message("file_move_notice.txt", message_dict)
+                    print("MOVE_NOTICE")
+                else:
+                    message.add_message("file_move_warning.txt", message_dict)
+                    print("REG flag")
 
-        if send_flag is True:
-            message.build_message()
-            emailer_obj.send_email(message)
+                send_flag = True
 
-        print(self.collumn_dict["total_file_size"])
-        print(self.collumn_dict["last_access_average"])
-        print(problem_lists)
-        print("-----------------------")
+            if send_flag is True:
+                message.build_and_send_message()
+
+            print(self.collumn_dict["total_file_size"])
+            print(self.collumn_dict["last_access_average"])
+            print(problem_lists)
+            print("-----------------------")
 
 
     def create_message(self, postfix):
