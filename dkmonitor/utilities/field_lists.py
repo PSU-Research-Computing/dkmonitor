@@ -13,10 +13,12 @@ class FieldLists():
     def __init__(self):
         self.task_fields = ["system_name",
                             "directory_path",
-                            "days_between_runs",
+                            "delete_old_files",
                             "relocate_old_files",
                             "file_relocation_path",
-                            "disk_use_percent_threshold",
+                            "delete_when_relocation_is_full",
+                            "disk_use_percent_warning_threshold",
+                            "disk_use_percent_critical_threshold",
                             "last_access_threshold",
                             "email_users",
                             "bad_flag_percent"]

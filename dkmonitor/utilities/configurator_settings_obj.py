@@ -73,6 +73,58 @@ class SettingsInterface(FieldLists):
             sys.exit("CRITICAL ERROR: Too Many configuration issues: Program Halting")
         return self.settings
 
+####Field Verification Functions######################
+    def verify_boolean_field(self, config, section, flag_name, default):
+
+        bool_val = -1
+        try:
+            bool_val = config.getboolean(section, flag_name)
+            if bool_val is True:
+                config.set(section, flag_name, "yes")
+
+        except ValueError:
+            self.logger.warning("The %s flag set in: %s must be a boolean value "
+                                "(yes/no, true/false, on/off, 1/0)", flag_name, section)
+            self.logger.warning("Setting %s flag to: '%s'")
+            config.set(section, flag_name, default)
+
+        return int(bool_val)
+
+
+    def verify_int_field(self, config, section, field_name, default):
+        return_val = False
+        try:
+            return_val = config.getint(section, field_name)
+        except ValueError:
+            self.logger.warning("The %s set in %s must be an integer", field_name, section)
+            self.logger.warning("Setting %s to default value: %s", field_name, default)
+            config.set(section, field_name, default)
+
+        return return_val
+
+    def check_log_set_range(self, config, section, field_name, value, default, range_min, range_max):
+        if value not in range(range_min, range_max):
+            self.logger.warning("The %s set in %s must be an integer between %s and %s",
+                                field_name,
+                                section,
+                                range_min,
+                                range_max)
+            self.logger.warning("Setting %s to default value: %s", field_name, default)
+            config.set(section, field_name, default)
+
+
+    def check_log_set_isgreater(self, config, section, field_name, value, default, min_val):
+        if value < min_val:
+            self.logger.warning("%s field in: %s must be an integer bigger than %s",
+                                field_name,
+                                section,
+                                min_val)
+            self.logger.warning("Setting %s field in: %s "
+                                "to defualt value: %s days", field_name, section, default)
+            self.task_config.set(section, "last_access_threshold", default)
+
+
+
 
 ####DATABASE SETTINGS#############################################################
     def read_db(self):
@@ -94,38 +146,17 @@ class SettingsInterface(FieldLists):
     def verify_db_feilds(self):
         """Verifies db fields"""
 
-        try:
-            purge_bool = self.gen_config.getboolean("DataBase_Settings", "purge_database")
-            if purge_bool == True:
-                self.verify_purge_days()
-                self.gen_config.set("DataBase_Settings", "purge_database", "yes")
-        except ValueError:
-            self.logger.warning("The purge_database flag must be a"
-                                "boolean value (yes/no, true/false, on/off, 1/0")
-            self.logger.warning("Setting purge_database flag to: 'no'")
-
-            self.gen_config.set("DataBase_Settings", "purge_database", "no")
+        pdefault = "no"
+        pdb = self.verify_boolean_field(self.gen_config, "DataBase_Settings", "purge_database", "no")
+        if pdb == 1:
+            self.verify_purge_days()
 
     def verify_purge_days(self):
         """Verifies pure days field. Sets field if incorrect"""
 
-        set_flag = False
-        try:
-            purge_days = self.gen_config.getint("DataBase_Settings", "purge_after_day_number")
-            if purge_days < 1:
-                self.logger.warning("Purge after day number flag in "
-                                    "DataBase_Settings must be an integer greater than 1")
-
-                set_flag = True
-
-        except ValueError:
-            self.logger.warning("Purge after day number flag in "
-                                "DataBase_Settings must be an integer greater than 1")
-            set_flag = True
-
-        if set_flag == True:
-            self.logger.warning("The purge_after_day_number field is set to defualt value: 30")
-            self.gen_config.set("DataBase_Settings", "purge_after_day_number", "30")
+        pdefault = "30"
+        pdays = self.verify_int_field(self.gen_config, "DataBase_Settings", "purge_after_day_number", pdefault)
+        self.check_log_set_isgreater(self.gen_config, "DataBase_Settings", "purge_after_day_number", pdays, pdefault, 1)
 
 
     def test_db_connection(self):
@@ -161,37 +192,17 @@ class SettingsInterface(FieldLists):
     def verify_thread_fields(self):
         """Verifies thread settings fields"""
 
-        set_flag = False
-        try:
-            thread_mode = self.gen_config.getboolean("Thread_Settings", "thread_mode")
-            if thread_mode is True:
-                self.verify_thread_num()
-                self.gen_config.set("Thread_Settings", "thread_mode", "yes")
-        except ValueError:
-            self.logger.warning("The thread mode flag must be a "
-                                "boolean value (yes/no, true/false, on/off, 1/0)")
-            set_flag = True
-
-        if set_flag is True:
-            self.logger.warning("The thread mode flag will be set to default value: 'no'")
-            self.gen_config.set("Thread_Settings", "thread_mode", "no")
+        tdefault = "no"
+        thread_mode = self.verify_boolean_field(self.gen_config, "Thread_Settings", "thread_mode", tdefault)
+        if thread_mode == 1:
+            self.verify_thread_num()
 
     def verify_thread_num(self):
         """Verifies the thread num field. sets to 4 threads if incorrect"""
 
-        set_flag = False
-        try:
-            thread_num = self.gen_config.getint("Thread_Settings", "thread_number")
-            if thread_num < 1:
-                self.logger.warning("The Thread Number field must be an integer greater 0")
-                set_flag = True
-        except ValueError:
-            self.logger.warning("The Thread Number field must be an integer greater 0")
-            set_flag = True
-
-        if set_flag is True:
-            self.logger.warning("The thread_num field will be set to defualt value: 4")
-
+        tdefault = "4"
+        thread_num = self.verify_int_field(self.gen_config, "Thread_Settings", "thread_number", tdefault)
+        self.check_log_set_isgreater(self.gen_config, "Thread_Settings", "thread_number", thread_num, tdefault, 1)
 
 ####EMAIL SETTINGS##########################################
     def read_email(self):
@@ -284,18 +295,30 @@ class SettingsInterface(FieldLists):
             self.logger.error("Directory Path field set in: %s does not exist", section)
             bad_flag = True
 
-    ####Relocate flag####
-        try:
-            r_bool = self.task_config.getboolean(section, "relocate_old_files")
-            if r_bool is True:
-                self.verify_relocate_fields(section)
-                self.task_config.set(section, "relocate_old_files", "yes")
-        except ValueError:
+        delete_flag = self.verify_boolean_field(self.task_config, section, "delete_old_files", "no")
+        if delete_flag == 1:
+            self.verify_thresholds(section)
+            self.task_config.set(section, "delete_old_files", "yes")
 
-            self.logger.warning("The relocate_old_files flag set in: %s must be a boolean value "
-                                "(yes/no, true/false, on/off, 1/0)", section)
-            self.logger.warning("Setting relocate_old_files flag to: 'no'")
+    ####Relocate flag####
+        relocate_flag = self.verify_boolean_field(self.task_config, section, "relocate_old_files", "no")
+        if relocate_flag == 1:
+            self.verify_relocate_fields(section)
+
+        #TODO set relocate_flag to yes if both delete and relocate_flag are yes
+
+        if (delete_flag == 1) and (relocate_flag == 1):
+            self.logger.warning("delete_old_files and relocate_old_files are both set to true."
+                                "Only one can be set to yes at a time")
+            self.logger.warning("Setting both delete_old_files and relocate_old_files to 'no'")
+            self.task_config.set(section, "delete_old_files", "no")
             self.task_config.set(section, "relocate_old_files", "no")
+
+        if delete_flag == 1:
+            self.verify_thresholds(section)
+        elif relocate_flag == 1:
+            self.verify_relocate_fields(section)
+
 
         return bad_flag
 
@@ -317,98 +340,60 @@ class SettingsInterface(FieldLists):
             self.logger.warning("Not Moving old files")
             self.task_config.set(section, "relocate_old_files", "no")
             set_flag = False
+        else:
+            self.verify_thresholds(section)
 
+    def verify_thresholds(self, section):
     ####Disk_Use_Percent#####
-        try:
-            dupt = self.task_config.getint(section, "disk_use_percent_threshold")
-            if dupt > 100 or dupt < 1:
-                self.logger.warning("The Disk use percent threshold set in %s "
-                                    "must be an integer between 1 and 100", section)
-                set_flag = True
+        wdefault = "70"
+        warning_disk_use = self.verify_int_field(self.task_config,
+                                                 section,
+                                                 "disk_use_percent_warning_threshold",
+                                                 wdefault)
+        self.check_log_set_range(self.task_config,
+                                 section,
+                                 "disk_use_percent_warning_threshold",
+                                 warning_disk_use,
+                                 wdefault,
+                                 1,
+                                 100)
 
-        except ValueError:
-            self.logger.warning("Disk Use percent threshold set in %s "
-                                "must me set to an integer", section)
-            set_flag = True
+        cdefault = "85"
+        critical_disk_use = self.verify_int_field(self.task_config,
+                                                  section,
+                                                  "disk_use_percent_critical_threshold",
+                                                  cdefault)
+        self.check_log_set_range(self.task_config,
+                                 section,
+                                 "disk_use_percent_critical_threshold",
+                                 critical_disk_use,
+                                 cdefault,
+                                 1,
+                                 100)
 
-        if set_flag is True:
-            self.logger.warning("Setting Disk use percent threshold to default value: 75 percent")
-            self.task_config.set(section, "disk_use_percent_threshold", "75")
-            set_flag = False
+        #Check for conflicting threshold values
+        if warning_disk_use > critical_disk_use:
+            self.logger.warning("disk_use_percent_critical_threshold must be greater than"
+                                "disk_use_percent_warning_threshold")
+            self.logger.warning("Setting disk_use_percent_warning_threshold to %s", wdefault)
+            self.logger.warning("Setting disk_use_percent_critical_threshold to %s", cdefault)
 
     ####LAST ACCESS####
-        try:
-            lat = self.task_config.getint(section, "last_access_threshold")
-            if lat < 1:
-                self.logger.warning("Last access threshold field in: %s "
-                                    "must be an integer bigger than 1", section)
-                set_flag = True
-        except ValueError:
-            self.logger.warning("The Last access threshold field in: %s "
-                                "must be an integer bigger than 1", section)
-            set_flag = True
-
-        if set_flag is True:
-            self.logger.warning("Setting last_access_threshold field in: %s "
-                                "to defualt value: 7 days", section)
-            self.task_config.set(section, "last_access_threshold", "7")
+        adefault = "7"
+        access_val = self.verify_int_field(self.task_config, section, "last_access_threshold", adefault)
+        self.check_log_set_isgreater(self.task_config, section, "last_access_threshold", access_val, adefault, 1)
 
     ####EMAIL####
-        try:
-            email_bool = self.task_config.getboolean(section, "email_users")
-            if email_bool == True:
-                self.task_config.set(section, "email_users", "yes")
-                self.verify_email_options(section)
-
-        except ValueError:
-            self.logger.warning("The Email users flag set in: %s must be a boolean"
-                                " value (yes/no, true/false, on/off, 1/0)", section)
-            set_flag = True
-
-        if set_flag is True:
-            self.logger.warning("Setting Email users flag set in %s to 'no'", section)
-            self.task_config.set(section, "email_users", "no")
-            set_flag = False
-
-
     def verify_email_options(self, section):
         """Verifies the bad_flag_percent field if email users is set to true"""
 
-        set_flag = False
-        try:
-            bdays = self.task_config.getint(section, "days_between_runs")
-            if bdays < 0:
-                self.logger.warning("The days_between_runs field set in %s "
-                                    "must be an integer greater than 0", section)
-                set_flag = True
-        except ValueError:
-            self.logger.warning("The days_between_runs field set in %s "
-                                "must me set to an integer", section)
-            set_flag = True
+        email_flag = self.verify_boolean_field(self.task_config, section, "email_users", "no")
+        if email_flag == 1:
+            self.verify_email_options(section)
 
-        if set_flag is True:
-            self.logger.warning("Setting days_between_runs field in %s "
-                                "to defualt value: 1", section)
-            self.task_config.set(section, "days_between_runs", "1")
-
-
-        set_flag = False
-        try:
-            bfp = self.task_config.getint(section, "bad_flag_percent")
-            if bfp > 100 or bfp < 1:
-                self.logger.warning("The Bad flag percent field set in %s "
-                                    "must be an integer between 1 and 100", section)
-                set_flag = True
-        except ValueError:
-            self.logger.warning("ERROR: The Bad flag percent field set in %s "
-                                "must me set to an integer", section)
-            set_flag = True
-
-        if set_flag is True:
-            self.logger.warning("Setting bad_flag_percent field in %s "
-                                "to defualt value: 25 Percent", section)
-            self.task_config.set(section, "bad_flag_percent", "25")
-
+        bdefault = "25"
+        bad_percent = self.verify_int_field(self.task_config, section, "bad_flag_percent", bdefault)
+        self.check_log_set_range(self.task_config, section, "bad_flag_percent", bad_percent, bdefault, 1, 100)
 
 
 
