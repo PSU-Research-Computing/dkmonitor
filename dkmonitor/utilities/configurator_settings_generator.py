@@ -1,5 +1,5 @@
 import sys, os
-sys.path.append(os.path.abspath("../../"))
+sys.path.append(os.path.abspath("../.."))
 
 from dkmonitor.utilities.field_lists import FieldLists
 
@@ -12,42 +12,25 @@ class ConfigGenerator(FieldLists):
     def __init__(self):
         FieldLists.__init__(self)
 
-    def add_task_section(self, task_name):
+    def build_config_file(self, config, config_fields):
         """Adds a task section to the task_config configuration object"""
 
-        self.task_config.add_section(task_name)
-        for field in self.task_fields:
-            self.task_config.set(task_name, field, "")
-
-    def build_general_config(self):
-        """Builds the general config file with all variables set to nothing"""
-
-        #Database settings
-        self.gen_config.add_section("DataBase_Settings")
-        for field in self.db_fields:
-            self.gen_config.set("DataBase_Settings", field, "")
-
-        #Email Settings
-        self.gen_config.add_section("Email_Settings")
-        for field in self.email_fields:
-            self.gen_config.set("Email_Settings", field, "")
-
-        #Threading Settings
-        self.gen_config.add_section("Thread_Settings")
-        for field in self.thread_fields:
-            self.gen_config.set("Thread_Settings", field, "")
+        for section, fields in config_fields.items():
+            config.add_section(section)
+            for field in fields:
+                config.set(section, field, "")
 
     def generate_defaults(self):
         try:
-            os.makedirs(os.path.expanduser("~") + "/.dkmonitor/config")
+            os.makedirs(os.path.expanduser("~") + "/.dkmonitor/config/tasks")
         except OSError:
             pass
 
-        self.add_task_section("Task_Name")
+        self.build_config_file(self.task_config, self.task_fields)
         with open(self.task_config_file_name, 'w') as tconfig:
             self.task_config.write(tconfig)
 
-        self.build_general_config()
+        self.build_config_file(self.gen_config, self.general_fields)
         with open(self.gen_config_file_name, 'w') as gconfig:
             self.gen_config.write(gconfig)
 
