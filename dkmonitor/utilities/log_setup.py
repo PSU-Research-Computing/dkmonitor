@@ -7,6 +7,8 @@ import logging
 import logging.handlers
 
 
+def other_fucking_shit():
+    print ("fuck you")
 def setup_logger(log_file_name):
     """Takes log file name as input are returns a logger object"""
 
@@ -14,11 +16,11 @@ def setup_logger(log_file_name):
         log_path = os.environ["DKM_LOG"]
     except KeyError as err:
         print("ERROR: ***Could Not find log storage directory***")
-        print(err)
         print("Logging to current working directory")
         log_path = os.path.abspath(".")
 
-    logger = logging.getLogger(log_path + '/' + log_file_name)
+    log_path = log_path + '/' + log_file_name
+    logger = logging.getLogger(log_path)
     logger.setLevel(logging.INFO)
     handler = logging.handlers.RotatingFileHandler(log_path, maxBytes=2048, backupCount=5)
     formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -26,4 +28,6 @@ def setup_logger(log_file_name):
     logger.addHandler(handler)
     return logger
 
+if __name__ == "__main__":
+    logger = setup_logger("hi.log")
 
