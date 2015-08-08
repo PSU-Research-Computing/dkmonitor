@@ -3,6 +3,7 @@ Setup script
 """
 from setuptools import setup, find_packages
 from setuptools.command.install import install
+from distutils.errors import DistutilsOptionError
 
 
 import sys
@@ -17,7 +18,6 @@ class BuildDkm(install):
     install.user_options.append(("log-path=", None, "Specify the directory to store log files in"))
     install.user_options.append(("conf-path=", None, "Specify the directory where config files are stored"))
     install.user_options.append(("root-path=", None, "Specify the directory with both config and log fils are stored"))
-    print (install.user_options)
 
     def initialize_options(self):
         super().initialize_options()
