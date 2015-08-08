@@ -7,35 +7,81 @@ from setuptools.command.install import install
 
 import sys
 import os
-sys.path.append(os.getcwd() + "/..")
+sys.path.append(os.path.abspath("."))
 
-import dkmonitor.configurator_settings_generator as config_gen
+import dkmonitor.utilities.configurator_settings_generator as config_gen
 
 long_description = "open file here"
 
 class BuildDkm(install):
-    """Customized install class"""
+    install.user_options.append(("log-path=", None, "Specify the directory to store log files in"))
+    install.user_options.append(("conf-path=", None, "Specify the directory where config files are stored"))
+    install.user_options.append(("root-path=", None, "Specify the directory with both config and log fils are stored"))
+    print (install.user_options)
+
+    def initialize_options(self):
+        super().initialize_options()
+        self.log_path = None #"/var/log/dkmonitor"
+        self.conf_path = None #"/etc/dkmonitor"
+        self.root_path = None
+
+    def finalize_options(self):
+        super().finalize_options()
+
+        if self.root_path is None:
+            if (self.log_path is None):
+                self.log_path = "/var/log/dkmonitor/"
+            else:
+                self.log_path = os.path.abspath(os.path.expanduser(self.log_path))
+            if self.conf_path is None:
+                self.conf_path = "/etc/dkmonitor/"
+            else:
+                self.conf_path = os.path.abspath(os.path.expanduser(self.conf_path))
+        else:
+            if self.log_path is not None:
+                raise DistutilsOptionError("Cannot combine log-path and root-path options")
+            if self.conf_path is not None:
+                raise DistutilsOptionError("Cannot combine conf-path and root-path options")
+
+            self.root_path = os.path.abspath(os.path.expanduser(self.root_path) + "/dkmonitor/")
+            self.log_path = self.root_path + "/log/"
+            self.conf_path = self.root_path + "/conf/"
+
     def run(self):
-        root_path = os.path.expanduser("~/.dkmonitor/")
-        log_path = root_path + "log"
-        config_path = root_path + "conifg"
-        if not os.path.exists(root_path):
-            os.mkdir(root_path)
-            os.mkdir(log_path)
-            os.mkdir(config_path)
+
+        if self.root_path is None:
+            if not os.path.exists(self.log_path):
+                os.makedirs(self.log_path)
+            if not os.path.exists(self.conf_path + "/tasks/"):
+                os.makedirs(self.conf_path + "/tasks/")
+        else:
+            if not os.path.exists(self.root_path):
+                os.makedirs(self.root_path)
+                os.makedirs(self.conf_path + "/tasks/")
+                os.mkdir(self.log_path)
+
 
         conf_gen = config_gen.ConfigGenerator()
-        conf_gen.generate_defaults()
+        conf_gen.generate_defaults(self.conf_path)
 
         install.run(self)
 
-setup(name="dbtracker",
+        print(
+        """
+
+        Add these lines to your bashrc file:
+        export DKM_LOG={log}
+        export DKM_CONF={conf}
+        """.format(log=self.log_path, conf=self.conf_path))
+
+
+setup(name="dkmonitor",
       version="1.0.0",
       description="Monitors specified disks or directories for user and general stats",
       license="MIT",
       author="William Patterson",
       packages=find_packages(),
       install_requires=["psycopg2"],
-      long_description=long_description,
+      long_description="long_description",
       cmdclass={'install': BuildDkm},
       entry_points={"console_scripts": ["dkmonitor=dkmonitor.monitor_manager:main"],}) #Could use some more thought
