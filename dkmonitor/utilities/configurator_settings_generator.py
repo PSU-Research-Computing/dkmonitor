@@ -20,18 +20,18 @@ class ConfigGenerator(FieldLists):
             for field in fields:
                 config.set(section, field, "")
 
-    def generate_defaults(self):
-        try:
-            os.makedirs(os.path.expanduser("~") + "/.dkmonitor/config/tasks")
-        except OSError:
-            pass
+    def generate_defaults(self, path_to_config):
+
+        task_config_file_path = path_to_config + "/tasks/task_example.cfg"
+        gen_config_file_path = path_to_config + "general_settings.cfg"
 
         self.build_config_file(self.task_config, self.task_fields)
-        with open(self.task_config_file_name, 'w') as tconfig:
+        self.build_config_file(self.gen_config, self.general_fields)
+
+        with open(task_config_file_path, 'w') as tconfig:
             self.task_config.write(tconfig)
 
-        self.build_config_file(self.gen_config, self.general_fields)
-        with open(self.gen_config_file_name, 'w') as gconfig:
+        with open(gen_config_file_path, 'w') as gconfig:
             self.gen_config.write(gconfig)
 
 if __name__ == "__main__":
