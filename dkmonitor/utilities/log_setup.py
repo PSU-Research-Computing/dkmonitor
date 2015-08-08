@@ -10,10 +10,15 @@ import logging.handlers
 def setup_logger(log_file_name):
     """Takes log file name as input are returns a logger object"""
 
-    log_path = os.path.expanduser("~/.dkmonitor/log/" + log_file_name)
-    print(log_path)
+    try:
+        log_path = os.environ["DKM_LOG"]
+    except KeyError as err:
+        print("ERROR: ***Could Not find log storage directory***")
+        print(err)
+        print("Logging to current working directory")
+        log_path = os.path.abspath(".")
 
-    logger = logging.getLogger(log_path)
+    logger = logging.getLogger(log_path + '/' + log_file_name)
     logger.setLevel(logging.INFO)
     handler = logging.handlers.RotatingFileHandler(log_path, maxBytes=2048, backupCount=5)
     formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
