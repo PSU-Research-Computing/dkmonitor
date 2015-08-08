@@ -74,7 +74,25 @@ class SettingsInterface(FieldLists):
         return self.settings
 
 ####Field Verification Functions######################
+
+    def verify_path_field(self, config, section, field):
+        bad_flag = False
+        path = config.get(section, field)
+        if path == "":
+            self.logger.error("The path field %s in section: %s is not set", field, section)
+            bad_flag = True
+        elif not os.path.exists(path):
+            self.logger.error("The path field %s in section: %s does not exist", field, section)
+            bad_flag = True
+
+        return bad_flag
+
     def verify_boolean_field(self, config, section, flag_name, default):
+        """
+        Verifies a boolean field
+        If input in field is in the incorrect format:
+        the field is set to default
+        """
 
         bool_val = -1
         try:
@@ -254,6 +272,13 @@ class SettingsInterface(FieldLists):
         Reads and verifies the sections in the tasks configparser file
         If all input is correct it will add them to the settings dictionary
         """
+        task_dir = os.path.expanduser("~/.dkmonitor/config/tasks/")
+        task_files = os.listdir(task_dir)
+
+        for task_file in task_files:
+            if task_file.endswith(".cfg"):
+                self.task_config
+
 
         flag_list = []
         unchecked_sections = self.task_config.sections()
@@ -326,22 +351,21 @@ class SettingsInterface(FieldLists):
     def verify_relocate_fields(self, section):
         """Verifies the fields related to file relocation"""
 
-        set_flag = False #Set to true if a default value needs to be set
     ####RELOCATE PATH####
-        relocate_path = self.task_config.get(section, "file_relocation_path")
-        if relocate_path == "":
-            self.logger.warning("The Relocation file path Field in: %s is not set", section)
-            set_flag = True
-        elif not os.path.exists(relocate_path):
-            self.logger.warning("The Relocation file path set in %s does not exist", section)
-            set_flag = True
+        relocate_flag = self.verify_path_field(self.task_config, section, "file_relocation_path")
 
-        if set_flag is True:
+        if relocate_flag is True:
             self.logger.warning("Not Moving old files")
             self.task_config.set(section, "relocate_old_files", "no")
-            set_flag = False
         else:
             self.verify_thresholds(section)
+
+        d_flag = self.verify_boolean_field(self.task_config,
+                                           section,
+                                           "delete_when_relocation_is_full",
+                                           "no")
+        self.verify_thresholds(section)
+
 
     def verify_thresholds(self, section):
     ####Disk_Use_Percent#####
@@ -380,8 +404,16 @@ class SettingsInterface(FieldLists):
 
     ####LAST ACCESS####
         adefault = "7"
-        access_val = self.verify_int_field(self.task_config, section, "last_access_threshold", adefault)
-        self.check_log_set_isgreater(self.task_config, section, "last_access_threshold", access_val, adefault, 1)
+        access_val = self.verify_int_field(self.task_config,
+                                           section,
+                                           "last_access_threshold",
+                                           adefault)
+        self.check_log_set_isgreater(self.task_config,
+                                     section,
+                                     "last_access_threshold",
+                                     access_val,
+                                     adefault,
+                                     1)
 
     ####EMAIL####
     def verify_email_options(self, section):
@@ -389,11 +421,10 @@ class SettingsInterface(FieldLists):
 
         email_flag = self.verify_boolean_field(self.task_config, section, "email_users", "no")
         if email_flag == 1:
-            self.verify_email_options(section)
 
-        bdefault = "25"
-        bad_percent = self.verify_int_field(self.task_config, section, "bad_flag_percent", bdefault)
-        self.check_log_set_range(self.task_config, section, "bad_flag_percent", bad_percent, bdefault, 1, 100)
+            bdefault = "25"
+            bad_percent = self.verify_int_field(self.task_config, section, "bad_flag_percent", bdefault)
+            self.check_log_set_range(self.task_config, section, "bad_flag_percent", bad_percent, bdefault, 1, 100)
 
 
 
