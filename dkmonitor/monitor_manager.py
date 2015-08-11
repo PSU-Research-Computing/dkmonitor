@@ -100,17 +100,31 @@ class MonitorManager():
         else:
             self.run_tasks()
 
-    def run_tasks(self):
+    def run_full_scans(self):
         """Runs all tasks in the json settings file"""
 
         for task in self.settings["Scheduled_Tasks"].keys():
-            self.run_task(task)
+            self.full_scan(task)
 
-    def run_tasks_threading(self):
+    def run_full_scan_threading(self):
         """Runs all tasks in the json settings file with multiple threads"""
 
         for task in self.settings["Scheduled_Tasks"].keys():
-            thread = threading.Thread(target=self.run_task, args=(task,))
+            thread = threading.Thread(target=self.full_scan, args=(task,))
+            thread.daemon = False
+            thread.start()
+
+    def run_quick_scans(self):
+        """Runs all tasks in the json settings file"""
+
+        for task in self.settings["Scheduled_Tasks"].keys():
+            self.quick_scan(task)
+
+    def run_quick_scan_threading(self):
+        """Runs all tasks in the json settings file with multiple threads"""
+
+        for task in self.settings["Scheduled_Tasks"].keys():
+            thread = threading.Thread(target=self.quick_scan, args=(task,))
             thread.daemon = False
             thread.start()
 
