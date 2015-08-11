@@ -7,8 +7,6 @@ import logging
 import logging.handlers
 
 
-def other_fucking_shit():
-    print ("fuck you")
 def setup_logger(log_file_name):
     """Takes log file name as input are returns a logger object"""
 
