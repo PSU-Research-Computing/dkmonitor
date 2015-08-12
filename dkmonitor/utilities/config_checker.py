@@ -53,6 +53,7 @@ class ConfigChecker():
 
         return return_val
 
+
     def check_log_set_range(self, config, section, field_name, default, range_min, range_max):
         value = self.verify_int_field(config, section, field_name, default)
         if value not in range(range_min, range_max):
@@ -63,6 +64,7 @@ class ConfigChecker():
                                 range_max)
             self.logger.warning("Setting %s to default value: %s", field_name, default)
             config.set(section, field_name, default)
+
 
 
     def check_log_set_isgreater(self, config, section, field_name, default, min_val):
@@ -76,6 +78,7 @@ class ConfigChecker():
                                 "to defualt value: %s days", field_name, section, default)
             config.set(section, field_name, default)
 
+
     def check_options(self, config, section, feild_list):
         """Checks if all fields are present in a given section"""
 
@@ -85,8 +88,8 @@ class ConfigChecker():
                 bad_flag = True
                 self.logger.error("Missing Field: %f in %f", field, section)
 
-
         return bad_flag
+
 
     def config_to_dict(self, config, section):
         """Converts parsed config file to dictionary format"""
@@ -97,3 +100,4 @@ class ConfigChecker():
                 add_dict[field] = int(add_dict[field])
 
         return add_dict
+

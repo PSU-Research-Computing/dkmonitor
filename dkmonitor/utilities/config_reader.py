@@ -1,5 +1,6 @@
 import psycopg2
 import inspect
+import configparser
 
 import sys, os
 sys.path.append(os.path.abspath("../.."))
@@ -17,13 +18,49 @@ class ConfigReader():
             print("ERROR: ***No Configuration files found***")
             raise err
 
-        print("yes")
+        self.task_config = configparser.ConfigParser()
+        self.gen_config = configparser.ConfigParser()
 
-
+    #Task settings file(s) read functions
     def read_tasks(self):
+        task_root = self.config_root + "/tasks/"
+        try:
+            task_files = os.listdir(task_root)
+        except OSError as err:
+            self.logger.critical("No tasks directory found in DKM_CONF")
+            raise err
+
+        for task_file in task_files:
+            task_file = task_root + task_file
+            self.read_task(task_file)
+
+    def read_task(self, task_file):
+        self.task_config.read(task_file)
+
+
+    def read_system_settings(self):
         pass
 
+    def read_scan_settings(self):
+        pass
+
+    def read_threshold_settings(self):
+        pass
+
+    def read_task_email_settings(self):
+        pass
+
+    #General settings file read functions
     def read_general(self):
+        pass
+
+    def read_db_settings(self):
+        pass
+
+    def read_thread_settings(self):
+        pass
+
+    def read_general_email_settings(self):
         pass
 
 

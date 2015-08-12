@@ -23,7 +23,7 @@ class ConfigGenerator(FieldLists):
     def generate_defaults(self, path_to_config):
 
         task_config_file_path = path_to_config + "/tasks/task_example.cfg"
-        gen_config_file_path = path_to_config + "general_settings.cfg"
+        gen_config_file_path = path_to_config + "/general_settings.cfg"
 
         self.build_config_file(self.task_config, self.task_fields)
         self.build_config_file(self.gen_config, self.general_fields)
@@ -36,5 +36,5 @@ class ConfigGenerator(FieldLists):
 
 if __name__ == "__main__":
     ConfGen = ConfigGenerator()
-    ConfGen.generate_defaults()
+    ConfGen.generate_defaults("/home/wpatt2/ARC/Scratch_moniter/Dkm_config_log/conf/")
 
