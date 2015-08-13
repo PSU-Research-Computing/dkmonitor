@@ -130,8 +130,6 @@ class ConfigReader():
                                  "file to check configurations")
 
 
-
-
     def read_tasks(self):
         task_root = self.config_root + "/tasks/"
         try:
