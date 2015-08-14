@@ -35,12 +35,12 @@ class ConfigReader():
 
         self.task_config = configparser.ConfigParser()
         self.gen_config = configparser.ConfigParser()
-        #self.config_dict = {"task": configparser.ConfigParser(),
-        #                    "general": configparser.ConfigParser()}
         self.config_dict = self.load_configs()
 
 
     def load_configs(self):
+        """Loads config files into a dictionary and returns the dictionary"""
+
         config_dict = {"task": {}, "general": configparser.ConfigParser()}
         config_dict["general"].read(self.config_root + "/general_settings.cfg")
         task_files = self.read_tasks()
@@ -49,10 +49,26 @@ class ConfigReader():
             config_dict["task"][task].read(task)
         return config_dict
 
-    def check_option_dependencies(self):
-        pass
+    def verify_configs(self):
+        """
+        Runs methods to verify all configs
+        Returns dict populated with correct settings if settings
+        Returns False if there is a critical issue
+        """
 
-    def export_configs_to_dict(self):
+        good_flag = self.verify_options()
+        if good_flag is False:
+            self.logger.critical("Program Halting")
+            return good_flag
+
+        self.check_set_option_dependencies()
+        good_flag = self.test_db_connection()
+        if good_flag is not False:
+            return self.configs_to_dict()
+
+
+    def check_set_option_dependencies(self):
+        #TODO Needs implementation
         pass
 
     def verify_option(self, config, option):
@@ -100,6 +116,7 @@ class ConfigReader():
     def verify_options(self):
         """Verifies all options from settings_configuration.json by calling verify_option"""
 
+        good_flag = True
         try:
             with open("settings_configurations.json", "r") as jfile:
                 option_list = json.load(jfile)
@@ -119,18 +136,25 @@ class ConfigReader():
 
             if False in gen_flags:
                 self.logger.critical("Too many issues in general_settings.cfg. Program halting")
+                good_flag = False
 
             for key, flag_list in list(task_flags.items()):
                 if False in flag_list:
                     del task_flags[key]
                     self.logger.error("Too many issues in config file %s. Skipping task.", key)
+                good_flag = False
 
         except OSError:
             self.logger.critical("Cannot find the settings_configuration.json"
                                  "file to check configurations")
+            good_flag = True
+
+        return good_flag
 
 
     def read_tasks(self):
+        """Gets and returns full path to all task files in a list"""
+
         task_root = self.config_root + "/tasks/"
         try:
             task_files = glob.glob(task_root + "/*.cfg")
@@ -142,15 +166,27 @@ class ConfigReader():
 
 
     def verify_path_field(self, config, option):
+        """
+        Verifies that a path field is correct
+        Returns false if path is bad
+        Returns True if path is goo
+        Returns True if path is bad but not critical
+        """
+
         good_flag = True
         path = config.get(option["section_name"], option["option_name"])
         good_flag = self.verify_str_field(config, option)
         if not os.path.exists(path):
             if option["error"] == "warning":
-                self.logger.warning("The path field %s in section: %s does not exist", option["option_name"], option["section_name"])
+                self.logger.warning("The path field %s in section: %s does not exist",
+                                    option["option_name"],
+                                    option["section_name"])
                 good_flag = True
+
             elif option["error"] == "critical":
-                self.logger.error("The path field %s in section: %s does not exist", option["option_name"], option["section_name"])
+                self.logger.error("The path field %s in section: %s does not exist",
+                                  option["option_name"],
+                                  option["section_name"])
                 good_flag = False
 
         if option["error"] == "warning":
@@ -158,19 +194,25 @@ class ConfigReader():
         return good_flag
 
     def verify_str_field(self, config, option):
+        """Verifies that a string field has a value"""
+
         good_flag = True
         string = config.get(option["section_name"], option["option_name"])
         if string == "":
             if option["error"] == "warning":
-                self.logger.warning("The field %s in section: %s is not set", option["option_name"], option["section_name"])
+                self.logger.warning("The field %s in section: %s is not set",
+                                    option["option_name"],
+                                    option["section_name"])
             if option["error"] == "critical":
-                self.logger.error("The field %s in section: %s is not set", option["option_name"], option["section_name"])
+                self.logger.error("The field %s in section: %s is not set",
+                                  option["option_name"],
+                                  option["section_name"])
                 self.logger.error("Program aborting")
                 good_flag = False
             good_flag = False
 
         if option["error"] == "warning":
-            return True
+            good_flag = True
         return good_flag
 
     def verify_boolean_field(self, config, option):
@@ -188,7 +230,9 @@ class ConfigReader():
 
         except ValueError:
             self.logger.warning("The %s flag set in: %s must be a boolean value "
-                                "(yes/no, true/false, on/off, 1/0)", option["option_name"], option["section_name"])
+                                "(yes/no, true/false, on/off, 1/0)",
+                                option["option_name"],
+                                option["section_name"])
             self.logger.warning("Setting %s flag to: '%s'")
             config.set(option["section_name"], option["option_name"], option["default_value"])
 
@@ -196,17 +240,31 @@ class ConfigReader():
 
 
     def verify_int_field(self, config, option):
+        """
+        Verifies An integer field
+        if no integer is found, return False
+        else return the value captured
+        """
+
         int_val = False
         try:
             int_val = config.getint(option["section_name"], option["option_name"])
         except ValueError:
-            self.logger.warning("The %s set in %s must be an integer", option["option_name"], option["section_name"])
-            self.logger.warning("Setting %s to default value: %s", option["option_name"], option["default_value"])
+            self.logger.warning("The %s set in %s must be an integer",
+                                option["option_name"],
+                                option["section_name"])
+            self.logger.warning("Setting %s to default value: %s",
+                                option["option_name"],
+                                option["default_value"])
             config.set(option["section_name"], option["option_name"], option["default_value"])
 
         return int_val
 
     def check_log_set_int(self, config, option):
+        """
+        Deals with integer options
+        Checks if integer value is correct based on min and max values in json file
+        """
 
         value = self.verify_int_field(config, option)
         if (option["mininum"] != "") and (option["maximum"] != ""):
@@ -216,22 +274,48 @@ class ConfigReader():
                                     option["section_name"],
                                     option["mininum"],
                                     option["maximum"])
-                self.logger.warning("Setting %s to default value: %s", option["option_name"], option["default_value"])
+                self.logger.warning("Setting %s to default value: %s",
+                                    option["option_name"],
+                                    option["default_value"])
                 config.set(option["section_name"], option["option_name"], option["default_value"])
 
-        elif (option["mininum"] != ""):
+        elif option["mininum"] != "":
             if value < int(option["mininum"]):
                 self.logger.warning("%s field in: %s must be an integer bigger than %s",
                                     option["option_name"],
                                     option["section_name"],
                                     option["mininum"])
-                self.logger.warning("Setting %s to defualt value: %s", option["option_name"], option["default_value"])
+                self.logger.warning("Setting %s to defualt value: %s",
+                                    option["option_name"],
+                                    option["default_value"])
                 config.set(option["section_name"], option["option_name"], option["default_value"])
 
         return value
 
-    def config_to_dict(self, config, section):
-        """Converts parsed config file to dictionary format"""
+    def configs_to_dict(self):
+        """Converts all config files to a dictionary and returns the dictionary"""
+
+        export_dict = {}
+
+        #General Settigns
+        gen_sections = self.config_dict["general"].sections()
+        for section in gen_sections:
+            export_dict[section] = self.section_to_dict(self.config_dict["general"], section)
+
+        #Task Settings
+        export_dict["Scheduled_Tasks"] = {}
+        for task, task_config in list(self.config_dict["task"].items()):
+            task_sections = task_config.sections()
+            export_dict["Scheduled_Tasks"][task] = {}
+            for section in task_sections:
+                export_dict["Scheduled_Tasks"][task] = self.section_to_dict(task_config, section)
+
+        return export_dict
+
+
+    @staticmethod
+    def section_to_dict(config, section):
+        """Converts section from a config file to dictionary format"""
 
         add_dict = dict(config.items(section))
         for field in add_dict.keys():
@@ -243,7 +327,7 @@ class ConfigReader():
     def test_db_connection(self):
         """Quick Connection check"""
 
-        db_dict = dict(self.gen_config.items("DataBase_Settings"))
+        db_dict = dict(self.config_dict["general"].items("DataBase_Settings"))
         try:
             psycopg2.connect(database=db_dict['database'],
                              user=db_dict['user_name'],
