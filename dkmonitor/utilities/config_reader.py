@@ -63,6 +63,7 @@ class ConfigReader():
 
         self.check_set_option_dependencies()
         good_flag = self.test_db_connection()
+        print (good_flag)
         if good_flag is not False:
             return self.configs_to_dict()
 
@@ -114,7 +115,11 @@ class ConfigReader():
 
 
     def verify_options(self):
-        """Verifies all options from settings_configuration.json by calling verify_option"""
+        """
+        Verifies all options from settings_configuration.json by calling verify_option
+        Returns true if settings are good
+        Returns False if settings are bad
+        """
 
         good_flag = True
         try:
@@ -142,12 +147,12 @@ class ConfigReader():
                 if False in flag_list:
                     del task_flags[key]
                     self.logger.error("Too many issues in config file %s. Skipping task.", key)
-                good_flag = False
+                    good_flag = False
 
         except OSError:
             self.logger.critical("Cannot find the settings_configuration.json"
                                  "file to check configurations")
-            good_flag = True
+            good_flag = False
 
         return good_flag
 
@@ -335,12 +340,12 @@ class ConfigReader():
                              host=db_dict['host'])
         except psycopg2.DatabaseError as db_error:
             self.logger.error(db_error)
-            return True
-        return False
+            return False
+        return True
 
 
 
 
 if __name__ == "__main__":
     test = ConfigReader()
-    test.verify_options()
+    print(test.verify_configs())
