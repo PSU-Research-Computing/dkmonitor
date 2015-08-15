@@ -38,6 +38,8 @@ class ConfigReader():
         self.config_dict = self.load_configs()
 
 
+    #Config Parsing Methods###################################################################
+
     def load_configs(self):
         """Loads config files into a dictionary and returns the dictionary"""
 
@@ -48,6 +50,18 @@ class ConfigReader():
             config_dict["task"][task] = configparser.ConfigParser()
             config_dict["task"][task].read(task)
         return config_dict
+
+    def read_tasks(self):
+        """Gets and returns full path to all task files in a list"""
+
+        task_root = self.config_root + "/tasks/"
+        try:
+            task_files = glob.glob(task_root + "/*.cfg")
+        except OSError as err:
+            self.logger.critical("No tasks directory found in DKM_CONF")
+            raise err
+
+        return task_files
 
     def verify_configs(self):
         """
@@ -67,6 +81,56 @@ class ConfigReader():
         if good_flag is not False:
             return self.configs_to_dict()
 
+    def configs_to_dict(self):
+        """Converts all config files to a dictionary and returns the dictionary"""
+
+        export_dict = {}
+
+        #General Settigns
+        gen_sections = self.config_dict["general"].sections()
+        for section in gen_sections:
+            export_dict[section] = self.section_to_dict(self.config_dict["general"], section)
+
+        #Task Settings
+        export_dict["Scheduled_Tasks"] = {}
+        for task, task_config in list(self.config_dict["task"].items()):
+            task_sections = task_config.sections()
+            export_dict["Scheduled_Tasks"][task] = {}
+            for section in task_sections:
+                export_dict["Scheduled_Tasks"][task][section] = self.section_to_dict(task_config, section)
+
+        return export_dict
+
+
+    @staticmethod
+    def section_to_dict(config, section):
+        """Converts section from a config file to dictionary format"""
+
+        add_dict = dict(config.items(section))
+        for field in add_dict.keys():
+            if add_dict[field].isdigit():
+                add_dict[field] = int(add_dict[field])
+
+        return add_dict
+
+    #DB Connection Methods###############################################################
+
+    def test_db_connection(self):
+        """Quick Connection check"""
+
+        db_dict = dict(self.config_dict["general"].items("DataBase_Settings"))
+        try:
+            psycopg2.connect(database=db_dict['database'],
+                             user=db_dict['user_name'],
+                             password=db_dict['password'],
+                             host=db_dict['host'])
+        except psycopg2.DatabaseError as db_error:
+            self.logger.error(db_error)
+            return False
+        return True
+
+
+    #JSON object Verifcation Methods#####################################################
 
     def check_set_option_dependencies(self):
         #TODO Needs implementation
@@ -157,18 +221,7 @@ class ConfigReader():
         return good_flag
 
 
-    def read_tasks(self):
-        """Gets and returns full path to all task files in a list"""
-
-        task_root = self.config_root + "/tasks/"
-        try:
-            task_files = glob.glob(task_root + "/*.cfg")
-        except OSError as err:
-            self.logger.critical("No tasks directory found in DKM_CONF")
-            raise err
-
-        return task_files
-
+    #Verification Methods################################################################
 
     def verify_path_field(self, config, option):
         """
@@ -297,55 +350,10 @@ class ConfigReader():
 
         return value
 
-    def configs_to_dict(self):
-        """Converts all config files to a dictionary and returns the dictionary"""
-
-        export_dict = {}
-
-        #General Settigns
-        gen_sections = self.config_dict["general"].sections()
-        for section in gen_sections:
-            export_dict[section] = self.section_to_dict(self.config_dict["general"], section)
-
-        #Task Settings
-        export_dict["Scheduled_Tasks"] = {}
-        for task, task_config in list(self.config_dict["task"].items()):
-            task_sections = task_config.sections()
-            export_dict["Scheduled_Tasks"][task] = {}
-            for section in task_sections:
-                export_dict["Scheduled_Tasks"][task] = self.section_to_dict(task_config, section)
-
-        return export_dict
-
-
-    @staticmethod
-    def section_to_dict(config, section):
-        """Converts section from a config file to dictionary format"""
-
-        add_dict = dict(config.items(section))
-        for field in add_dict.keys():
-            if add_dict[field].isdigit():
-                add_dict[field] = int(add_dict[field])
-
-        return add_dict
-
-    def test_db_connection(self):
-        """Quick Connection check"""
-
-        db_dict = dict(self.config_dict["general"].items("DataBase_Settings"))
-        try:
-            psycopg2.connect(database=db_dict['database'],
-                             user=db_dict['user_name'],
-                             password=db_dict['password'],
-                             host=db_dict['host'])
-        except psycopg2.DatabaseError as db_error:
-            self.logger.error(db_error)
-            return False
-        return True
-
-
 
 
 if __name__ == "__main__":
     test = ConfigReader()
-    print(test.verify_configs())
+    import pprint
+    pprint.pprint(test.verify_configs())
+    #print(test.verify_configs())
