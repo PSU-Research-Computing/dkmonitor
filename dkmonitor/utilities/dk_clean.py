@@ -3,15 +3,18 @@ dk_clean is used to move all old files from one directory to another"""
 
 import re
 import time
+import shutil
 from pwd import getpwuid
 
 import threading
 from queue import Queue
+from queue import PriorityQueue
 
 #from dkmonitor import log_setup
 import sys, os
 sys.path.append(os.path.abspath("../.."))
 from dkmonitor.utilities import log_setup
+from dkmonitor.stat.dk_stat import DkStat
 
 class DkClean:
     """The class dk_clean is used to move old files from one directory to an other.
@@ -21,12 +24,111 @@ class DkClean:
         self.search_dir = search_dir
         self.move_to = move_to
         self.access_threshold = access_threshold
-        self.que = Queue()
+        self.que = PriorityQueue()
+        self.stat_obj = DkStat(search_dir=search_dir)
+
+        self.old_file_size = 0
+        self.total_move_size = 0
+        self.move_to_free_space = 0
 
         self.logger = log_setup.setup_logger("clean_log.log")
 
+
+    def build_file_que_stat(self):
+        for file_path in self.stat_obj.dir_scan_gen():
+            last_access = (time.time() - os.path.getatime(file_path)) / 86400
+            if last_access > self.access_threshold:
+                old_file_size = int(os.path.getsize(file_path))
+                priority_num = - (old_file_size * last_access)
+                self.que.put((priority_num, file_path))
+
+
+    def move_file(self, file_path, delete_if_full=False):
+        """Moves individual file while still preseving its file path"""
+
+        user = getpwuid(os.stat(file_path).st_uid).pw_name
+        root_dir = self.move_to + '/' + user
+        print("ROOT: " + root_dir)
+        #if not os.path.exists(root_dir):
+            #os.makedir(root_dir)
+        new_file_path = re.sub(r"^{old_path}".format(old_path=self.search_dir), root_dir, file_path)
+        last_slash = new_file_path.rfind('/')
+        dir_path = new_file_path[:last_slash]
+        print("NEW: " + new_file_path)
+        try:
+            pass
+            #if not os.path.exists(dir_path):
+                #os.makedirs(dir_path)
+            #shutil.move(file_path, new_file_path)
+        except IOError:
+            if delete_if_full is True:
+                os.remove(file_path)
+
+    def delete_file(self, file_path):
+        os.remove(file_path)
+
+
+####MULTI-THREADING######################################
+    def worker(self, delete_or_move, delete_if_full):
+        """Worker Function"""
+
+        while True:
+            path = self.que.get()
+            if delete_or_move == "delete":
+                self.delete_file(path[1])
+            elif delete_or_move == "move":
+                self.move_file(path[1], delete_if_full=delete_if_full)
+            self.que.task_done()
+
+    def build_pool(self, thread_number, delete_or_move, delete_if_full=False):
+        """Builds Pool of thread workers"""
+
+        for i in range(thread_number):
+            thread = threading.Thread(target=self.worker, args=(delete_or_move, delete_if_full))
+            thread.daemon = True
+            thread.start()
+
+    def move_all_threaded(self, thread_number, delete_if_full=False):
+        """Moves all files with multithreading"""
+
+        self.build_pool(thread_number, "move", delete_if_full=delete_if_full)
+        self.build_file_que_stat()
+        self.que.join() #waits for threads to finish
+
+    def delete_all_threaded(self, thread_number):
+        self.build_pool(thread_number, "delete")
+        self.build_file_que_stat()
+        self.que.join()
+
+
+####ITERATIVE###########################################
+    def move_all(self, delete_if_full=False):
+        """Moves all files sequentailly"""
+
+        self.build_file_que_stat()
+        self.move_que(delete_if_full=delete_if_full)
+
+    def delete_all(self):
+        self.build_file_que_stat()
+        self.delete_que()
+
+    def move_que(self, delete_if_full=False):
+        """Moves all files in queue sequentailly"""
+        while not self.que.empty():
+            file_path = self.que.get()
+            self.move_file(file_path[1], delete_if_full=delete_if_full)
+
+    def delete_que(self):
+        while not self.que.empty():
+            file_path = self.que.get()
+            self.delete_file(file_path[1])
+
+
+####JUNK FUNCTIOpNS#######################################
+
+    """
     def build_file_que(self, recursive_dir):
-        """Builds queue of old files to be moved"""
+      """  """Builds queue of old files to be moved""" """
 
         if os.path.isdir(recursive_dir):
             content_list = os.listdir(recursive_dir)
@@ -41,59 +143,47 @@ class DkClean:
                         self.build_file_que(recursive_dir=(current_path))
                     except OSError as oerror:
                         self.logger.info(oerror)
-
-    def move_file(self, file_path):
-        """Moves individual file while still preseving its file path"""
-
-        user = getpwuid(os.stat(file_path).st_uid).pw_name
-        root_dir = self.move_to + '/' + user
-        print("ROOT: " + root_dir)
-        #if not os.path.exists(root_dir):
-            #os.makedir(root_dir)
-        new_file_path = re.sub(r"^{old_path}".format(old_path=self.search_dir), root_dir, file_path)
-        last_slash = new_file_path.rfind('/')
-        dir_path = new_file_path[:last_slash]
-        print("NEW: " + new_file_path)
-        #if not os.path.exists(dir_path):
-            #os.makedirs(dir_path)
-        #shutil.move(file_path, new_file_path)
+    """
+    def build_dynamic_file_que(self):
+        self.stat_obj.dir_scan(stat_function=self.add_to_file_que_if_space)
 
 
-####MULTI-THREADING######################################
-    def worker(self):
-        """Worker Function"""
 
-        while True:
-            path = self.que.get()
-            self.move_file(path)
-            self.que.task_done()
+    def verify_free_space(self):
+        """
+        Checks if there is enough space in move_to to move all old files
+        returns true if there is enough space
+        returns false if there isnt
+        """
 
-    def build_pool(self, thread_number):
-        """Builds Pool of thread workers"""
+        self.get_old_file_size()
+        use = shutil.disk_usage(self.move_to)
+        self.move_to_free_space = use.total - use.used
+        if self.old_file_size < self.move_to_free_space:
+            return True
+        else:
+            return False
 
-        for i in range(thread_number):
-            thread = threading.Thread(target=self.worker)
-            thread.daemon = True
-            thread.start()
+    def add_old_file_size(self, file_path):
+        last_access = (time.time() - os.path.getatime(file_path)) / 86400
+        if last_access > self.access_threshold:
+            self.old_file_size += int(os.path.getsize(file_path))
 
-    def move_all_threaded(self, thread_number):
-        """Moves all files with multithreading"""
+    def get_old_file_size(self):
+        self.stat_obj.dir_scan(stat_function=self.add_old_file_size)
 
-        self.build_pool(thread_number)
-        self.build_file_que(self.search_dir)
-        self.que.join() #waits for threads to finish
+    def add_to_file_que_if_space(self, file_path):
+        #TODO Potential for error because other people could be moving files simultaniously
+        #Might want to check for free space every time
+        last_access = (time.time() - os.path.getatime(file_path)) /86400
+        if last_access > self.access_threshold:
+            old_file_size = int(os.path.getsize(file_path))
+            move_size = old_file_size + self.total_move_size
+            if move_size < self.move_to_free_space():
+                self.que.put(file_path)
+                self.total_move_size += old_file_size
 
-####ITERATIVE###########################################
-    def move_all(self):
-        """Moves all files sequentailly"""
-
-        self.build_file_que(self.search_dir)
-        self.process_que()
-
-    def process_que(self):
-        """Moves all files in queue sequentailly"""
-        while not self.que.empty():
-            file_path = self.que.get()
-            self.move_file(file_path)
-
-
+    def add_to_file_que(self, file_path):
+        last_access = (time.time() - os.path.getatime(file_path)) / 86400
+        if last_access > self.access_threshold:
+            self.que.put(file_path)
