@@ -29,7 +29,7 @@ class MonitorManager():
         self.logger = log_setup.setup_logger("monitor_log.log")
 
         #Configures Email api
-        self.emailer = Emailer(self.settings["Email_API"]["user_postfix"])
+        self.emailer = Emailer(self.settings["Email_Settings"]["user_postfix"])
 
         #Configures database
         self.database = DataBase(self.settings["DataBase_info"]["database"],
@@ -41,78 +41,82 @@ class MonitorManager():
             self.logger.info("Cleaning Database")
             self.database.clean_data_base(self.settings["DataBase_info"]["purge_after_day_number"])
 
-    def quick_scan(self, task_name):
+    def quick_scan(self, task):
         """
         Ment to be run hourly
         Checks use percent on a task
         if over quota, email users / clean disk if neccessary
         """
 
-        task = self.settings["Scheduled_Tasks"][task_name]
-        dk_stat_obj = DkStat(task["system_name"], task["directory_path"])
+        #task = self.settings["Scheduled_Tasks"][task_name]
+        dk_stat_obj = DkStat(system=task["System_Settings"]["system_name"], search_dir=task["System_Settings"]["directory_path"])
 
         disk_use = dk_stat_obj.get_disk_use_percent()
-        if disk_use > task["disk_use_percent_warning_threshold"]:
+        if disk_use > task["Scan_Settings"]["disk_use_percent_warning_threshold"]:
             dk_stat_obj.dir_search()
             dk_stat_obj.export_data(self.database)
-            dk_stat_obj.email_users(self.settings["Email_API"]["user_postfix"], task, disk_use)
+            dk_stat_obj.email_users(self.settings["Email_Settings"]["user_postfix"], task, disk_use)
 
-        if disk_use > task["disk_use_percent_critical_threshold"]:
-            self.clean_disk(task["directory_path"],
-                            task["file_relocation_path"],
-                            task["access_threshold"])
+        if disk_use > task["Scan_Settings"]["disk_use_percent_critical_threshold"]:
+            self.clean_disk(task)
 
-    def full_scan(self, task_name):
+    def full_scan(self, task):
         """
         Performs full scan of directory by default
         logs disk statistics information in db
         if over quota, email users / clean disk if neccessary
         """
 
-        task = self.settings["Scheduled_Tasks"][task_name]
-        dk_stat_obj = DkStat(task["system_name"], task["directory_path"])
+        #task = self.settings["Scheduled_Tasks"][task_name]
+        dk_stat_obj = DkStat(system=task["System_Settings"]["system_name"], search_dir=task["System_Settings"]["directory_path"])
 
-        self.logger.info("Searching %s", task["directory_path"])
+        self.logger.info("Searching %s", task["System_Settings"]["directory_path"])
         dk_stat_obj.dir_search() #Searches the Directory
 
-        self.logger.info("Exporting %s data to database", task["directory_path"])
+        self.logger.info("Exporting %s data to database", task["System_Settings"]["directory_path"])
         dk_stat_obj.export_data(self.database) #Exports data from dk_stat_obj to the database
 
-        self.logger.info("Emailing Users for %s", task["directory_path"])
+        self.logger.info("Emailing Users for %s", task["System_Settings"]["directory_path"])
         disk_use = dk_stat_obj.get_disk_use_percent()
-        if disk_use > task["disk_use_warning_threshold"]:
-            dk_stat_obj.email_users(self.settings["Email_API"]["user_postfix"], task, disk_use)
+        if disk_use > task["Threshold_Settings"]["disk_use_warning_threshold"]:
+            dk_stat_obj.email_users(self.settings["Email_Settings"]["user_postfix"], task, disk_use)
 
-        if disk_use > task["disk_use_percent_critical_threshold"]:
-            self.clean_disk(task["directory_path"],
-                            task["file_relocation_path"],
-                            task["access_threshold"])
+        if disk_use > task["Threshold_Settings"]["disk_use_percent_critical_threshold"]:
+            self.clean_disk(task)
 
 
-        self.logger.info("%s scan task complete", task["directory_path"])
+        self.logger.info("%s scan task complete", task["System_Settings"]["directory_path"])
 
 
-    def start(self):
-        """starts all tasks"""
+    def start_full_scans(self):
+        """starts full scan on tasks"""
 
         if self.settings["Thread_Settings"]["thread_mode"] == 'yes':
-            self.run_tasks_threading()
+            self.run_full_scan_threading()
         else:
-            self.run_tasks()
+            self.run_full_scans()
 
     def run_full_scans(self):
         """Runs all tasks in the json settings file"""
 
-        for task in self.settings["Scheduled_Tasks"].keys():
-            self.full_scan(task)
+        for task in self.settings["Scheduled_Tasks"].items():
+            self.full_scan(task[1])
 
     def run_full_scan_threading(self):
         """Runs all tasks in the json settings file with multiple threads"""
 
-        for task in self.settings["Scheduled_Tasks"].keys():
-            thread = threading.Thread(target=self.full_scan, args=(task,))
+        for task in self.settings["Scheduled_Tasks"].items():
+            thread = threading.Thread(target=self.full_scan, args=(task[1],))
             thread.daemon = False
             thread.start()
+
+    def start_quick_scans(self):
+        """Starts quick scan on tasks"""
+
+        if self.settings["Thread_Settings"]["thread_mode"] == "yes":
+            self.run_quick_scan_threading()
+        else:
+            self.run_quick_scans()
 
     def run_quick_scans(self):
         """Runs all tasks in the json settings file"""
@@ -144,22 +148,37 @@ class MonitorManager():
             if query_data == None:
                 pass
             elif query_data[0] > task["disk_use_percent_threshold"]:
-                self.clean_disk(task["directory_path"],
-                                task["file_relocation_path"],
-                                task["last_access_threshold"])
+                self.clean_disk(task)
 
-    def clean_disk(self, directory, relocation_path, access_threshold):
+    #def clean_disk(self, directory, relocation_path, access_threshold):
+    def clean_disk(self, task):
         """Cleaning routine function"""
 
         print("CLeaning...")
-        self.logger.info("Cleaning %s", directory)
+        self.logger.info("Cleaning %s", task["System_Settings"]["directory_path"])
         thread_settings = self.settings["Thread_Settings"]
-        clean_obj = DkClean(directory, relocation_path, access_threshold)
-        if thread_settings["thread_mode"] == "yes":
-            clean_obj.move_all_threaded(thread_settings["thread_number"])
-        else:
-            clean_obj.move_all()
+        clean_obj = DkClean(task["System_Settings"]["directory_path"],
+                            task["Scan_Settings"]["relocation_path"],
+                            task["Threshold_Settings"]["last_access_threshold"])
 
+
+        if task["Scan_Settings"]["relocate_old_files"] == "yes":
+            if task["Scan_Settings"]["delete_when_relocation_is_full"] == "yes":
+                if thread_settings["thread_mode"] == "yes":
+                    clean_obj.move_all_threaded(thread_settings["thread_number"], delete_if_full=True)
+                else:
+                    clean_obj.move_all(delete_if_full=True)
+            else:
+                if thread_settings["thread_mode"] == "yes":
+                    clean_obj.move_all_threaded(thread_settings["thread_number"])
+                else:
+                    clean_obj.move_all()
+
+        elif task["Scan_Settings"]["delete_old_files"] == "yes":
+            if thread_settings["thread_mode"] == "yes":
+                clean_obj.delete_all_threaded(thread_settings["thread_number"])
+            else:
+                clean_obj.delete_all()
 
     @staticmethod
     def build_query_str(task):
@@ -172,7 +191,7 @@ class MonitorManager():
 def main():
     """Runs monitor_manager"""
     monitor = MonitorManager()
-    monitor.start()
+    #monitor.start()
 
 
 if __name__ == "__main__":
