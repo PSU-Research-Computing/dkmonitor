@@ -15,33 +15,34 @@ class StatObj():
     it in a database or email a user if they are flagged
     """
 
-    def __init__(self,
-                 tname,
-                 search_dir=None,
-                 system=None,
-                 datetime=None,
-                 total_file_size=None,
-                 use_percent=None,
-                 use_percent_change=0.0,
-                 average_access=None,
-                 avrg_access_change=0.0):
+    def __init__(self, tname, search_dir=None, system=None, datetime=None):
 
-        self.file_list = []
         self.table_name = tname
 
         self.collumn_dict = {'datetime': datetime,
                              'searched_directory': search_dir,
                              'system': system,
-                             'total_file_size': total_file_size,
-                             'disk_use_percent': use_percent,
-                             'last_access_average': average_access,
-                             'disk_use_change': use_percent_change,
-                             'access_average_change': avrg_access_change}
+                             'total_file_size': None,
+                             'disk_use_percent': None,
+                             'last_access_average': None,
+                             'disk_use_change': None,
+                             'access_average_change': None}
 
-    def add_file(self, file_to_add):
-        """Adds file to the list of associated files"""
+        self.stat_dict = {'total_file_size': 0,
+                          'number_of_files': 0,
+                          'number_of_old_files' : 0,
+                          'total_old_file_size' : 0,
+                          'total_access_time': 0}
 
-        self.file_list.append(file_to_add)
+
+    def add_file(self, file_to_add, last_access_threshold):
+        self.stat_dict["total_file_size"] += file_to_add.file_size
+        self.stat_dict["number_of_files"] += 1
+        self.stat_dict["total_access_time"] += file_to_add.last_access
+        if file_to_add.last_access > last_access_threshold:
+            self.stat_dict["number_of_old_files"] += 1
+            self.stat_dict["total_old_file_size"] += file_to_add.file_size
+
 
     def export_data(self, db_obj):
         """Calculates stats and exports them to a database"""
@@ -126,16 +127,12 @@ class StatObj():
     def get_total_space(self):
         """Calculates total file size of all files in file_list"""
 
-        total_space = 0
-        for file_tuple in self.file_list:
-            total_space += int(file_tuple.file_size)
-
-        self.collumn_dict["total_file_size"] = total_space
+        self.collumn_dict["total_file_size"] = self.stat_dict["total_file_size"]
 
     def get_disk_use_percentage(self):
         """Calculates the disk use percentage of all files"""
 
-        if self.collumn_dict["total_file_size"] == None:
+        if self.collumn_dict["total_file_size"] is None:
             self.get_total_space()
 
         stat_tup = os.statvfs(self.collumn_dict["searched_directory"]) #TODO try except
@@ -148,16 +145,10 @@ class StatObj():
     def get_access_average(self):
         """Calculates the last access average for all stored files"""
 
-        total_time = 0
-        file_count = 0
-        for file_tuple in self.file_list:
-            total_time += file_tuple.last_access
-            file_count += 1
-
         try: #possibly change this to an if statement
-            average_last_access = total_time / file_count
+            average_last_access = self.stat_dict["total_access_time"] / self.stat_dict["number_of_old_files"]
         except ZeroDivisionError:
-            average_last_access = total_time
+            average_last_access = self.stat_dict["total_access_time"]
 
         self.collumn_dict["last_access_average"] = average_last_access
 

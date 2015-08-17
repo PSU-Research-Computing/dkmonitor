@@ -66,10 +66,10 @@ class User(StatObj):
                 send_flag = True
                 print("OLD flag")
 
-            old_file_info = self.find_old_file_info(task_dict["last_access_threshold"])
+            #old_file_info = self.find_old_file_info(task_dict["last_access_threshold"])
             message_dict = task_dict.copy()
-            message_dict.update(old_file_info)
-            if old_file_info["old_file_count"] > 0:
+            message_dict.update(self.stat_dict)
+            if self.stat_dict["number_of_old_files"] > 0:
                 if current_use > task_dict["disk_use_percent_critical_threshold"]:
                     message.add_message("file_move_notice.txt", message_dict)
                     print("MOVE_NOTICE")
@@ -95,17 +95,4 @@ class User(StatObj):
         message = Email(address, self.collumn_dict)
 
         return message
-
-    def find_old_file_info(self, last_access_threshold):
-        """Gathers data on the user's old files"""
-
-        total_old_file_size = 0
-        count = 0
-        for file_path in self.file_list:
-            if file_path.last_access > last_access_threshold:
-                total_old_file_size += file_path.file_size
-                count += 1
-
-        return {"total_old_file_size": total_old_file_size/1024/1024/1024, "old_file_count": count}
-
 

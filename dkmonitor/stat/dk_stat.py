@@ -14,11 +14,12 @@ from collections import namedtuple
 import sys, os
 sys.path.append(os.path.abspath("../.."))
 
+from dkmonitor.stat.dir_scan import dir_scan
 from dkmonitor.stat.user_obj import User
 from dkmonitor.stat.dir_obj import Directory
 from dkmonitor.utilities import log_setup
 
-FileTuple = namedtuple('FileTuple', 'file_path file_size last_access')
+FileTuple = namedtuple('FileTuple', 'file_size last_access')
 
 class DkStat:
     """
@@ -38,57 +39,33 @@ class DkStat:
             self.logger.error("Directory path: %s is invalid", search_dir)
             raise Exception("Directory path: {dir} is invalid.".format(dir=search_dir))
 
-        self.search_time = 0
         self.user_hash = {}
         self.directory_obj = None
         self.system = system
         self.search_directory = search_dir
-        #self.load_users_file("../user_txt_file2.txt")
-        #print("Loaded")
-
-    def dir_scan_gen(self, recursive_dir=None): #possibly divide into multiple fucntions
-        """
-        Searches through entire directory tree recursively
-        Saves file info in a dict sorted by user
-        """
-
-        if recursive_dir == None:
-            self.search_time = datetime.datetime.now()
-            yield from self.dir_scan_gen(recursive_dir=self.search_directory) #starts recursive call
-
-        else:
-            if os.path.isdir(recursive_dir):
-                content_list = os.listdir(recursive_dir)
-                for i in content_list:
-                    current_path = recursive_dir + '/' + i
-                    if os.path.isfile(current_path): #If dir is a file, check when it was modified
-                        yield current_path
-
-                    else:
-                        yield from self.dir_scan_gen(recursive_dir=(current_path))
 
 
-    def dir_search(self):
+    def dir_search(self, last_access_threshold):
+        search_time = datetime.datetime.now()
         self.directory_obj = Directory(search_dir=self.search_directory,
                                        system=self.system,
-                                       datetime=self.search_time) #Creates dir_obj
-        for file_path in self.dir_scan_gen():
+                                       datetime=search_time) #Creates dir_obj
+        for file_path in dir_scan(self.search_directory):
             last_access = (time.time() - os.path.getatime(file_path)) / 86400
             file_size = int(os.path.getsize(file_path))
             name = getpwuid(os.stat(file_path).st_uid).pw_name
 
-            file_tup = FileTuple(file_path, file_size, last_access)
-            self.directory_obj.add_file(file_tup) #Add file to directory obj
+            file_tup = FileTuple(file_size, last_access)
+            self.directory_obj.add_file(file_tup, last_access_threshold) #Add file to directory obj
 
-            #if name has not already be found then add to user_hash
             try:
-                self.user_hash[name].add_file(file_tup)
+                self.user_hash[name].add_file(file_tup, last_access_threshold)
             except KeyError:
                 self.user_hash[name] = User(name,
                                             search_dir=self.search_directory,
                                             system=self.system,
-                                            datetime=self.search_time)
-                self.user_hash[name].add_file(file_tup)
+                                            datetime=search_time)
+                self.user_hash[name].add_file(file_tup, last_access_threshold)
 
     def export_data(self, db_obj):
         """Exports the file data from the User dict to a database object"""
