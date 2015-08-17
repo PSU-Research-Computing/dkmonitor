@@ -7,14 +7,13 @@ import shutil
 from pwd import getpwuid
 
 import threading
-from queue import Queue
 from queue import PriorityQueue
 
 #from dkmonitor import log_setup
 import sys, os
 sys.path.append(os.path.abspath("../.."))
 from dkmonitor.utilities import log_setup
-from dkmonitor.stat.dk_stat import DkStat
+from dkmonitor.stat.dir_scan import dir_scan
 
 class DkClean:
     """The class dk_clean is used to move old files from one directory to an other.
@@ -25,17 +24,12 @@ class DkClean:
         self.move_to = move_to
         self.access_threshold = access_threshold
         self.que = PriorityQueue()
-        self.stat_obj = DkStat(search_dir=search_dir)
-
-        self.old_file_size = 0
-        self.total_move_size = 0
-        self.move_to_free_space = 0
 
         self.logger = log_setup.setup_logger("clean_log.log")
 
 
-    def build_file_que_stat(self):
-        for file_path in self.stat_obj.dir_scan_gen():
+    def build_file_que(self):
+        for file_path in dir_scan(self.search_dir):
             last_access = (time.time() - os.path.getatime(file_path)) / 86400
             if last_access > self.access_threshold:
                 old_file_size = int(os.path.getsize(file_path))
@@ -92,12 +86,12 @@ class DkClean:
         """Moves all files with multithreading"""
 
         self.build_pool(thread_number, "move", delete_if_full=delete_if_full)
-        self.build_file_que_stat()
+        self.build_file_que()
         self.que.join() #waits for threads to finish
 
     def delete_all_threaded(self, thread_number):
         self.build_pool(thread_number, "delete")
-        self.build_file_que_stat()
+        self.build_file_que()
         self.que.join()
 
 
@@ -105,11 +99,11 @@ class DkClean:
     def move_all(self, delete_if_full=False):
         """Moves all files sequentailly"""
 
-        self.build_file_que_stat()
+        self.build_file_que()
         self.move_que(delete_if_full=delete_if_full)
 
     def delete_all(self):
-        self.build_file_que_stat()
+        self.build_file_que()
         self.delete_que()
 
     def move_que(self, delete_if_full=False):
@@ -143,47 +137,4 @@ class DkClean:
                         self.build_file_que(recursive_dir=(current_path))
                     except OSError as oerror:
                         self.logger.info(oerror)
-    """
-    def build_dynamic_file_que(self):
-        self.stat_obj.dir_scan(stat_function=self.add_to_file_que_if_space)
-
-
-
-    def verify_free_space(self):
         """
-        Checks if there is enough space in move_to to move all old files
-        returns true if there is enough space
-        returns false if there isnt
-        """
-
-        self.get_old_file_size()
-        use = shutil.disk_usage(self.move_to)
-        self.move_to_free_space = use.total - use.used
-        if self.old_file_size < self.move_to_free_space:
-            return True
-        else:
-            return False
-
-    def add_old_file_size(self, file_path):
-        last_access = (time.time() - os.path.getatime(file_path)) / 86400
-        if last_access > self.access_threshold:
-            self.old_file_size += int(os.path.getsize(file_path))
-
-    def get_old_file_size(self):
-        self.stat_obj.dir_scan(stat_function=self.add_old_file_size)
-
-    def add_to_file_que_if_space(self, file_path):
-        #TODO Potential for error because other people could be moving files simultaniously
-        #Might want to check for free space every time
-        last_access = (time.time() - os.path.getatime(file_path)) /86400
-        if last_access > self.access_threshold:
-            old_file_size = int(os.path.getsize(file_path))
-            move_size = old_file_size + self.total_move_size
-            if move_size < self.move_to_free_space():
-                self.que.put(file_path)
-                self.total_move_size += old_file_size
-
-    def add_to_file_que(self, file_path):
-        last_access = (time.time() - os.path.getatime(file_path)) / 86400
-        if last_access > self.access_threshold:
-            self.que.put(file_path)
