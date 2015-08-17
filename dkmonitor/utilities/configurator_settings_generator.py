@@ -1,40 +1,51 @@
-import sys, os
-sys.path.append(os.path.abspath("../.."))
+import configparser
+import json
+import os
 
-from dkmonitor.utilities.field_lists import FieldLists
+def build_configs(option_file):
+    """Builds The configparser objects based on options set in a json file"""
 
-class ConfigGenerator(FieldLists):
-    """
-    ConfigGenerator Offers various functions to create and add to custom config files
-    for dkmonitor
-    """
+    try:
+        with open(option_file, "r") as jfile:
+            option_list = json.load(jfile)
+    except OSError as err:
+        raise err
 
-    def __init__(self):
-        FieldLists.__init__(self)
+    config_dict = {}
+    for option in option_list:
+        if not option['config_type'] in config_dict.keys():
+            config_dict[option["config_type"]] = configparser.ConfigParser()
+        try:
+            config_dict[option["config_type"]].add_section(option["section_name"])
+        except configparser.DuplicateSectionError:
+            pass
 
-    def build_config_file(self, config, config_fields):
-        """Adds a task section to the task_config configuration object"""
+        config_dict[option["config_type"]].set(option["section_name"],
+                                               option["option_name"],
+                                               option["default_value"])
 
-        for section, fields in config_fields.items():
-            config.add_section(section)
-            for field in fields:
-                config.set(section, field, "")
+    return config_dict
 
-    def generate_defaults(self, path_to_config):
+def generate_config_files(path_to_config_dir):
+    """Writes the configparser objects to files"""
 
-        task_config_file_path = path_to_config + "/tasks/task_example.cfg"
-        gen_config_file_path = path_to_config + "/general_settings.cfg"
+    config_dict = build_configs("settings_configurations.json")
+    try:
+        os.makedirs(path_to_config_dir + "/tasks/")
+    except OSError:
+        pass
 
-        self.build_config_file(self.task_config, self.task_fields)
-        self.build_config_file(self.gen_config, self.general_fields)
+    task_config_path = path_to_config_dir + "/tasks/"
+    for key, config in list(config_dict.items()):
+        if key == "task":
+            with open(task_config_path + "task_example.cfg", 'w') as tconf:
+                config.write(tconf)
+        else:
+            with open(path_to_config_dir + "/" + key + ".cfg", 'w') as conf:
+                config.write(conf)
 
-        with open(task_config_file_path, 'w') as tconfig:
-            self.task_config.write(tconfig)
 
-        with open(gen_config_file_path, 'w') as gconfig:
-            self.gen_config.write(gconfig)
 
 if __name__ == "__main__":
-    ConfGen = ConfigGenerator()
-    ConfGen.generate_defaults("/home/wpatt2/ARC/Scratch_moniter/Dkm_config_log/conf/")
+    generate_config_files("/home/wpatt2/ARC/Scratch_moniter/Dkm_config_log/test/")
 
