@@ -2,16 +2,17 @@
 Creates Database for dk_monitor
 """
 import psycopg2
+import argparse
 
 import sys, os
 sys.path.append(os.path.abspath("../.."))
 
 from dkmonitor.utilities.db_interface import DataBase
 
-def create_db(user_name, password, host):
+def create_db(user_name, password, host, db_name):
     database = DataBase("postgres", user_name, password, host)
     with database.connect() as cursor:
-        cursor.execute("CREATE DATABASE dkmonitor OWNER {user}".format(user=user_name))
+        cursor.execute("CREATE DATABASE {db} OWNER {user}".format(db=db_name, user=user_name))
         create_tables(cursor)
 
 def connect_and_create_tables(db_name, user_name, password, host):
@@ -32,6 +33,19 @@ def load_sql_file(sql_file_name):
 
     return table_defs
 
+
+def main():
+    parser = argparse.ArgumentParser(description="")
+    parser.add_argument('host', help="Host name for Database")
+    parser.add_argument('-u', '--username', dest='user', default="postgres", help="User name for Database")
+    parser.add_argument('-p', '--password', dest='passwd', default="", help="Password for Database account")
+    parser.add_argument('-d', '--database', dest='db', default="dkmonitor", help="Name for database that will be created")
+    args = parser.parse_args()
+    create_db(args.user, args.passwd, args.host, args.db)
+
+if __name__ == "__main__":
+    #create_db(
+    main()
 
 
 
