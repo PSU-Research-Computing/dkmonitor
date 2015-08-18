@@ -45,33 +45,33 @@ class User(StatObj):
 
         if current_use > task_dict["Threshold_Settings"]["disk_use_percent_warning_threshold"]:
             send_flag = False
-            message = self.create_message(postfix)
-            print(self.collumn_dict["user_name"])
-            if self.collumn_dict["user_name"] in problem_lists[0]:
-                message.add_message("top_use_warning.txt", self.collumn_dict)
-                send_flag = True
-                print("BIG flag")
-            if self.collumn_dict["user_name"] in problem_lists[1]:
-                message.add_message("top_old_warning.txt", self.collumn_dict)
-                send_flag = True
-                print("OLD flag")
+            if task_dict["Email_Settings"]["email_usage_warnings"] == "yes":
+                message = self.create_message(postfix)
+                print(self.collumn_dict["user_name"])
+                if self.collumn_dict["user_name"] in problem_lists[0]:
+                    message.add_message("top_use_warning.txt", self.collumn_dict)
+                    send_flag = True
+                    print("BIG flag")
+                if self.collumn_dict["user_name"] in problem_lists[1]:
+                    message.add_message("top_old_warning.txt", self.collumn_dict)
+                    send_flag = True
+                    print("OLD flag")
 
-            #old_file_info = self.find_old_file_info(task_dict["last_access_threshold"])
-            message_dict = task_dict["System_Settings"].copy()
-            message_dict.update(task_dict["Threshold_Settings"])
-            message_dict.update(task_dict["Scan_Settings"])
-            message_dict.update(self.stat_dict)
-            message_dict["total_old_file_size"] = self.stat_dict["total_old_file_size"] / 1024 / 1024 / 1024
-            #message_dict.update(self.collumn_dict)
-            if self.stat_dict["number_of_old_files"] > 0:
-                if current_use > task_dict["Threshold_Settings"]["disk_use_percent_critical_threshold"]:
-                    message.add_message("file_move_notice.txt", message_dict)
-                    print("MOVE_NOTICE")
-                else:
-                    message.add_message("file_move_warning.txt", message_dict)
-                    print("REG flag")
+            if task_dict["Email_Settings"]["email_data_alteration_notices"] == "yes":
+                message_dict = task_dict["System_Settings"].copy()
+                message_dict.update(task_dict["Threshold_Settings"])
+                message_dict.update(task_dict["Scan_Settings"])
+                message_dict.update(self.stat_dict)
+                message_dict["total_old_file_size"] = self.stat_dict["total_old_file_size"] / 1024 / 1024 / 1024
+                if self.stat_dict["number_of_old_files"] > 0:
+                    if current_use > task_dict["Threshold_Settings"]["disk_use_percent_critical_threshold"]:
+                        message.add_message("file_move_notice.txt", message_dict)
+                        print("MOVE_NOTICE")
+                    else:
+                        message.add_message("file_move_warning.txt", message_dict)
+                        print("REG flag")
 
-                send_flag = True
+                    send_flag = True
 
             if send_flag is True:
                 message.build_and_send_message()
