@@ -33,8 +33,16 @@ class ConfigReader():
             print("ERROR: ***No Configuration files found***")
             raise err
 
-        self.task_config = configparser.ConfigParser()
-        self.gen_config = configparser.ConfigParser()
+        try:
+            with open("settings_configurations.json", "r") as jfile:
+                self.option_list = json.load(jfile)
+        except OSError as err:
+            self.logger.critical("Cannot find the settings_configuration.json"
+                                 "file to check configurations")
+            raise err
+
+
+
         self.config_dict = self.load_configs()
 
 
@@ -75,7 +83,6 @@ class ConfigReader():
             self.logger.critical("Program Halting")
             return good_flag
 
-        self.check_set_option_dependencies()
         good_flag = self.test_db_connection()
         print (good_flag)
         if good_flag is not False:
@@ -99,7 +106,7 @@ class ConfigReader():
             for section in task_sections:
                 export_dict["Scheduled_Tasks"][task][section] = self.section_to_dict(task_config, section)
 
-        return export_dict
+        return self.check_set_option_dependencies(export_dict)
 
 
     @staticmethod
@@ -132,9 +139,47 @@ class ConfigReader():
 
     #JSON object Verifcation Methods#####################################################
 
-    def check_set_option_dependencies(self):
-        #TODO Needs implementation
-        pass
+    def check_set_option_dependencies(self, settings_dict):
+        """ A function where the settings that are dependent on eachother can be checked and set """
+
+        no_email_flag = False
+        if settings_dict["Email_Settings"]["user_postfix"] == "":
+            self.logger.warning("user_postfix in Email_Settings has not been set")
+            self.logger.warning("Not emailing users")
+            no_email_flag = True
+
+        for item in settings_dict["Scheduled_Tasks"].items():
+            task = item[1]
+            if task["Threshold_Settings"]["disk_use_percent_critical_threshold"] <= task["Threshold_Settings"]["disk_use_percent_warning_threshold"]:
+                self.logger.warning("Disk use percent critical threshold must be greater than disk_use_percent_warning_threshold")
+                self.logger.warning("Setting to system defualts")
+                task["Threshold_Settings"]["disk_use_percent_warning_threshold"] = int(self.find_default("disk_use_percent_warning_threshold"))
+                task["Threshold_Settings"]["disk_use_percent_critical_threshold"] = int(self.find_default("disk_use_percent_critical_threshold"))
+
+            if (task["Scan_Settings"]["relocate_old_files"] == "yes") and (task["Scan_Settings"]["delete_old_files"] == "yes"):
+                self.logger.warning("Both relocate_old_files and delete_old_files cannnot be set to yes")
+                self.logger.warning("Setting both values to 'no'")
+                task["Scan_Settings"]["relocate_old_files"] = "no"
+                task["Scan_Settings"]["delete_old_files"] = "no"
+
+            if (task["Scan_Settings"]["relocate_old_files"] == "yes") and (task["Scan_Settings"]["file_relocation_path"] == ""):
+                self.logger.error("You have set relocate_old_files to yes but did not set file_relocation_path")
+                self.logger.warning("Setting relocate_old_files to 'no'")
+
+            if no_email_flag is True:
+                task["Email_Settings"]["email_data_alteration_notices"] = "no"
+                task["Email_Settings"]["email_usage_warnings"] = "no"
+
+        return settings_dict
+
+
+
+    def find_default(self, option_name):
+        """Finds the default value of an option from the option json file"""
+
+        for option in self.option_list:
+            if option["option_name"] == option_name:
+                return option["default_value"]
 
     def verify_option(self, config, option):
         """Verifies a Single option from settings_configuration.json"""
@@ -186,37 +231,28 @@ class ConfigReader():
         """
 
         good_flag = True
-        try:
-            with open("settings_configurations.json", "r") as jfile:
-                option_list = json.load(jfile)
+        task_flags = {}
+        gen_flags = []
+        for option in self.option_list:
+            if option["config_type"] == "task":
+                task_files = self.read_tasks()
+                for task_file in task_files:
+                    if task_file not in task_flags.keys():
+                        task_flags[task_file] = [self.verify_option(self.config_dict["task"][task_file], option)]
+                    else:
+                        task_flags[task_file].append(self.verify_option(self.config_dict["task"][task_file], option))
+            else:
+                gen_flags.append(self.verify_option(self.config_dict["general"], option))
 
-            task_flags = {}
-            gen_flags = []
-            for option in option_list:
-                if option["config_type"] == "task":
-                    task_files = self.read_tasks()
-                    for task_file in task_files:
-                        if task_file not in task_flags.keys():
-                            task_flags[task_file] = [self.verify_option(self.config_dict["task"][task_file], option)]
-                        else:
-                            task_flags[task_file].append(self.verify_option(self.config_dict["task"][task_file], option))
-                else:
-                    gen_flags.append(self.verify_option(self.config_dict["general"], option))
-
-            if False in gen_flags:
-                self.logger.critical("Too many issues in general_settings.cfg. Program halting")
-                good_flag = False
-
-            for key, flag_list in list(task_flags.items()):
-                if False in flag_list:
-                    del task_flags[key]
-                    self.logger.error("Too many issues in config file %s. Skipping task.", key)
-                    good_flag = False
-
-        except OSError:
-            self.logger.critical("Cannot find the settings_configuration.json"
-                                 "file to check configurations")
+        if False in gen_flags:
+            self.logger.critical("Too many issues in general_settings.cfg. Program halting")
             good_flag = False
+
+        for key, flag_list in list(task_flags.items()):
+            if False in flag_list:
+                del task_flags[key]
+                self.logger.error("Too many issues in config file %s. Skipping task.", key)
+                good_flag = False
 
         return good_flag
 
@@ -349,7 +385,6 @@ class ConfigReader():
                 config.set(option["section_name"], option["option_name"], option["default_value"])
 
         return value
-
 
 
 if __name__ == "__main__":
