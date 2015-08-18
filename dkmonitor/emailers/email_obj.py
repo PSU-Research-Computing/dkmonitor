@@ -49,6 +49,12 @@ class Email:
         except IOError as err:
             self.logger.error("File %s does not exist", message_file)
             print(err)
+        except KeyError as key:
+            self.logger.error("Key %s does not exist", key)
+            print (message_str)
+            for key in data_dict.keys():
+                print(key)
+            raise key
 
 
     def attach_file_stream(self, stream, attached_file_name):

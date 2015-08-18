@@ -1,5 +1,5 @@
 WARNING: Disk {directory_path} on {system_name} is over it's warning quota of {disk_use_percent_warning_threshold} %
-If {directory_path} is over its critical threshold of {disk_use_percent_critical_threshold} % all files accessed more than {last_access_threshold} days ago will be moved to {file_relocation_path} 
+If {searched_directory} is over its critical threshold of {disk_use_percent_critical_threshold} % all files accessed more than {last_access_threshold} days ago will be moved to {file_relocation_path} 
 
 Number of old files: {number_of_old_files}
 Combined size of old files: {total_old_file_size} GBs

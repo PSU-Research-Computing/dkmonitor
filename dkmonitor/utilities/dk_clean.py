@@ -29,12 +29,14 @@ class DkClean:
 
 
     def build_file_que(self):
+        print("Moving Files")
         for file_path in dir_scan(self.search_dir):
             last_access = (time.time() - os.path.getatime(file_path)) / 86400
             if last_access > self.access_threshold:
                 old_file_size = int(os.path.getsize(file_path))
                 priority_num = - (old_file_size * last_access)
                 self.que.put((priority_num, file_path))
+        print("Done")
 
 
     def move_file(self, file_path, delete_if_full=False):
@@ -42,13 +44,13 @@ class DkClean:
 
         user = getpwuid(os.stat(file_path).st_uid).pw_name
         root_dir = self.move_to + '/' + user
-        print("ROOT: " + root_dir)
+        #print("ROOT: " + root_dir)
         #if not os.path.exists(root_dir):
             #os.makedir(root_dir)
         new_file_path = re.sub(r"^{old_path}".format(old_path=self.search_dir), root_dir, file_path)
         last_slash = new_file_path.rfind('/')
         dir_path = new_file_path[:last_slash]
-        print("NEW: " + new_file_path)
+        #print("NEW: " + new_file_path)
         try:
             pass
             #if not os.path.exists(dir_path):

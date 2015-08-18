@@ -21,23 +21,13 @@ class User(StatObj):
                  name,
                  search_dir=None,
                  system=None,
-                 datetime=None,
-                 total_file_size=None,
-                 use_percent=None,
-                 use_percent_change=0.0,
-                 average_access=None,
-                 avrg_access_change=0.0):
+                 datetime=None):
 
         StatObj.__init__(self,
                          "user_stats",
                          search_dir=search_dir,
                          system=system,
-                         datetime=datetime,
-                         total_file_size=total_file_size,
-                         use_percent=use_percent,
-                         use_percent_change=use_percent_change,
-                         average_access=average_access,
-                         avrg_access_change=avrg_access_change)
+                         datetime=datetime)
 
         self.collumn_dict["user_name"] = name
 
@@ -53,7 +43,7 @@ class User(StatObj):
     def email_user(self, postfix, problem_lists, task_dict, current_use):
         """Emails the user associated with the object if they are flagged"""
 
-        if current_use > task_dict["disk_use_percent_warning_threshold"]:
+        if current_use > task_dict["Threshold_Settings"]["disk_use_percent_warning_threshold"]:
             send_flag = False
             message = self.create_message(postfix)
             print(self.collumn_dict["user_name"])
@@ -67,10 +57,14 @@ class User(StatObj):
                 print("OLD flag")
 
             #old_file_info = self.find_old_file_info(task_dict["last_access_threshold"])
-            message_dict = task_dict.copy()
+            message_dict = task_dict["System_Settings"].copy()
+            message_dict.update(task_dict["Threshold_Settings"])
+            message_dict.update(task_dict["Scan_Settings"])
             message_dict.update(self.stat_dict)
+            message_dict["total_old_file_size"] = self.stat_dict["total_old_file_size"] / 1024 / 1024 / 1024
+            #message_dict.update(self.collumn_dict)
             if self.stat_dict["number_of_old_files"] > 0:
-                if current_use > task_dict["disk_use_percent_critical_threshold"]:
+                if current_use > task_dict["Threshold_Settings"]["disk_use_percent_critical_threshold"]:
                     message.add_message("file_move_notice.txt", message_dict)
                     print("MOVE_NOTICE")
                 else:

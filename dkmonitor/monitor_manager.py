@@ -13,7 +13,8 @@ sys.path.append(os.path.abspath(".."))
 from dkmonitor.utilities.db_interface import DataBase
 from dkmonitor.utilities.dk_clean import DkClean
 from dkmonitor.utilities import log_setup
-from dkmonitor.utilities.configurator_settings_obj import SettingsInterface
+from dkmonitor.utilities.config_reader import ConfigReader
+#from dkmonitor.utilities.configurator_settings_obj import SettingsInterface
 
 from dkmonitor.emailers.dk_emailer import Emailer
 from dkmonitor.stat.dk_stat import DkStat
@@ -23,8 +24,10 @@ class MonitorManager():
     It runs preset tasks that are found in the json settings file"""
 
     def __init__(self):
-        self.set_interface = SettingsInterface()
-        self.settings = self.set_interface.parse_and_check_all()
+        #self.set_interface = SettingsInterface()
+        #self.settings = self.set_interface.parse_and_check_all()
+        config_reader = ConfigReader()
+        self.settings = config_reader.configs_to_dict()
 
         self.logger = log_setup.setup_logger("monitor_log.log")
 
@@ -32,14 +35,14 @@ class MonitorManager():
         self.emailer = Emailer(self.settings["Email_Settings"]["user_postfix"])
 
         #Configures database
-        self.database = DataBase(self.settings["DataBase_info"]["database"],
-                                 self.settings["DataBase_info"]["user_name"],
-                                 self.settings["DataBase_info"]["password"],
-                                 self.settings["DataBase_info"]["host"])
+        self.database = DataBase(self.settings["DataBase_Settings"]["database"],
+                                 self.settings["DataBase_Settings"]["user_name"],
+                                 self.settings["DataBase_Settings"]["password"],
+                                 self.settings["DataBase_Settings"]["host"])
 
-        if self.settings["DataBase_info"]["purge_database"] == "yes":
+        if self.settings["DataBase_Settings"]["purge_database"] == "yes":
             self.logger.info("Cleaning Database")
-            self.database.clean_data_base(self.settings["DataBase_info"]["purge_after_day_number"])
+            self.database.clean_data_base(self.settings["DataBase_Settings"]["purge_after_day_number"])
 
     def quick_scan(self, task):
         """
@@ -52,12 +55,12 @@ class MonitorManager():
         dk_stat_obj = DkStat(system=task["System_Settings"]["system_name"], search_dir=task["System_Settings"]["directory_path"])
 
         disk_use = dk_stat_obj.get_disk_use_percent()
-        if disk_use > task["Scan_Settings"]["disk_use_percent_warning_threshold"]:
-            dk_stat_obj.dir_search()
+        if disk_use > task["Threshold_Settings"]["disk_use_percent_warning_threshold"]:
+            dk_stat_obj.dir_search(task["Threshold_Settings"]["last_access_threshold"])
             dk_stat_obj.export_data(self.database)
             dk_stat_obj.email_users(self.settings["Email_Settings"]["user_postfix"], task, disk_use)
 
-        if disk_use > task["Scan_Settings"]["disk_use_percent_critical_threshold"]:
+        if disk_use > task["Threshold_Settings"]["disk_use_percent_critical_threshold"]:
             self.clean_disk(task)
 
     def full_scan(self, task):
@@ -71,14 +74,14 @@ class MonitorManager():
         dk_stat_obj = DkStat(system=task["System_Settings"]["system_name"], search_dir=task["System_Settings"]["directory_path"])
 
         self.logger.info("Searching %s", task["System_Settings"]["directory_path"])
-        dk_stat_obj.dir_search() #Searches the Directory
+        dk_stat_obj.dir_search(task["Threshold_Settings"]["last_access_threshold"]) #Searches the Directory
 
         self.logger.info("Exporting %s data to database", task["System_Settings"]["directory_path"])
         dk_stat_obj.export_data(self.database) #Exports data from dk_stat_obj to the database
 
         self.logger.info("Emailing Users for %s", task["System_Settings"]["directory_path"])
         disk_use = dk_stat_obj.get_disk_use_percent()
-        if disk_use > task["Threshold_Settings"]["disk_use_warning_threshold"]:
+        if disk_use > task["Threshold_Settings"]["disk_use_percent_warning_threshold"]:
             dk_stat_obj.email_users(self.settings["Email_Settings"]["user_postfix"], task, disk_use)
 
         if disk_use > task["Threshold_Settings"]["disk_use_percent_critical_threshold"]:
@@ -99,14 +102,14 @@ class MonitorManager():
     def run_full_scans(self):
         """Runs all tasks in the json settings file"""
 
-        for task in self.settings["Scheduled_Tasks"].items():
-            self.full_scan(task[1])
+        for key, task in list(self.settings["Scheduled_Tasks"].items()):
+            self.full_scan(task)
 
     def run_full_scan_threading(self):
         """Runs all tasks in the json settings file with multiple threads"""
 
-        for task in self.settings["Scheduled_Tasks"].items():
-            thread = threading.Thread(target=self.full_scan, args=(task[1],))
+        for key, task in list(self.settings["Scheduled_Tasks"].items()):
+            thread = threading.Thread(target=self.full_scan, args=(task,))
             thread.daemon = False
             thread.start()
 
@@ -121,13 +124,13 @@ class MonitorManager():
     def run_quick_scans(self):
         """Runs all tasks in the json settings file"""
 
-        for task in self.settings["Scheduled_Tasks"].keys():
+        for key, task in list(self.settings["Scheduled_Tasks"].items()):
             self.quick_scan(task)
 
     def run_quick_scan_threading(self):
         """Runs all tasks in the json settings file with multiple threads"""
 
-        for task in self.settings["Scheduled_Tasks"].keys():
+        for key, task in list(self.settings["Scheduled_Tasks"].items()):
             thread = threading.Thread(target=self.quick_scan, args=(task,))
             thread.daemon = False
             thread.start()
@@ -158,7 +161,7 @@ class MonitorManager():
         self.logger.info("Cleaning %s", task["System_Settings"]["directory_path"])
         thread_settings = self.settings["Thread_Settings"]
         clean_obj = DkClean(task["System_Settings"]["directory_path"],
-                            task["Scan_Settings"]["relocation_path"],
+                            task["Scan_Settings"]["file_relocation_path"],
                             task["Threshold_Settings"]["last_access_threshold"])
 
 
@@ -191,7 +194,7 @@ class MonitorManager():
 def main():
     """Runs monitor_manager"""
     monitor = MonitorManager()
-    #monitor.start()
+    monitor.start_full_scans()
 
 
 if __name__ == "__main__":
