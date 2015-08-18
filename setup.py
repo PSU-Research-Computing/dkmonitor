@@ -1,16 +1,16 @@
 """
 Setup script
 """
+from distutils.errors import DistutilsOptionError
 from setuptools import setup, find_packages
 from setuptools.command.install import install
-from distutils.errors import DistutilsOptionError
 
 
 import sys
 import os
 sys.path.append(os.path.abspath("."))
 
-import dkmonitor.utilities.configurator_settings_generator as config_gen
+from dkmonitor.config.settings_file_generator import generate_config_files
 
 long_description = "open file here"
 
@@ -61,18 +61,16 @@ class BuildDkm(install):
                 os.mkdir(self.log_path)
 
 
-        conf_gen = config_gen.ConfigGenerator()
-        conf_gen.generate_defaults(self.conf_path)
+        generate_config_files(self.conf_path)
 
         install.run(self)
 
-        print(
-        """
+        print("""
 
-        Add these lines to your bashrc file:
-        export DKM_LOG={log}
-        export DKM_CONF={conf}
-        """.format(log=self.log_path, conf=self.conf_path))
+              Add these lines to your bashrc file:
+              export DKM_LOG={log}
+              export DKM_CONF={conf}
+              """.format(log=self.log_path, conf=self.conf_path))
 
 
 setup(name="dkmonitor",
@@ -84,4 +82,5 @@ setup(name="dkmonitor",
       install_requires=["psycopg2"],
       long_description="long_description",
       cmdclass={'install': BuildDkm},
-      entry_points={"console_scripts": ["dkmonitor=dkmonitor.monitor_manager:main"],}) #Could use some more thought
+      entry_points={"console_scripts": ["dkmonitor=dkmonitor.monitor_manager:main",
+                                        "create_database=dkmonitor.utilities.create_db:main"],})
