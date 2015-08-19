@@ -5,16 +5,15 @@ given disk or directory that is set by the adminstrator
 """
 
 import threading
+import argparse
 
-import sys
-import os
+import sys, os
 sys.path.append(os.path.abspath(".."))
 
 from dkmonitor.utilities.db_interface import DataBase
 from dkmonitor.utilities.dk_clean import DkClean
 from dkmonitor.utilities import log_setup
-from dkmonitor.utilities.config_reader import ConfigReader
-#from dkmonitor.utilities.configurator_settings_obj import SettingsInterface
+from dkmonitor.config.config_reader import ConfigReader
 
 from dkmonitor.emailers.dk_emailer import Emailer
 from dkmonitor.stat.dk_stat import DkStat
@@ -90,70 +89,6 @@ class MonitorManager():
 
         self.logger.info("%s scan task complete", task["System_Settings"]["directory_path"])
 
-
-    def start_full_scans(self):
-        """starts full scan on tasks"""
-
-        if self.settings["Thread_Settings"]["thread_mode"] == 'yes':
-            self.run_full_scan_threading()
-        else:
-            self.run_full_scans()
-
-    def run_full_scans(self):
-        """Runs all tasks in the json settings file"""
-
-        for key, task in list(self.settings["Scheduled_Tasks"].items()):
-            self.full_scan(task)
-
-    def run_full_scan_threading(self):
-        """Runs all tasks in the json settings file with multiple threads"""
-
-        for key, task in list(self.settings["Scheduled_Tasks"].items()):
-            thread = threading.Thread(target=self.full_scan, args=(task,))
-            thread.daemon = False
-            thread.start()
-
-    def start_quick_scans(self):
-        """Starts quick scan on tasks"""
-
-        if self.settings["Thread_Settings"]["thread_mode"] == "yes":
-            self.run_quick_scan_threading()
-        else:
-            self.run_quick_scans()
-
-    def run_quick_scans(self):
-        """Runs all tasks in the json settings file"""
-
-        for key, task in list(self.settings["Scheduled_Tasks"].items()):
-            self.quick_scan(task)
-
-    def run_quick_scan_threading(self):
-        """Runs all tasks in the json settings file with multiple threads"""
-
-        for key, task in list(self.settings["Scheduled_Tasks"].items()):
-            thread = threading.Thread(target=self.quick_scan, args=(task,))
-            thread.daemon = False
-            thread.start()
-
-    def check_clean_task(self, task):
-        """
-        Checks if directory needs to be cleaned
-        Starts cleaning routine if flagged
-        """
-
-        if task["relocate_old_files"] == "yes":
-            query_str = self.build_query_str(task)
-            collumn_names = "disk_use_percent"
-
-            query_data = self.database.query_date_compare("directory_stats",
-                                                          query_str,
-                                                          collumn_names)
-            if query_data == None:
-                pass
-            elif query_data[0] > task["disk_use_percent_threshold"]:
-                self.clean_disk(task)
-
-    #def clean_disk(self, directory, relocation_path, access_threshold):
     def clean_disk(self, task):
         """Cleaning routine function"""
 
@@ -191,10 +126,66 @@ class MonitorManager():
         query_str = query_str.format(**task)
         return query_str
 
+
+    def start_full_scans(self):
+        """starts full scan on tasks"""
+
+        if self.settings["Thread_Settings"]["thread_mode"] == 'yes':
+            for key, task in list(self.settings["Scheduled_Tasks"].items()):
+                thread = threading.Thread(target=self.full_scan, args=(task,))
+                thread.daemon = False
+                thread.start()
+        else:
+            for key, task in list(self.settings["Scheduled_Tasks"].items()):
+                self.full_scan(task)
+
+
+    def start_quick_scans(self):
+        """Starts quick scan on tasks"""
+
+        if self.settings["Thread_Settings"]["thread_mode"] == "yes":
+            for key, task in list(self.settings["Scheduled_Tasks"].items()):
+                thread = threading.Thread(target=self.quick_scan, args=(task,))
+                thread.daemon = False
+                thread.start()
+        else:
+            for key, task in list(self.settings["Scheduled_Tasks"].items()):
+                self.quick_scan(task)
+
+
+    def check_clean_task(self, task):
+        """
+        Checks if directory needs to be cleaned
+        Starts cleaning routine if flagged
+        """
+
+        if task["relocate_old_files"] == "yes":
+            query_str = self.build_query_str(task)
+            collumn_names = "disk_use_percent"
+
+            query_data = self.database.query_date_compare("directory_stats",
+                                                          query_str,
+                                                          collumn_names)
+            if query_data == None:
+                pass
+            elif query_data[0] > task["disk_use_percent_threshold"]:
+                self.clean_disk(task)
+
+
+
 def main():
     """Runs monitor_manager"""
     monitor = MonitorManager()
-    monitor.start_full_scans()
+    parser = argparse.ArgumentParser(description="")
+    parser.add_argument("scan_type", required=True, help="Specify scan type: quick or full")
+    args = parser.parse_args()
+    if args.scan_type == "quick":
+        monitor.start_quick_scans()
+    elif args.scan_type == "full":
+        monitor.start_full_scans()
+    else:
+        raise "Error: scan_type must be either 'full' or 'quick'"
+
 
 
 if __name__ == "__main__":
