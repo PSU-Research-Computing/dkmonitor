@@ -1,2 +1,4 @@
-include emailers/messages/*.txt
-include sql_table_init.sql
+include dkmonitor/email/messages/*.txt
+include dkmonitor/utilities/sql_table_init.sql
+include dkmonior/config/settings_configurations.json
+include README.rst
