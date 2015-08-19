@@ -48,4 +48,4 @@ def generate_option_config2(file_path):
 
 
 if __name__ == "__main__":
-    generate_option_config2("../../../settings_configurations2.json")
+    generate_option_config2("settings_configurations.json")
