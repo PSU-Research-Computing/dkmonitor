@@ -26,10 +26,10 @@ def build_configs(option_file):
 
     return config_dict
 
-def generate_config_files(path_to_config_dir):
+def generate_config_files(path_to_config_dir, path_to_settings_file):
     """Writes the configparser objects to files"""
 
-    config_dict = build_configs("settings_configurations.json")
+    config_dict = build_configs(path_to_settings_file)
     try:
         os.makedirs(path_to_config_dir + "/tasks/")
     except OSError:

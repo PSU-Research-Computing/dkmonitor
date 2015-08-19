@@ -61,7 +61,7 @@ class BuildDkm(install):
                 os.mkdir(self.log_path)
 
 
-        generate_config_files(self.conf_path)
+        generate_config_files(self.conf_path, "dkmonitor/config/settings_configurations.json")
 
         install.run(self)
 
