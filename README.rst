@@ -16,7 +16,13 @@ Features:
 Installation and Setup:
 =======================
 
-There are 5 steps to complete installation and setup:
+**Requirements:**
+
+1. Python 3 
+2. A postgresql database
+
+
+**There are 5 steps to complete installation and setup:**
 
 1. Install dkmonitor with pip
 2. Export config and log path variables in profile
@@ -24,7 +30,7 @@ There are 5 steps to complete installation and setup:
 4. Setup config files
 5. Set ``cron`` jobs
 
-Install with ``pip``:
+**Install with ``pip``:**
 
 If you want pip to install with default configurations just run: ::
 
@@ -46,7 +52,7 @@ example: ::
     sudo pip install dkmonitor --root-path="/yourpath/goes/here/"
 
 
-Exporting Config and Log path variables:
+**Exporting Config and Log path variables:**
 
 After you have successfuly installed dkmonitor with pip you need to export the config and log file path variables.
 
@@ -66,7 +72,7 @@ The following arguments are optional:
 
 Run ``create_database -h`` for more info
 
-Setup configuration files:
+**Setup configuration files:**
 
 Go to the location of where your config file directory was installed
 
@@ -94,6 +100,24 @@ Go to the location of where your config file directory was installed
    
    b. Set directory_path to the directory you want to search
    c. Set other settings accordingly
+
+**Set ``cron`` Jobs**
+
+There are two types of scans that dkmonitor preforms: 
+
+1. ``full_scan``. -- Recursively search through every file under the specified directory and log usage stats in the database
+2. ``quick_scan`` -- Checks disk use, if over warning threshold start a ``full_scan`` 
+
+It is recommended that ``quick_scan`` is run hourly and ``full_scan`` is run nightly.
+However, any cron configuration should work
+
+To run a scan run the command: ::
+
+    dkmonitor full
+
+or ::
+    
+    dkmonitor quick
 
 
    
