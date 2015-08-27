@@ -34,7 +34,7 @@ class ConfigReader():
             raise err
 
         try:
-            with open("settings_configurations.json", "r") as jfile:
+            with open("dkmonitor/config/settings_configurations.json", "r") as jfile:
                 self.option_list = json.load(jfile)
         except OSError as err:
             self.logger.critical("Cannot find the settings_configuration.json"
