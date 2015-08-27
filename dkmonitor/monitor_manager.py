@@ -15,7 +15,7 @@ from dkmonitor.utilities.dk_clean import DkClean
 from dkmonitor.utilities import log_setup
 from dkmonitor.config.config_reader import ConfigReader
 
-from dkmonitor.emailers.dk_emailer import Emailer
+from dkmonitor.email.dk_emailer import Emailer
 from dkmonitor.stat.dk_stat import DkStat
 
 class MonitorManager():
