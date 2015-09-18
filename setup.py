@@ -63,7 +63,8 @@ class BuildDkm(install):
 
         generate_config_files(self.conf_path, "dkmonitor/config/settings_configurations.json")
 
-        install.run(self)
+        #install.run(self)
+        install.do_egg_install(self)
 
         print("""
 
