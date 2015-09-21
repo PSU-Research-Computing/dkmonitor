@@ -17,6 +17,15 @@ def setup_logger(log_file_name):
         print("Logging to current working directory")
         log_path = os.path.abspath(".")
 
+    if not os.path.exists(log_path):
+        print("ERROR: The path specified in DKM_LOG does not exist")
+        print("Logging to current working directory")
+        log_path = os.path.abspath(".")
+    if os.path.isfile(log_path):
+        print("ERROR: The path specifed in DKM_LOG points to a file")
+        print("Logging to current working directory")
+        log_path = os.path.abspath(".")
+
     log_path = log_path + '/' + log_file_name
     logger = logging.getLogger(log_path)
     logger.setLevel(logging.INFO)
