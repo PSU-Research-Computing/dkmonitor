@@ -7,7 +7,7 @@ import sys, os
 sys.path.append(os.path.abspath("../.."))
 
 from dkmonitor.stat.stat_obj import StatObj
-from dkmonitor.email.email_obj import Email
+from dkmonitor.emailer.email_obj import Email
 
 class User(StatObj):
     """
