@@ -38,8 +38,10 @@ class ConfigReader():
             raise err
 
         if not os.path.exists(self.config_root):
+            self.logger.critical("No configuration files found, path in DKM_CONF is bad")
             raise ConfigurationFilesNotFoundError("The path specified in DKM_CONF does not exist")
         if os.path.isfile(self.config_root):
+            self.logger.critical("No configuration files found, path in DKM_CONF points to a file")
             raise ConfigurationFilesNotFoundError("The path specifed in DKM_CONF points to a file")
 
         try:
