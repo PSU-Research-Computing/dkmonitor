@@ -11,9 +11,13 @@ from configparser import NoOptionError
 from configparser import NoSectionError
 
 import sys, os
-sys.path.append(os.path.abspath("../.."))
+sys.path.append(os.path.realpath(__file__)[:os.path.realpath(__file__).rfind("/")] + "/")
+print(os.path.dirname(os.path.realpath(__file__)))
 
 from dkmonitor.utilities.log_setup import setup_logger
+class ConfigurationFilesNotFoundError(Exception):
+    def __init__(self, message):
+        super(ConfigurationFilesNotFoundError, self).__init__(message)
 
 class ConfigReader():
     """
@@ -33,8 +37,13 @@ class ConfigReader():
             print("ERROR: ***No Configuration files found***")
             raise err
 
+        if not os.path.exists(self.config_root):
+            raise ConfigurationFilesNotFoundError("The path specified in DKM_CONF does not exist")
+        if os.path.isfile(self.config_root):
+            raise ConfigurationFilesNotFoundError("The path specifed in DKM_CONF points to a file")
+
         try:
-            with open("dkmonitor/config/settings_configurations.json", "r") as jfile:
+            with open(os.path.dirname(os.path.realpath(__file__)) + '/' + "settings_configurations.json", "r") as jfile:
                 self.option_list = json.load(jfile)
         except OSError as err:
             self.logger.critical("Cannot find the settings_configuration.json"
@@ -44,6 +53,7 @@ class ConfigReader():
 
 
         self.config_dict = self.load_configs()
+        print(self.config_dict)
 
 
     #Config Parsing Methods###################################################################
@@ -142,6 +152,7 @@ class ConfigReader():
     def check_set_option_dependencies(self, settings_dict):
         """ A function where the settings that are dependent on eachother can be checked and set """
 
+        print(settings_dict)
         no_email_flag = False
         if settings_dict["Email_Settings"]["user_postfix"] == "":
             self.logger.warning("user_postfix in Email_Settings has not been set")
