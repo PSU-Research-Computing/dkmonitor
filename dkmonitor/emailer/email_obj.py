@@ -5,6 +5,7 @@ This class allows you to build customized messages that can be sent by a differe
 
 import sys, os
 sys.path.append(os.path.abspath("../.."))
+#sys.path.append(os.path.realpath(__file__)[:os.path.realpath(__file__).rfind("/")] + "/")
 from dkmonitor.utilities import log_setup
 
 import smtplib
