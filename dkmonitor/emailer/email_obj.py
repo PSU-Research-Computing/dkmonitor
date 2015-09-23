@@ -8,6 +8,7 @@ sys.path.append(os.path.abspath("../.."))
 #sys.path.append(os.path.realpath(__file__)[:os.path.realpath(__file__).rfind("/")] + "/")
 from dkmonitor.utilities import log_setup
 
+import re
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -41,7 +42,7 @@ class Email:
     def add_message(self, message_file, data_dict):
         """Loads a pre-written message from external file and adds info to it from data_dict"""
 
-        message_file = os.path.abspath(".") + "/emailers/messages/" + message_file
+        message_file = os.path.abspath(".") + "/emailer/messages/" + message_file
         try:
             with open(message_file, 'r') as mfile:
                 message_str = mfile.read()
@@ -49,13 +50,11 @@ class Email:
 
         except IOError as err:
             self.logger.error("File %s does not exist", message_file)
-            print(err)
-        except KeyError as key:
+        except KeyError as keyerr:
+            m = re.search("'([^']*)'", keyerr.message)
+            key = m.group(1)
             self.logger.error("Key %s does not exist", key)
-            print (message_str)
-            for key in data_dict.keys():
-                print(key)
-            raise key
+            raise keyerr
 
 
     def attach_file_stream(self, stream, attached_file_name):
