@@ -71,7 +71,8 @@ class MonitorManager():
         """
 
         #task = self.settings["Scheduled_Tasks"][task_name]
-        dk_stat_obj = DkStat(system=task["System_Settings"]["system_name"], search_dir=task["System_Settings"]["directory_path"])
+        dk_stat_obj = DkStat(system=task["System_Settings"]["system_name"],
+                             search_dir=task["System_Settings"]["directory_path"])
 
         self.logger.info("Searching %s", task["System_Settings"]["directory_path"])
         dk_stat_obj.dir_search(task["Threshold_Settings"]["last_access_threshold"]) #Searches the Directory
@@ -178,7 +179,7 @@ def main():
     """Runs monitor_manager"""
     monitor = MonitorManager()
     parser = argparse.ArgumentParser(description="")
-    parser.add_argument("scan_type", required=True, help="Specify scan type: quick or full")
+    parser.add_argument("scan_type", help="Specify scan type: quick or full")
     args = parser.parse_args()
     if args.scan_type == "quick":
         monitor.start_quick_scans()
