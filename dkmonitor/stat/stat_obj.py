@@ -57,11 +57,16 @@ class StatObj():
         column_list = []
         value_list = []
 
+        print("Inster DB ROW")
+        print (self.collumn_dict)
+
         for column in self.collumn_dict.keys():
             column_list.append(column)
             if (isinstance(self.collumn_dict[column], float) or
                     isinstance(self.collumn_dict[column], int)):
                 value_list.append(str(self.collumn_dict[column]))
+            elif (self.collumn_dict[column] == None):
+                value_list.append("0")
             else:
                 value_list.append("'" + str(self.collumn_dict[column]) + "'")
 
