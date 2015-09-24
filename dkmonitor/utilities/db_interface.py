@@ -42,6 +42,11 @@ class DataBase:
             self.logger.error("Database Connection Error")
             self.logger.error(db_error)
 
+
+class DbEditor(DataBase):
+    def __init__(self, db_name, user, password, host):
+        super().__init__(db_name, user, password, host)
+
     def query_date_compare(self, table_name, query_str, compare_str):
         """
         This function gets the most recent row with certain collumn values
@@ -88,6 +93,12 @@ class DataBase:
             clean_statment = clean_statment.format(tab=table_name, day=days)
             with self.connect() as db_cursor:
                 db_cursor.execute(clean_statment)
+
+
+class DbViewer(Database):
+    def __init__(self, db_name, user, password, host):
+        super().__init__(db_name, user, password, host)
+
 
 if __name__ == '__main__':
     pass
