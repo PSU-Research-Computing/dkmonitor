@@ -52,11 +52,7 @@ class ConfigReader():
                                  "file to check configurations")
             raise err
 
-
-
         self.config_dict = self.load_configs()
-        print(self.config_dict)
-
 
     #Config Parsing Methods###################################################################
 

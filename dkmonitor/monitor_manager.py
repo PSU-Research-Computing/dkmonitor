@@ -94,7 +94,8 @@ class MonitorManager():
     def clean_disk(self, task):
         """Cleaning routine function"""
 
-        print("CLeaning...")
+        print("CLeaning Disk")
+
         self.logger.info("Cleaning %s", task["System_Settings"]["directory_path"])
         thread_settings = self.settings["Thread_Settings"]
         clean_obj = DkClean(task["System_Settings"]["directory_path"],
@@ -132,6 +133,8 @@ class MonitorManager():
     def start_full_scans(self):
         """starts full scan on tasks"""
 
+        print("Starting Full Scan")
+
         if self.settings["Thread_Settings"]["thread_mode"] == 'yes':
             for key, task in list(self.settings["Scheduled_Tasks"].items()):
                 thread = threading.Thread(target=self.full_scan, args=(task,))
@@ -144,6 +147,8 @@ class MonitorManager():
 
     def start_quick_scans(self):
         """Starts quick scan on tasks"""
+
+        print("Starting Quick Scan")
 
         if self.settings["Thread_Settings"]["thread_mode"] == "yes":
             for key, task in list(self.settings["Scheduled_Tasks"].items()):
