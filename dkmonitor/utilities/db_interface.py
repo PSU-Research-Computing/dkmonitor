@@ -42,10 +42,10 @@ class DataBase:
             self.logger.error("Database Connection Error")
             self.logger.error(db_error)
 
-
-class DbEditor(DataBase):
-    def __init__(self, db_name, user, password, host):
-        super().__init__(db_name, user, password, host)
+    def get_query_output(self, query_str):
+        with self.connect() as db_cursor:
+            db_cursor.execute(query_str)
+            return db_cursor.fetchall()
 
     def query_date_compare(self, table_name, query_str, compare_str):
         """
@@ -57,11 +57,17 @@ class DbEditor(DataBase):
             "collumn_name1, collumn_name2 ..."
         """
 
-        with self.connect() as db_cursor:
-            query = "SELECT {compares} FROM {tab} WHERE {querys} ORDER BY datetime DESC LIMIT 1;"
-            query = query.format(compares=compare_str, tab=table_name, querys=query_str)
-            db_cursor.execute(query)
-            return db_cursor.fetchone()
+        query = "SELECT {compares} FROM {tab} WHERE {querys} ORDER BY datetime DESC LIMIT 1;"
+        query = query.format(compares=compare_str, tab=table_name, querys=query_str)
+        query_out = self.get_query_output(query)
+        if (query_out == []) or (query_out == None):
+            return None
+        return query_out
+
+
+class DbEditor(DataBase):
+    def __init__(self, db_name, user, password, host):
+        super().__init__(db_name, user, password, host)
 
     def store_row(self, table, data_list):
         """
@@ -95,10 +101,76 @@ class DbEditor(DataBase):
                 db_cursor.execute(clean_statment)
 
 
-class DbViewer(Database):
+class DbViewer(DataBase):
     def __init__(self, db_name, user, password, host):
         super().__init__(db_name, user, password, host)
 
+    def get_all_users(self):
+        return [x[0] for x in self.get_unqiue_values('user_name', 'user_stats')]
+
+    def get_user_systems(self, user_name):
+        match_str = "user_name = '{}'".format(user_name)
+        return [x[0] for x in self.get_unique_values_with_match('system', match_str, 'user_stats')]
+
+    def get_user_disks_on_system(self, user_name, system_name):
+        match_str = "user_name = '{user}' AND system = '{system}'".format(user=user_name, system=system_name)
+        return [x[0] for x in self.get_unique_values_with_match('searched_directory', match_str, 'user_stats')]
+
+    def get_all_systems(self):
+        return [x[0] for x in self.get_unqiue_values('system', 'directory_stats')]
+
+    def get_system_disks(self, system_name):
+        match_str = "system = '{}'".format(system_name)
+        return [x[0] for x in self.get_unique_values_with_match('searched_directory', match_str, 'directory_stats')]
+
+    def get_unqiue_values(self, column_name, table_name):
+        query_str = "SELECT DISTINCT {column} FROM {table};".format(column=column_name, table=table_name)
+        return self.get_query_output(query_str)
+
+    def get_unique_values_with_match(self, column_name, match_str, table_name):
+        query_str = "SELECT DISTINCT {column} FROM {table} WHERE {match};"
+        query_str = query_str.format(column=column_name,
+                                     table=table_name,
+                                     match=match_str)
+
+        return self.get_query_output(query_str)
+
+
+    def get_disks(self):
+        pass
+
+    def get_top_users(self):
+        pass
+
+    def get_user_stats(self, user_name):
+        """Gets user stats for each disk on each system in database"""
+
+        stats = {'user_name': user_name, 'systems': {}}
+        user_systems = self.get_user_systems(user_name)
+        for system in user_systems:
+            stats['systems'][system] = {}
+            user_system_disks = self.get_user_disks_on_system(user_name, system)
+            for disk in user_system_disks:
+                query_columns = "user_name = '{user}' AND system = '{system}' AND searched_directory = '{disk}'"
+                query_columns = query_columns.format(user=user_name, system=system, disk=disk)
+                compare_columns = "*"
+                d_stats = self.query_date_compare("user_stats", query_columns, compare_columns)
+                stats['systems'][system][disk] = d_stats
+
+        return stats
+
+
+    def get_system_stats(self, system_name):
+        pass
+
+    def get_disk_change(self, disk_name):
+        pass
+
 
 if __name__ == '__main__':
+    dbv = DbViewer('diskspace_monitor', 'diskspace_monitor_l', '9JgN7pwNbB', 'pgsql.rc.pdx.edu')
+    #dbv.get_all_users()
+    dbv.get_system_disks("Circe")
+    print(dbv.get_user_disks_on_system("wpatt2", 'Circe'))
+    print(dbv.get_user_stats("wpatt2"))
     pass
