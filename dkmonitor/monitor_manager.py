@@ -11,7 +11,7 @@ import sys, os
 sys.path.append(os.path.abspath(".."))
 #sys.path.append(os.path.realpath(__file__)[:os.path.realpath(__file__).rfind("/")] + "/")
 
-from dkmonitor.utilities.db_interface import DataBase
+from dkmonitor.utilities.db_interface import DbEditor
 from dkmonitor.utilities.dk_clean import DkClean
 from dkmonitor.utilities import log_setup
 from dkmonitor.config.config_reader import ConfigReader
@@ -35,7 +35,7 @@ class MonitorManager():
         self.emailer = Emailer(self.settings["Email_Settings"]["user_postfix"])
 
         #Configures database
-        self.database = DataBase(self.settings["DataBase_Settings"]["database"],
+        self.database = DbEditor(self.settings["DataBase_Settings"]["database"],
                                  self.settings["DataBase_Settings"]["user_name"],
                                  self.settings["DataBase_Settings"]["password"],
                                  self.settings["DataBase_Settings"]["host"])
