@@ -123,6 +123,12 @@ class DbViewer(DataBase):
         match_str = "system = '{}'".format(system_name)
         return [x[0] for x in self.get_unique_values_with_match('searched_directory', match_str, 'directory_stats')]
 
+    def get_users_on_system_disk(self, system_name, disk_name):
+        match_str = "system = '{system}' AND searched_directory = '{sdir}'".format(system=system_name, sdir=disk_name)
+        return [x[0] for x in self.get_unique_values_with_match('user_name', match_str, 'user_stats')]
+
+
+    ###Utility query functions
     def get_unqiue_values(self, column_name, table_name):
         query_str = "SELECT DISTINCT {column} FROM {table};".format(column=column_name, table=table_name)
         return self.get_query_output(query_str)
@@ -155,13 +161,31 @@ class DbViewer(DataBase):
                 query_columns = query_columns.format(user=user_name, system=system, disk=disk)
                 compare_columns = "*"
                 d_stats = self.query_date_compare("user_stats", query_columns, compare_columns)
-                stats['systems'][system][disk] = d_stats
+                stats['systems'][system][disk] = d_stats[0]
 
         return stats
 
 
     def get_system_stats(self, system_name):
-        pass
+        stats = {'system_name': system_name, 'disks': {}}
+        disks = self.get_system_disks(system_name)
+        for disk in disks:
+            stats['disks'][disk] = {}
+            users = self.get_users_on_system_disk(system_name, disk)
+            stats['disks'][disk]['users'] = users
+
+            query_columns = "searched_directory = '{disk}' AND system = '{system}'"
+            query_columns = query_columns.format(system=system_name, disk=disk)
+            compare_columns = "*"
+            d_stats = self.query_date_compare("directory_stats", query_columns, compare_columns)
+            stats['disks'][disk]['disk_stats'] = d_stats[0]
+
+        return stats
+
+
+
+
+
 
     def get_disk_change(self, disk_name):
         pass
@@ -173,4 +197,5 @@ if __name__ == '__main__':
     dbv.get_system_disks("Circe")
     print(dbv.get_user_disks_on_system("wpatt2", 'Circe'))
     print(dbv.get_user_stats("wpatt2"))
+    print(dbv.get_system_stats("Circe"))
     pass
