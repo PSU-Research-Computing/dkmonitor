@@ -12,7 +12,6 @@ from configparser import NoSectionError
 
 import sys, os
 sys.path.append(os.path.realpath(__file__)[:os.path.realpath(__file__).rfind("/")] + "/")
-print(os.path.dirname(os.path.realpath(__file__)))
 
 from dkmonitor.utilities.log_setup import setup_logger
 class ConfigurationFilesNotFoundError(Exception):
@@ -92,7 +91,6 @@ class ConfigReader():
             return good_flag
 
         good_flag = self.test_db_connection()
-        print (good_flag)
         if good_flag is not False:
             return self.configs_to_dict()
 
@@ -150,7 +148,6 @@ class ConfigReader():
     def check_set_option_dependencies(self, settings_dict):
         """ A function where the settings that are dependent on eachother can be checked and set """
 
-        print(settings_dict)
         no_email_flag = False
         if settings_dict["Email_Settings"]["user_postfix"] == "":
             self.logger.warning("user_postfix in Email_Settings has not been set")
