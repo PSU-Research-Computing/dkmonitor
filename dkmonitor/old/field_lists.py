@@ -13,7 +13,7 @@ class FieldLists():
 
     def __init__(self):
         self.task_fields = collections.OrderedDict()
-        self.task_fields["System_Settings"] = ["system_name", "directory_path"]
+        self.task_fields["System_Settings"] = ["system_host_name", "directory_path"]
         self.task_fields["Scan_Settings"] = ["delete_old_files",
                                              "relocate_old_files",
                                              "file_relocation_path",

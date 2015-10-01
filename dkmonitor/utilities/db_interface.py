@@ -112,19 +112,19 @@ class DbViewer(DataBase):
         match_str = "user_name = '{}'".format(user_name)
         return [x[0] for x in self.get_unique_values_with_match('system', match_str, 'user_stats')]
 
-    def get_user_disks_on_system(self, user_name, system_name):
-        match_str = "user_name = '{user}' AND system = '{system}'".format(user=user_name, system=system_name)
+    def get_user_disks_on_system(self, user_name, system_host_name):
+        match_str = "user_name = '{user}' AND system = '{system}'".format(user=user_name, system=system_host_name)
         return [x[0] for x in self.get_unique_values_with_match('searched_directory', match_str, 'user_stats')]
 
     def get_all_systems(self):
         return [x[0] for x in self.get_unqiue_values('system', 'directory_stats')]
 
-    def get_system_disks(self, system_name):
-        match_str = "system = '{}'".format(system_name)
+    def get_system_disks(self, system_host_name):
+        match_str = "system = '{}'".format(system_host_name)
         return [x[0] for x in self.get_unique_values_with_match('searched_directory', match_str, 'directory_stats')]
 
-    def get_users_on_system_disk(self, system_name, disk_name):
-        match_str = "system = '{system}' AND searched_directory = '{sdir}'".format(system=system_name, sdir=disk_name)
+    def get_users_on_system_disk(self, system_host_name, disk_name):
+        match_str = "system = '{system}' AND searched_directory = '{sdir}'".format(system=system_host_name, sdir=disk_name)
         return [x[0] for x in self.get_unique_values_with_match('user_name', match_str, 'user_stats')]
 
 
@@ -166,16 +166,16 @@ class DbViewer(DataBase):
         return stats
 
 
-    def get_system_stats(self, system_name):
-        stats = {'system_name': system_name, 'disks': {}}
-        disks = self.get_system_disks(system_name)
+    def get_system_stats(self, system_host_name):
+        stats = {'system_host_name': system_host_name, 'disks': {}}
+        disks = self.get_system_disks(system_host_name)
         for disk in disks:
             stats['disks'][disk] = {}
-            users = self.get_users_on_system_disk(system_name, disk)
+            users = self.get_users_on_system_disk(system_host_name, disk)
             stats['disks'][disk]['users'] = users
 
             query_columns = "searched_directory = '{disk}' AND system = '{system}'"
-            query_columns = query_columns.format(system=system_name, disk=disk)
+            query_columns = query_columns.format(system=system_host_name, disk=disk)
             compare_columns = "*"
             d_stats = self.query_date_compare("directory_stats", query_columns, compare_columns)
             stats['disks'][disk]['disk_stats'] = d_stats[0]

@@ -95,7 +95,7 @@ Go to the location of where your config file directory was installed
    - A ``task`` file specifies the settings to monitor one disk or directory
    - You can have multiple task files to monitor more than one disk or directory
    
-   a. Set system_name to something unique to the specific system.
+   a. Set system_host_name to something unique to the specific system.
       it is recomened that you all tasks on the same system have the same system name
    
    b. Set directory_path to the directory you want to search

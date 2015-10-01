@@ -52,7 +52,7 @@ class MonitorManager():
         """
 
         #task = self.settings["Scheduled_Tasks"][task_name]
-        dk_stat_obj = DkStat(system=task["System_Settings"]["system_name"], search_dir=task["System_Settings"]["directory_path"])
+        dk_stat_obj = DkStat(system=task["System_Settings"]["system_host_name"], search_dir=task["System_Settings"]["directory_path"])
 
         disk_use = dk_stat_obj.get_disk_use_percent()
         if disk_use > task["Threshold_Settings"]["disk_use_percent_warning_threshold"]:
@@ -71,7 +71,7 @@ class MonitorManager():
         """
 
         #task = self.settings["Scheduled_Tasks"][task_name]
-        dk_stat_obj = DkStat(system=task["System_Settings"]["system_name"],
+        dk_stat_obj = DkStat(system=task["System_Settings"]["system_host_name"],
                              search_dir=task["System_Settings"]["directory_path"])
 
         self.logger.info("Searching %s", task["System_Settings"]["directory_path"])
@@ -125,7 +125,7 @@ class MonitorManager():
     def build_query_str(task):
         """Builds query string used to determine if disk needs to be cleaned"""
 
-        query_str = "searched_directory = '{directory_path}' AND system = '{system_name}'"
+        query_str = "searched_directory = '{directory_path}' AND system = '{system_host_name}'"
         query_str = query_str.format(**task)
         return query_str
 

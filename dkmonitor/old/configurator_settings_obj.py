@@ -306,7 +306,7 @@ class SettingsInterface(FieldLists):
 
         bad_flag = False #Set to true if there is a critcal error
 
-        system = self.task_config.get(section, "system_name")
+        system = self.task_config.get(section, "system_host_name")
         if system == "":
             self.logger.error("System field is not set in: %s", section)
             bad_flag = True

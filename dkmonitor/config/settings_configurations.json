@@ -202,7 +202,7 @@
     {
         "error":"critical",
         "section_name":"System_Settings",
-        "option_name":"system_name",
+        "option_name":"system_host_name",
         "default_value":"",
         "maximum":"",
         "type":"str",

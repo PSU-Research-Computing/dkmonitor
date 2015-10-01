@@ -62,11 +62,11 @@ class AdminInterface(DbViewer):
         else:
             print("User Not found")
 
-    def display_system(self, system_name):
+    def display_system(self, system_host_name):
         self.print_color_key()
-        system_stats = self.get_system_stats(system_name)
+        system_stats = self.get_system_stats(system_host_name)
         if system_stats != {}:
-            print("System Name: {}".format(system_stats["system_name"]))
+            print("System Name: {}".format(system_stats["system_host_name"]))
             for disk, d_stats in system_stats["disks"].items():
                 print("|Disk Name: {}".format(disk))
                 if d_stats['disk_stats'][5] > 1:
@@ -108,7 +108,7 @@ def main():
     subparser = parser.add_subparsers()
     system_parser = subparser.add_parser("system")
     system_parser.set_defaults(which="system")
-    system_parser.add_argument("system_name", help="Name of system or user you want to search for")
+    system_parser.add_argument("system_host_name", help="Name of system or user you want to search for")
 
     user_parser = subparser.add_parser("user")
     user_parser.set_defaults(which="user")
@@ -121,7 +121,7 @@ def main():
     args = parser.parse_args()
 
     if args.which == "system":
-        admin_int.display_system(args.system_name)
+        admin_int.display_system(args.system_host_name)
     elif args.which == "user":
         admin_int.display_user(args.user_name)
     elif args.which == "all":

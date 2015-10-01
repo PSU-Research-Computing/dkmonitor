@@ -5,6 +5,7 @@ ConfigReader
 import psycopg2
 import json
 import glob
+import socket
 
 import configparser
 from configparser import NoOptionError
@@ -96,6 +97,8 @@ class ConfigReader():
 
     def configs_to_dict(self):
         """Converts all config files to a dictionary and returns the dictionary"""
+
+        current_hostname = socket.gethostname()
 
         export_dict = {}
 
