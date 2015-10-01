@@ -96,6 +96,7 @@ class StatObj():
 
         #Checks for exsisting entries
         if query_data != None:
+            query_data = query_data[0]
             disk_change = 0.0
             access_change = 0.0
 
