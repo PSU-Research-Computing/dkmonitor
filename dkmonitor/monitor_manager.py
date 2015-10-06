@@ -6,6 +6,7 @@ given disk or directory that is set by the adminstrator
 
 import threading
 import argparse
+import socket
 
 import sys, os
 sys.path.append(os.path.abspath(".."))
@@ -135,14 +136,14 @@ class MonitorManager():
 
         print("Starting Full Scan")
 
-        if self.settings["Thread_Settings"]["thread_mode"] == 'yes':
-            for key, task in list(self.settings["Scheduled_Tasks"].items()):
-                thread = threading.Thread(target=self.full_scan, args=(task,))
-                thread.daemon = False
-                thread.start()
-        else:
-            for key, task in list(self.settings["Scheduled_Tasks"].items()):
-                self.full_scan(task)
+        for key, task in list(self.settings["Scheduled_Tasks"].items()):
+            if self.check_host_name(task) is True:
+                if self.settings["Thread_Settings"]["thread_mode"] == "yes":
+                    thread = threading.Thread(target=self.full_scan, args=(task,))
+                    thread.daemon = False
+                    thread.start()
+                else:
+                    self.full_scan(task)
 
 
     def start_quick_scans(self):
@@ -150,15 +151,14 @@ class MonitorManager():
 
         print("Starting Quick Scan")
 
-        if self.settings["Thread_Settings"]["thread_mode"] == "yes":
-            for key, task in list(self.settings["Scheduled_Tasks"].items()):
-                thread = threading.Thread(target=self.quick_scan, args=(task,))
-                thread.daemon = False
-                thread.start()
-        else:
-            for key, task in list(self.settings["Scheduled_Tasks"].items()):
-                self.quick_scan(task)
-
+        for key, task in list(self.settings["Scheduled_Tasks"].items()):
+            if self.check_host_name(task) is True:
+                if self.settings["Thread_Settings"]["thread_mode"] == "yes":
+                    thread = threading.Thread(target=self.quick_scan, args=(task,))
+                    thread.daemon = False
+                    thread.start()
+                else:
+                    self.quick_scan(task)
 
     def check_clean_task(self, task):
         """
@@ -177,6 +177,13 @@ class MonitorManager():
                 pass
             elif query_data[0] > task["disk_use_percent_threshold"]:
                 self.clean_disk(task)
+
+
+    def check_host_name(self, task):
+        host_name = socket.gethostname()
+        if host_name == task["System_Settings"]["system_host_name"]:
+            return True
+        return False
 
 
 
