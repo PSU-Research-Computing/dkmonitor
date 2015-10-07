@@ -108,10 +108,7 @@ class DkStat:
                 bpad = 0
             stat_list.append([user, stats["total_file_size"], bpad])
 
-        print("Total users: {flag}".format(flag=len(self.user_hash.keys())))
-        print("Total Flagged users: {flag}".format(flag=flag_user_number))
         large_list = sorted(stat_list, key=operator.itemgetter(1), reverse=True)[:flag_user_number]
-        print(large_list)
         old_list = sorted(stat_list, key=operator.itemgetter(2), reverse=True)[:flag_user_number]
 
         large_names = []
