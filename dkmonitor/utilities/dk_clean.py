@@ -9,7 +9,6 @@ from pwd import getpwuid
 import threading
 from queue import PriorityQueue
 
-#from dkmonitor import log_setup
 import sys, os
 sys.path.append(os.path.abspath("../.."))
 from dkmonitor.utilities import log_setup
@@ -19,10 +18,11 @@ class DkClean:
     """The class dk_clean is used to move old files from one directory to an other.
     The process can be run with multithreading or just iterativly"""
 
-    def __init__(self, search_dir, move_to, access_threshold):
+    def __init__(self, search_dir='', move_to='', access_threshold='', host_name='127.0.0.1'):
         self.search_dir = search_dir
         self.move_to = move_to
         self.access_threshold = access_threshold
+        self.host_name=host_name
         self.que = PriorityQueue()
 
         self.logger = log_setup.setup_logger("clean_log.log")
@@ -39,14 +39,15 @@ class DkClean:
         print("Done")
 
 
+
     def move_file(self, file_path, delete_if_full=False):
         """Moves individual file while still preseving its file path"""
 
         user = getpwuid(os.stat(file_path).st_uid).pw_name
-        root_dir = self.move_to + '/' + user
+        root_dir = self.move_to + '/' + user +  '/' + self.host_name + '/' + self.search_dir.replace('/', '.')
         #print("ROOT: " + root_dir)
         #if not os.path.exists(root_dir):
-            #os.makedir(root_dir)
+            #os.makedirs(root_dir)
         new_file_path = re.sub(r"^{old_path}".format(old_path=self.search_dir), root_dir, file_path)
         last_slash = new_file_path.rfind('/')
         dir_path = new_file_path[:last_slash]
