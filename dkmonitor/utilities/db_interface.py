@@ -75,8 +75,6 @@ class DbEditor(DataBase):
         data_list is a list with joined collumn names as index 0 and values as index 1
         """
 
-        print("Storing Row")
-
         with self.connect() as db_cursor:
             in_str = "INSERT INTO {table_name} ({joined_collumn_list}) VALUES ({joined_value_list})"
             in_str = in_str.format(table_name=table, #Add values to string

@@ -34,8 +34,6 @@ class User(StatObj):
     def build_query_str(self):
         """Builds a string to query querying on user name, searched directory and system name."""
 
-        print("Building Query String")
-
         query_str = ("user_name = '{user_name}' AND searched_directory"
                      " = '{searched_directory}' AND system = '{system}'") #Searhced Directory might be causing issues
         query_str = query_str.format(**self.collumn_dict)
