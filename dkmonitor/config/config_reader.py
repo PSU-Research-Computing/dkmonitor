@@ -15,6 +15,7 @@ import sys, os
 sys.path.append(os.path.realpath(__file__)[:os.path.realpath(__file__).rfind("/")] + "/")
 
 from dkmonitor.utilities.log_setup import setup_logger
+
 class ConfigurationFilesNotFoundError(Exception):
     def __init__(self, message):
         super(ConfigurationFilesNotFoundError, self).__init__(message)

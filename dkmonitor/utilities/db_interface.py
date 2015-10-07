@@ -66,6 +66,8 @@ class DataBase:
 
 
 class DbEditor(DataBase):
+    """DbEditor is used to add information to a database"""
+
     def __init__(self, host_name='127.0.0.1', database='postgres', user_name='postgres', password=''):
         super().__init__(host_name=host_name, database=database, user_name=user_name, password=password)
 
@@ -100,6 +102,8 @@ class DbEditor(DataBase):
 
 
 class DbViewer(DataBase):
+    """DbViewer is used to get information from an existing database"""
+
     def __init__(self, host_name='127.0.0.1', database='postgres', user_name='postgres', password=''):
         super().__init__(host_name=host_name, database=database, user_name=user_name, password=password)
 
@@ -179,10 +183,6 @@ class DbViewer(DataBase):
             stats['disks'][disk]['disk_stats'] = d_stats[0]
 
         return stats
-
-
-
-
 
 
     def get_disk_change(self, disk_name):

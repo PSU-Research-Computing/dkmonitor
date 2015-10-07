@@ -46,6 +46,8 @@ class DkStat:
 
 
     def dir_search(self, last_access_threshold):
+        """Searches through the self.search_directory for old files"""
+
         search_time = datetime.datetime.now()
         self.directory_obj = Directory(search_dir=self.search_directory,
                                        system=self.system,
@@ -118,57 +120,6 @@ class DkStat:
             old_names.append(old_list[i][0])
 
         return [large_names, old_names] #TODO change to a named tuple
-
-####JUNK FUNCTIONS#########################
-    def dir_scan(self, stat_function=None, recursive_dir=None): #possibly divide into multiple fucntions
-        """
-        Searches through entire directory tree recursively
-        Saves file info in a dict sorted by user
-        """
-
-        if recursive_dir == None:
-            self.search_time = datetime.datetime.now()
-            self.directory_obj = Directory(search_dir=self.search_directory,
-                                           system=self.system,
-                                           datetime=self.search_time) #Creates dir_obj
-
-            self.dir_scan(stat_function=stat_function, recursive_dir=self.search_directory) #starts recursive call
-
-        else:
-            if os.path.isdir(recursive_dir):
-                content_list = os.listdir(recursive_dir)
-                for i in content_list:
-                    current_path = recursive_dir + '/' + i
-                    if os.path.isfile(current_path): #If dir is a file, check when it was modified
-                        if stat_function is None:
-                            self.logger.warning("Function passed into dir_scan is None type")
-                        else:
-                            stat_function(current_path)
-
-                    else:
-                        try:
-                            #recursive call on every directory
-                            self.dir_scan(stat_function=stat_function, recursive_dir=(current_path))
-                        except OSError as oerror:
-                            self.logger.info(oerror)
-
-    def build_file_info(self, file_path):
-        last_access = (time.time() - os.path.getatime(file_path)) / 86400
-        file_size = int(os.path.getsize(file_path))
-        name = getpwuid(os.stat(file_path).st_uid).pw_name
-
-        file_tup = FileTuple(file_path, file_size, last_access)
-        self.directory_obj.add_file(file_tup) #Add file to directory obj
-
-        #if name has not already be found then add to user_hash
-        try:
-            self.user_hash[name].add_file(file_tup)
-        except KeyError:
-            self.user_hash[name] = User(name,
-                                        search_dir=self.search_directory,
-                                        system=self.system,
-                                        datetime=self.search_time)
-            self.user_hash[name].add_file(file_tup)
 
 if __name__ == "__main__":
     pass

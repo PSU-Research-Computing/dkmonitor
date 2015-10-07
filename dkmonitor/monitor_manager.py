@@ -10,7 +10,6 @@ import socket
 
 import sys, os
 sys.path.append(os.path.abspath(".."))
-#sys.path.append(os.path.realpath(__file__)[:os.path.realpath(__file__).rfind("/")] + "/")
 
 from dkmonitor.utilities.db_interface import DbEditor
 from dkmonitor.utilities.dk_clean import DkClean
@@ -25,8 +24,6 @@ class MonitorManager():
     It runs preset tasks that are found in the json settings file"""
 
     def __init__(self):
-        #self.set_interface = SettingsInterface()
-        #self.settings = self.set_interface.parse_and_check_all()
         config_reader = ConfigReader()
         self.settings = config_reader.configs_to_dict()
 
@@ -52,8 +49,8 @@ class MonitorManager():
         if over quota, email users / clean disk if neccessary
         """
 
-        #task = self.settings["Scheduled_Tasks"][task_name]
-        dk_stat_obj = DkStat(system=task["System_Settings"]["system_host_name"], search_dir=task["System_Settings"]["directory_path"])
+        dk_stat_obj = DkStat(system=task["System_Settings"]["system_host_name"],
+                             search_dir=task["System_Settings"]["directory_path"])
 
         disk_use = dk_stat_obj.get_disk_use_percent()
         if disk_use > task["Threshold_Settings"]["disk_use_percent_warning_threshold"]:
@@ -71,7 +68,6 @@ class MonitorManager():
         if over quota, email users / clean disk if neccessary
         """
 
-        #task = self.settings["Scheduled_Tasks"][task_name]
         dk_stat_obj = DkStat(system=task["System_Settings"]["system_host_name"],
                              search_dir=task["System_Settings"]["directory_path"])
 
