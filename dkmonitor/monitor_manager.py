@@ -36,10 +36,10 @@ class MonitorManager():
         self.emailer = Emailer(self.settings["Email_Settings"]["user_postfix"])
 
         #Configures database
-        self.database = DbEditor(self.settings["DataBase_Settings"]["database"],
-                                 self.settings["DataBase_Settings"]["user_name"],
-                                 self.settings["DataBase_Settings"]["password"],
-                                 self.settings["DataBase_Settings"]["host"])
+        self.database = DbEditor(host_name=self.settings["DataBase_Settings"]["host"],
+                                 database=self.settings["DataBase_Settings"]["database"],
+                                 user_name=self.settings["DataBase_Settings"]["user_name"],
+                                 password=self.settings["DataBase_Settings"]["password"])
 
         if self.settings["DataBase_Settings"]["purge_database"] == "yes":
             self.logger.info("Cleaning Database")
@@ -99,9 +99,10 @@ class MonitorManager():
 
         self.logger.info("Cleaning %s", task["System_Settings"]["directory_path"])
         thread_settings = self.settings["Thread_Settings"]
-        clean_obj = DkClean(task["System_Settings"]["directory_path"],
-                            task["Scan_Settings"]["file_relocation_path"],
-                            task["Threshold_Settings"]["last_access_threshold"])
+        clean_obj = DkClean(search_dir=task["System_Settings"]["directory_path"],
+                            move_to=task["Scan_Settings"]["file_relocation_path"],
+                            access_threshold=task["Threshold_Settings"]["last_access_threshold"],
+                            host_name=task["System_Settings"]["system_host_name"])
 
 
         if task["Scan_Settings"]["relocate_old_files"] == "yes":
