@@ -18,11 +18,11 @@ class DataBase:
     DataBase can also be used to do specail queries on the data as well
     """
 
-    def __init__(self, db_name, user, password, host):
-        self.db_name = db_name
-        self.user = user
+    def __init__(self, host_name='127.0.0.1', database='postgres', user_name='postgres', password=''):
+        self.host = host_name
+        self.db_name = database
+        self.user = user_name
         self.password = password
-        self.host = host
 
         self.logger = log_setup.setup_logger("database_log.log")
 
@@ -66,8 +66,8 @@ class DataBase:
 
 
 class DbEditor(DataBase):
-    def __init__(self, db_name, user, password, host):
-        super().__init__(db_name, user, password, host)
+    def __init__(self, host_name='127.0.0.1', database='postgres', user_name='postgres', password=''):
+        super().__init__(host_name=host_name, database=database, user_name=user_name, password=password)
 
     def store_row(self, table, data_list):
         """
@@ -100,8 +100,8 @@ class DbEditor(DataBase):
 
 
 class DbViewer(DataBase):
-    def __init__(self, db_name, user, password, host):
-        super().__init__(db_name, user, password, host)
+    def __init__(self, host_name='127.0.0.1', database='postgres', user_name='postgres', password=''):
+        super().__init__(host_name=host_name, database=database, user_name=user_name, password=password)
 
     def get_all_users(self):
         return [x[0] for x in self.get_unqiue_values('user_name', 'user_stats')]
@@ -190,7 +190,7 @@ class DbViewer(DataBase):
 
 
 if __name__ == '__main__':
-    dbv = DbViewer('diskspace_monitor', 'diskspace_monitor_l', '9JgN7pwNbB', 'pgsql.rc.pdx.edu')
+    dbv = DbViewer(database='diskspace_monitor', user_name='diskspace_monitor_l', password='9JgN7pwNbB', host_name='pgsql.rc.pdx.edu')
     #dbv.get_all_users()
     dbv.get_system_disks("Circe")
     print(dbv.get_user_disks_on_system("wpatt2", 'Circe'))
