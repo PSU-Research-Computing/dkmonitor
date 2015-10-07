@@ -43,8 +43,6 @@ class User(StatObj):
     def email_user(self, postfix, problem_lists, task_dict, current_use):
         """Emails the user associated with the object if they are flagged"""
 
-        print("Emailing User {}".format(self.collumn_dict["user_name"]))
-
         if current_use > task_dict["Threshold_Settings"]["disk_use_percent_warning_threshold"]:
             send_flag = False
             if task_dict["Email_Settings"]["email_usage_warnings"] == "yes":

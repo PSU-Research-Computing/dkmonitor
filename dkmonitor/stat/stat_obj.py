@@ -54,8 +54,6 @@ class StatObj():
     def insert_db_row(self, db_insertion_function):
         """Inserts row of stats into a database"""
 
-        print("Insert Stat Row")
-
         column_list = []
         value_list = []
 
