@@ -11,9 +11,6 @@ sys.path.append(os.path.abspath(".."))
 from dkmonitor.utilities.db_interface import DbViewer
 from dkmonitor.config.config_reader import ConfigReader
 
-def get_user_change():
-    pass
-
 
 class AdminInterface(DbViewer):
     def __init__(self):
