@@ -1,33 +1,13 @@
+"""
+This File is strictly used as a utility to create a json file that
+the settings files are built off of
+"""
+
 import json
 
-def generate_option_config(file_path):
-    option = {"option_name": "",
-              "type": "",
-              "error": "",
-              "default_value": "",
-              "mininum": "",
-              "maximum": ""}
+def generate_option_config(file_path, object_number):
+    """This function creates a json file with objects that the config files are build off of"""
 
-    general = {"DataBase_Settings" : [option for i in range(6)],
-               "Thread_Settings" : [option for i in range(2)],
-               "Email_Settings" : [option for i in range(2)]}
-
-    task = {"System_Settings" : [option for i in range(2)],
-            "Scan_Settings" : [option for i in range(4)],
-            "Threshold_Settings" : [option for i in range(3)],
-            "Email_Settings" : [option for i in range(3)]}
-
-    configs = {"general": general, "task": task}
-    option_list = []
-    for i in range(22):
-        option_list.append(option)
-
-    diction = {"options":option_list}
-
-    with open(file_path, "w") as sc:
-        json.dump(configs, sc, indent=4, separators=(",", ":"))
-
-def generate_option_config2(file_path):
     option = {"option_name": "",
               "section_name": "",
               "config_type": "",
@@ -38,7 +18,7 @@ def generate_option_config2(file_path):
               "maximum": ""}
 
     option_list = []
-    for i in range(22):
+    for i in range(object_number):
         option_list.append(option)
 
     diction = {"options":option_list}
@@ -48,4 +28,4 @@ def generate_option_config2(file_path):
 
 
 if __name__ == "__main__":
-    generate_option_config2("settings_configurations.json")
+    generate_option_config("settings_configurations.json", object_number)
