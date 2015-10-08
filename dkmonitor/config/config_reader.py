@@ -15,6 +15,7 @@ import sys, os
 sys.path.append(os.path.realpath(__file__)[:os.path.realpath(__file__).rfind("/")] + "/")
 
 from dkmonitor.utilities.log_setup import setup_logger
+from dkmonitor.config.settings_file_generator import EnvironmentVariableNotSetError
 
 class ConfigurationFilesNotFoundError(Exception):
     def __init__(self, message):
@@ -35,8 +36,7 @@ class ConfigReader():
             self.config_root = os.environ["DKM_CONF"]
         except KeyError as err:
             self.logger.critical("No configuration files found, DKM_CONF not set")
-            print("ERROR: ***No Configuration files found***")
-            raise err
+            raise EnvironmentVariableNotSetError("DKM_CONF variable not set. No Configuration files found")
 
         if not os.path.exists(self.config_root):
             self.logger.critical("No configuration files found, path in DKM_CONF is bad")
