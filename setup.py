@@ -5,7 +5,6 @@ from distutils.errors import DistutilsOptionError
 from setuptools import setup, find_packages
 from setuptools.command.install import install
 
-
 import sys
 import os
 sys.path.append(os.path.abspath("."))
@@ -30,11 +29,11 @@ class BuildDkm(install):
 
         if self.root_path is None:
             if (self.log_path is None):
-                self.log_path = "/var/log/dkmonitor/"
+                self.log_path = "~/.dkmonitor/log/"
             else:
                 self.log_path = os.path.abspath(os.path.expanduser(self.log_path))
             if self.conf_path is None:
-                self.conf_path = "/etc/dkmonitor/"
+                self.conf_path = "~/.dkmonitor/conf/"
             else:
                 self.conf_path = os.path.abspath(os.path.expanduser(self.conf_path))
         else:
@@ -84,4 +83,6 @@ setup(name="dkmonitor",
       long_description="long_description",
       cmdclass={'install': BuildDkm},
       entry_points={"console_scripts": ["dkmonitor=dkmonitor.monitor_manager:main",
-                                        "create_database=dkmonitor.utilities.create_db:main"],})
+                                        "create_database=dkmonitor.utilities.create_db:main",
+                                        "dkadmin=dkmonitor.admin_interface.main",
+                                        "dktask=dkmonitor.config.settings_file_generator.main"],})
