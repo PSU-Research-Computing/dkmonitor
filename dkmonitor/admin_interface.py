@@ -22,6 +22,8 @@ class AdminInterface(DbViewer):
                          password=self.settings["DataBase_Settings"]["password"])
 
     def print_color_key(self):
+        """Print the color key"""
+
         print("Color Key----------")
         green = termcolor.colored("green", "green")
         print("{} == Decrease".format(green))
@@ -33,6 +35,11 @@ class AdminInterface(DbViewer):
 
 
     def display_user(self, user_name):
+        """
+        Displays user stats in color with information gathered by the
+        DbViewer object from the dkmonitor database
+        """
+
         self.print_color_key()
         user_stats = self.get_user_stats(user_name)
         if user_stats != {}:
@@ -60,6 +67,11 @@ class AdminInterface(DbViewer):
             print("User Not found")
 
     def display_system(self, system_host_name):
+        """
+        Displays system stats in color with information gathered by the
+        DbViewer object from the dkmonitor database
+        """
+
         self.print_color_key()
         system_stats = self.get_system_stats(system_host_name)
         if system_stats != {}:
@@ -89,18 +101,26 @@ class AdminInterface(DbViewer):
             print("System Not Found")
 
     def display_users(self):
+        """Displays all users"""
+
         for user in self.get_all_users():
             print(user)
 
     def display_systems(self):
+        """Displays all systems"""
+
         for system in self.get_all_systems():
             print(system)
 
 
+def get_args():
+    """Gets args from argparse"""
 
-def main():
-    admin_int = AdminInterface()
-    parser = argparse.ArgumentParser(description="")
+    description = """
+    Administrator Interface is a program That allows you to view system and user
+    data stored in a central database managed by the appilcation dkmonitor
+    """
+    parser = argparse.ArgumentParser(description=description)
 
     subparser = parser.add_subparsers()
     system_parser = subparser.add_parser("system")
@@ -115,7 +135,14 @@ def main():
     all_parser.set_defaults(which="all")
     all_parser.add_argument("display_name", help="Name of system or user you want to search for")
 
-    args = parser.parse_args()
+    return parser.parse_args()
+
+
+def main():
+    """Main function that runs the command line interface"""
+
+    admin_int = AdminInterface()
+    args = get_args()
 
     if args.which == "system":
         admin_int.display_system(args.system_host_name)

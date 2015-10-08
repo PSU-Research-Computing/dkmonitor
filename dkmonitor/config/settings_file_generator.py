@@ -5,8 +5,11 @@ import configparser
 
 
 class EnvironmentVariableNotSetError(Exception):
+    """Error for when shell environment variables are not found"""
     def __init__(self, message):
         super(ConfigurationFilesNotFoundError, self).__init__(message)
+
+
 def build_configs(option_file):
     """Builds The configparser objects based on options set in a json file"""
 
@@ -61,7 +64,7 @@ def generate_task_config(save_path, file_name, config_dict):
 def get_args():
     """Gets args from argparse"""
 
-    parser = argparse.ArgumentParser(description="")
+    parser = argparse.ArgumentParser(description="This program creates an empty task file for dkmonitor")
 
     subparser = parser.add_subparsers()
     default_parser = subparser.add_parser("default")
@@ -85,7 +88,9 @@ def main():
         print("asdf")
         try:
             conf_path = os.environ["DKM_CONF"]
-            generate_task_config(conf_path + "/tasks", "new_config.cfg", build_configs("settings_configurations.json"))
+            generate_task_config(conf_path + "/tasks",
+                                 "new_config.cfg",
+                                 build_configs("settings_configurations.json"))
         except KeyError:
             raise EnvironmentVariableNotSetError("ERROR: DKM_CONF environment variable not set, file not created")
     elif args.which == "file_name":
@@ -93,7 +98,9 @@ def main():
             conf_path = os.environ["DKM_CONF"]
             if not args.file_name.endswith(".cfg"):
                 args.file_name += ".cfg"
-            generate_task_config(conf_path + '/tasks', args.file_name, build_configs("settings_configurations.json"))
+            generate_task_config(conf_path + '/tasks',
+                                 args.file_name,
+                                 build_configs("settings_configurations.json"))
         except KeyError:
             raise EnvironmentVariableNotSetError("ERROR: DKM_CONF environment variable not set, file not created")
     elif args.which == "full_path":
