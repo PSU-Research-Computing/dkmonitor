@@ -84,5 +84,5 @@ setup(name="dkmonitor",
       cmdclass={'install': BuildDkm},
       entry_points={"console_scripts": ["dkmonitor=dkmonitor.monitor_manager:main",
                                         "create_database=dkmonitor.utilities.create_db:main",
-                                        "dkadmin=dkmonitor.admin_interface.main",
+                                        "dkviewer=dkmonitor.admin_interface.main",
                                         "dktask=dkmonitor.config.settings_file_generator.main"],})
