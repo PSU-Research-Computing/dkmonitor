@@ -43,6 +43,10 @@ class Email:
         """Loads a pre-written message from external file and adds info to it from data_dict"""
 
         message_file = os.path.abspath(".") + "/emailer/messages/" + message_file
+        for key, item in data_dict.items():
+            if isinstance(item, float):
+                data_dict[key] = round(data_dict[key], 2)
+
         try:
             with open(message_file, 'r') as mfile:
                 message_str = mfile.read()
