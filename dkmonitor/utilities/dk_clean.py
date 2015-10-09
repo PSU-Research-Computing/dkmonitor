@@ -39,7 +39,6 @@ class DkClean:
         print("Done")
 
 
-
     def move_file(self, file_path, delete_if_full=False):
         """Moves individual file while still preseving its file path"""
 
@@ -50,7 +49,9 @@ class DkClean:
         print("ROOT: " + root_dir)
         self.create_file_tree(uid, root_dir)
 
-        new_file_path = re.sub(r"^{old_path}".format(old_path=self.search_dir), root_dir, file_path)
+        new_file_path = re.sub(r"^{old_path}".format(old_path=self.search_dir),
+                                                     root_dir,
+                                                     file_path)
         last_slash = new_file_path.rfind('/')
         dir_path = new_file_path[:last_slash]
         print("NEW: " + new_file_path)
@@ -64,9 +65,12 @@ class DkClean:
             raise(err)
 
     def delete_file(self, file_path):
+        """Deletes file"""
         os.remove(file_path)
 
     def create_file_tree(self, uid, path):
+        """Creates file tree after move_to with user ownership"""
+
         path = path.replace(self.move_to, "")
         dirs = path.split("/")
         current_path = self.move_to
@@ -78,9 +82,6 @@ class DkClean:
             except OSError:
                 pass
             current_path = new_dir
-
-
-
 
 
 ####MULTI-THREADING######################################
@@ -99,7 +100,8 @@ class DkClean:
         """Builds Pool of thread workers"""
 
         for i in range(thread_number):
-            thread = threading.Thread(target=self.worker, args=(delete_or_move, delete_if_full))
+            thread = threading.Thread(target=self.worker,
+                                      args=(delete_or_move, delete_if_full))
             thread.daemon = True
             thread.start()
 
@@ -111,6 +113,8 @@ class DkClean:
         self.que.join() #waits for threads to finish
 
     def delete_all_threaded(self, thread_number):
+        """Deletes all old files multithreaded"""
+
         self.build_pool(thread_number, "delete")
         self.build_file_que()
         self.que.join()
@@ -119,43 +123,26 @@ class DkClean:
 ####ITERATIVE###########################################
     def move_all(self, delete_if_full=False):
         """Moves all files sequentailly"""
-
         self.build_file_que()
         self.move_que(delete_if_full=delete_if_full)
 
     def delete_all(self):
+        """Deletes all files iterativley"""
         self.build_file_que()
         self.delete_que()
 
     def move_que(self, delete_if_full=False):
         """Moves all files in queue sequentailly"""
+
         while not self.que.empty():
             file_path = self.que.get()
             self.move_file(file_path[1], delete_if_full=delete_if_full)
 
     def delete_que(self):
+        """Deletes files in the que"""
+
         while not self.que.empty():
             file_path = self.que.get()
             self.delete_file(file_path[1])
 
 
-####JUNK FUNCTIOpNS#######################################
-
-    """
-    def build_file_que(self, recursive_dir):
-      """  """Builds queue of old files to be moved""" """
-
-        if os.path.isdir(recursive_dir):
-            content_list = os.listdir(recursive_dir)
-            for i in content_list:
-                current_path = recursive_dir + '/' + i
-                if os.path.isfile(current_path):
-                    last_access = (time.time() - os.path.getatime(current_path)) / 86400
-                    if last_access > self.access_threshold:
-                        self.que.put(current_path)
-                else:
-                    try:
-                        self.build_file_que(recursive_dir=(current_path))
-                    except OSError as oerror:
-                        self.logger.info(oerror)
-        """
