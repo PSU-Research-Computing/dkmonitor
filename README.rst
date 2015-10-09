@@ -99,10 +99,15 @@ Go to the location of where your config file directory was installed
    c. Change other default settings accordingly
 
 2. setup task files:
-
-   - A ``task`` file specifies the settings to monitor one disk or directory
-   - You can have multiple task files to monitor more than one disk or directory
    
+    Notes:
+
+   - A ``task`` file specifies the settings used to monitor one disk or directory
+   - You can have multiple task files to monitor more than one disk or directory
+
+
+   Instructions:
+
    a. Set ``system_host_name`` to the host name of the system you want to run it on.
       If the ``system_host_name`` is incorrect the task will not run
    
