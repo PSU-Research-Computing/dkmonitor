@@ -16,7 +16,7 @@ class AdminInterface(DbViewer):
     def __init__(self):
         config_reader = ConfigReader()
         self.settings = config_reader.configs_to_dict()
-        super().__init__(host_name=self.settings["DataBase_Settings"]["host"]),
+        super().__init__(host_name=self.settings["DataBase_Settings"]["host"],
                          database=self.settings["DataBase_Settings"]["database"],
                          user_name=self.settings["DataBase_Settings"]["user_name"],
                          password=self.settings["DataBase_Settings"]["password"])
