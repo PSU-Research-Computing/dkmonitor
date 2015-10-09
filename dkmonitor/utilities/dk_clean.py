@@ -57,6 +57,7 @@ class DkClean:
         try:
             #self.create_file_tree(uid, dir_path)
             #shutil.move(file_path, new_file_path)
+            pass
         except IOError as err:
             if delete_if_full is True:
                 os.remove(file_path)
