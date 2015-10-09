@@ -124,11 +124,13 @@ However, any cron configuration should work
 
 To run a scan run the command: ::
 
-    dkmonitor full
+    $> dkmonitor full
 
 or ::
     
-    dkmonitor quick
+    $> dkmonitor quick
+
+dkmonitor will only perform the tasks where ``system_host_name`` is the same as the machine's hostname.
 
 
 **dkviewer:**
