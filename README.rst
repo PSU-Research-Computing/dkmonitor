@@ -95,20 +95,31 @@ Go to the location of where your config file directory was installed
    - A ``task`` file specifies the settings to monitor one disk or directory
    - You can have multiple task files to monitor more than one disk or directory
    
-   a. Set system_host_name to something unique to the specific system.
-      it is recomened that you all tasks on the same system have the same system name
+   a. Set ``system_host_name`` to the host name of the system you want to run it on.
+      If the ``system_host_name`` is incorrect the task will not run
    
    b. Set directory_path to the directory you want to search
    c. Set other settings accordingly
 
-**Set ``cron`` Jobs**
+**Creating New Tasks:**
+Use the ``create_task`` utility to create new empty task files. Create task gives you several options on where you want the new file stored
+
+Example: ::
+
+    $> create_task default //creates blank task file in the directory you set to store you task files (DKM_CONF)
+    
+    $> create_task file_name <filename> //creates a task in the default location with the file name you specify
+
+    $> create_task full_path </path/to/task/taskname> //creates a task file in the specifed location
+
+**Set cron Jobs:**
 
 There are two types of scans that dkmonitor preforms: 
 
-1. ``full_scan``. -- Recursively search through every file under the specified directory and log usage stats in the database
-2. ``quick_scan`` -- Checks disk use, if over warning threshold start a ``full_scan`` 
+1. ``full scan``. -- Recursively search through every file under the specified directory and log usage stats in the database
+2. ``quick scan`` -- Checks disk use, if over warning threshold start a ``full scan`` 
 
-It is recommended that ``quick_scan`` is run hourly and ``full_scan`` is run nightly.
+It is recommended that ``quick scan`` is run hourly and ``full scan`` is run nightly.
 However, any cron configuration should work
 
 To run a scan run the command: ::
@@ -118,6 +129,20 @@ To run a scan run the command: ::
 or ::
     
     dkmonitor quick
+
+
+**dkviewer:**
+``dkviewer`` is a command line utility that allows you to view the gathered statistics stored in your postgresql database.
+``dkviewer`` will have many more viewing options in the future.
+
+Usage: ::
+
+    $> dkviewer all <users/systems> // displays all current users or systems in the database
+
+    $> dkviewer user <username> //displays information about specific user (data usage, access average)
+
+    $> dkviewer system <systemname> //displays information about the system usage including all users on the system
+
 
 
    
