@@ -49,19 +49,20 @@ class AdminInterface(DbViewer):
                 for disk, d_stats in disks.items():
                     print("||Disk Name: {}".format(disk))
                     if d_stats[6] > 1:
-                        colored_size = termcolor.colored(str(d_stats[4]/1024/1024/1024), "red")
+                        colored_size = termcolor.colored(str(round(d_stats[4]/1024/1024/1024, 2)), "red")
                     elif d_stats[6] == 1:
-                        colored_size = termcolor.colored(str(d_stats[4]/1024/1024/1024), "yellow")
+                        colored_size = termcolor.colored(str(round(d_stats[4]/1024/1024/1024, 2)), "yellow")
                     else:
-                        colored_size = termcolor.colored(str(d_stats[4]/1024/1024/1024), "green")
+                        colored_size = termcolor.colored(str(round(d_stats[4]/1024/1024/1024, 2)), "green")
                     print("|||Total File Size    : {} GB".format(colored_size))
                     if d_stats[8] > 1:
-                        colored_access = termcolor.colored(str(d_stats[7]), "red")
+                        colored_access = termcolor.colored(str(round(d_stats[7], 2)), "red")
                     elif d_stats[8] == 1:
-                        colored_size = termcolor.colored(str(d_stats[7]/1024/1024/1024), "yellow")
+                        colored_size = termcolor.colored(str(round(d_stats[7]/1024/1024/1024, 2)), "yellow")
                     else:
-                        colored_access = termcolor.colored(str(d_stats[7]), "green")
+                        colored_access = termcolor.colored(str(round(d_stats[7], 2)), "green")
                     print("|||Last Access Average: {} days".format(colored_access))
+                print("")
 
         else:
             print("User Not found")
@@ -79,19 +80,19 @@ class AdminInterface(DbViewer):
             for disk, d_stats in system_stats["disks"].items():
                 print("|Disk Name: {}".format(disk))
                 if d_stats['disk_stats'][5] > 1:
-                    colored_size = termcolor.colored(str(d_stats['disk_stats'][3]/1024/1024/1024), "red")
+                    colored_size = termcolor.colored(str(round(d_stats['disk_stats'][3]/1024/1024/1024, 2)), "red")
                 elif d_stats['disk_stats'][5] > 1:
-                    colored_size = termcolor.colored(str(d_stats['disk_stats'][3]/1024/1024/1024), "yellow")
+                    colored_size = termcolor.colored(str(round(d_stats['disk_stats'][3]/1024/1024/1024, 2)), "yellow")
                 else:
-                    colored_size = termcolor.colored(str(d_stats['disk_stats'][3]/1024/1024/1024), "green")
+                    colored_size = termcolor.colored(str(round(d_stats['disk_stats'][3]/1024/1024/1024, 2)), "green")
                 print("||Total File Size    : {} GB".format(colored_size))
 
                 if d_stats['disk_stats'][7] > 1:
-                    colored_access = termcolor.colored(str(d_stats['disk_stats'][6]), "red")
+                    colored_access = termcolor.colored(str(round(d_stats['disk_stats'][6], 2)), "red")
                 elif d_stats['disk_stats'][7] == 1:
-                    colored_access = termcolor.colored(str(d_stats['disk_stats'][6]), "yellow")
+                    colored_access = termcolor.colored(str(round(d_stats['disk_stats'][6], 2)), "yellow")
                 else:
-                    colored_access = termcolor.colored(str(d_stats['disk_stats'][6]), "green")
+                    colored_access = termcolor.colored(str(round(d_stats['disk_stats'][6], 2)), "green")
                 print("||Last Access Average: {} days".format(colored_access))
 
                 print("|Users on: {}".format(disk))
