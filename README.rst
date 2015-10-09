@@ -7,11 +7,13 @@ Disk monitor is primarily suited for use on research severs with short term fast
 
 Features:
 =========
-- Scan a disk or directory for general usage stats as well as individual user stats
+- Scans a disk or directory for general usage stats as well as individual user stats
 - Stores directory and user stats in a postgresql database for later analisys.
-- Can to push email notifications to users who are not following the speficied usage rules.
-- Can automatically move all old files to a new location
+- Can view usage stats on specific users or systems via the command line
+- Can to push email notifications to users who are not following the speficied usage rules
+- Can automatically move all old files to a new location, mirroring the directory structure
 - Can automatically delete old files on a disk
+- Works accross multiple separate systems 
 
 Installation and Setup:
 =======================
@@ -21,26 +23,32 @@ Installation and Setup:
 1. Python 3 
 2. A postgresql database
 
+**Dependencies:**
+1. psycopg2
+2. termcolor
+3. setuptools
 
 **There are 5 steps to complete installation and setup:**
 
-1. Install dkmonitor with pip
+1. Install dkmonitor with setuptools
 2. Export config and log path variables in profile
 3. Setup ``postgresql`` Database
 4. Setup config files
 5. Set ``cron`` jobs
 
-**Install with pip:**
+**Install with setuptools:**
 
-If you want pip to install with default configurations just run: ::
+If you to install ``dkmonitor`` with default configurations first clone the repo, then run setup.py install: ::
 
-    $> sudo pip install dkmonitor
+    $> git clone https://github.com/willpatterson/dk-monitor.git
+    $> cd dk-monitor
+    $> python setup.py install
 
 This does three things:
 
 1. Installs dkmonitor and its dependcies to your current python version
-2. Creates a directory called dkmonitor in /etc/ where it will generate the settings files with default settings
-3. Creates a directory called dkmonitor in /var/log/ where it will store log files
+2. Creates a directory called dkmonitor in ~/.dkmonitor/conf where it will generate the settings files with default settings
+3. Creates a directory called dkmonitor in ~/.dkmonitor/log/ where it will store log files
 
 If you want to specify your own config and log file locations you can use one of these two options:
 
@@ -49,20 +57,20 @@ If you want to specify your own config and log file locations you can use one of
 
 example: ::
     
-    $> sudo pip install dkmonitor --root-path="/yourpath/goes/here/"
+    $> python setup.py install --root-path="/yourpath/goes/here/"
 
 
 **Exporting Config and Log path variables:**
 
-After you have successfuly installed dkmonitor with pip you need to export the config and log file path variables.
+After you have successfuly installed dkmonitor you need to export the config and log file path variables.
 
-When pip is done installing it will output the two lines you need to add to your ``profile`` or ``rc`` (``.bashrc, .zshrc``) file.
+When ``dkmonitor`` is done installing it will output the two lines you need to add to your ``profile`` or ``rc`` (``.bashrc, .zshrc``) file.
 
-Setup ``postgresql`` database:
+**Setup postgresql database:**
 
 Run the ``create_database`` command to create your postgres database: ::
     
-    $> create_database --username user --password <your-password> --database <database-name> host <db-hostname>
+    $> create_database --username <user> --password <your-password> --database <database-name> host <db-hostname>
 
 The following arguments are optional:
 
@@ -133,7 +141,9 @@ or ::
 ``dkmonitor`` will only perform the tasks where ``system_host_name`` is the same as the machine's hostname.
 
 
-**dkviewer:**
+dkviewer:
+=========
+
 ``dkviewer`` is a command line utility that allows you to view the gathered statistics stored in your postgresql database.
 ``dkviewer`` will have many more viewing options in the future.
 
@@ -144,15 +154,4 @@ Usage: ::
     $> dkviewer user <username> //displays information about specific user (data usage, access average)
 
     $> dkviewer system <systemname> //displays information about the system usage including all users on the system
-
-
-
-   
-   
-
-
-
-
-
-
 
