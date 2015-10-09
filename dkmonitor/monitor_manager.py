@@ -68,25 +68,30 @@ class MonitorManager():
         if over quota, email users / clean disk if neccessary
         """
 
-        dk_stat_obj = DkStat(system=task["System_Settings"]["system_host_name"],
-                             search_dir=task["System_Settings"]["directory_path"])
+        try:
+            dk_stat_obj = DkStat(system=task["System_Settings"]["system_host_name"],
+                                 search_dir=task["System_Settings"]["directory_path"])
 
-        self.logger.info("Searching %s", task["System_Settings"]["directory_path"])
-        dk_stat_obj.dir_search(task["Threshold_Settings"]["last_access_threshold"]) #Searches the Directory
+            self.logger.info("Searching %s", task["System_Settings"]["directory_path"])
+            dk_stat_obj.dir_search(task["Threshold_Settings"]["last_access_threshold"]) #Searches the Directory
 
-        self.logger.info("Exporting %s data to database", task["System_Settings"]["directory_path"])
-        dk_stat_obj.export_data(self.database) #Exports data from dk_stat_obj to the database
+            self.logger.info("Exporting %s data to database", task["System_Settings"]["directory_path"])
+            dk_stat_obj.export_data(self.database) #Exports data from dk_stat_obj to the database
 
-        self.logger.info("Emailing Users for %s", task["System_Settings"]["directory_path"])
-        disk_use = dk_stat_obj.get_disk_use_percent()
-        if disk_use > task["Threshold_Settings"]["disk_use_percent_warning_threshold"]:
-            dk_stat_obj.email_users(self.settings["Email_Settings"]["user_postfix"], task, disk_use)
+            self.logger.info("Emailing Users for %s", task["System_Settings"]["directory_path"])
+            disk_use = dk_stat_obj.get_disk_use_percent()
+            if disk_use > task["Threshold_Settings"]["disk_use_percent_warning_threshold"]:
+                dk_stat_obj.email_users(self.settings["Email_Settings"]["user_postfix"], task, disk_use)
 
-        if disk_use > task["Threshold_Settings"]["disk_use_percent_critical_threshold"]:
-            self.clean_disk(task)
+            if disk_use > task["Threshold_Settings"]["disk_use_percent_critical_threshold"]:
+                self.clean_disk(task)
 
 
-        self.logger.info("%s scan task complete", task["System_Settings"]["directory_path"])
+            self.logger.info("%s scan task complete", task["System_Settings"]["directory_path"])
+        except PermissionError:
+            print("You do not have permission to {}".format(task["System_Settings"]["directory_path"]))
+        except OSError:
+            print("There is no directory: {}".format(task["System_Settings"]["directory_path"]))
 
     def clean_disk(self, task):
         """Cleaning routine function"""

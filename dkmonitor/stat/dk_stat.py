@@ -35,9 +35,12 @@ class DkStat:
         #Input search directory path verification exception
         try:
             os.listdir(search_dir)
-        except:
+        except OSError as err:
             self.logger.error("Directory path: %s is invalid", search_dir)
-            raise Exception("Directory path: {dir} is invalid.".format(dir=search_dir))
+            raise err
+        except PermissionError as err:
+            self.logger.error("Invalid Permissions to: %s", search_dir)
+            raise err
 
         self.user_hash = {}
         self.directory_obj = None
