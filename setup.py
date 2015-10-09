@@ -53,7 +53,7 @@ class BuildDkm(install):
                 os.makedirs(self.log_path)
                 os.makedirs(self.conf_path + "/tasks/")
             else:
-                os.makedirs((self.root_path)
+                os.makedirs(self.root_path)
                 os.makedirs(self.conf_path + "/tasks/")
                 os.mkdir(self.log_path)
         except OSError:
@@ -87,5 +87,5 @@ setup(name="dkmonitor",
       cmdclass={'install': BuildDkm},
       entry_points={"console_scripts": ["dkmonitor=dkmonitor.monitor_manager:main",
                                         "create_database=dkmonitor.utilities.create_db:main",
-                                        "dkviewer=dkmonitor.admin_interface.main",
-                                        "dktask=dkmonitor.config.settings_file_generator.main"],})
+                                        "dkviewer=dkmonitor.admin_interface:main",
+                                        "dktask=dkmonitor.config.settings_file_generator:main"],})
