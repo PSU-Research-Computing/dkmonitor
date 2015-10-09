@@ -16,7 +16,6 @@ from dkmonitor.utilities.dk_clean import DkClean
 from dkmonitor.utilities import log_setup
 from dkmonitor.config.config_reader import ConfigReader
 
-from dkmonitor.emailer.dk_emailer import Emailer
 from dkmonitor.stat.dk_stat import DkStat
 
 class MonitorManager():
@@ -28,9 +27,6 @@ class MonitorManager():
         self.settings = config_reader.configs_to_dict()
 
         self.logger = log_setup.setup_logger("monitor_log.log")
-
-        #Configures Email api
-        self.emailer = Emailer(self.settings["Email_Settings"]["user_postfix"])
 
         #Configures database
         self.database = DbEditor(host_name=self.settings["DataBase_Settings"]["host"],
