@@ -24,7 +24,7 @@ class DataBase:
         self.user = user_name
         self.password = password
 
-        self.logger = log_setup.setup_logger("database_log.log")
+        self.logger = log_setup.setup_logger(__name__)
 
 
     @contextmanager

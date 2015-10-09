@@ -20,7 +20,7 @@ class Email:
     """
 
     def __init__(self, address, data_dict):
-        self.logger = log_setup.setup_logger("email_log.log")
+        self.logger = log_setup.setup_logger(__name__)
 
         self.body = ""
         self.add_message("main_message.txt", data_dict)

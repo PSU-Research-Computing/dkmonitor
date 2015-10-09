@@ -30,7 +30,7 @@ class DkStat:
 
     def __init__(self, system=None, search_dir=None):
 
-        self.logger = log_setup.setup_logger("dk_stat_log.log")
+        self.logger = log_setup.setup_logger(__name__)
 
         #Input search directory path verification exception
         try:

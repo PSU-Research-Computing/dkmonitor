@@ -26,7 +26,7 @@ class MonitorManager():
         config_reader = ConfigReader()
         self.settings = config_reader.configs_to_dict()
 
-        self.logger = log_setup.setup_logger("monitor_log.log")
+        self.logger = log_setup.setup_logger(__name__)
 
         #Configures database
         self.database = DbEditor(host_name=self.settings["DataBase_Settings"]["host"],

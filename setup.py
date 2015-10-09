@@ -50,12 +50,12 @@ class BuildDkm(install):
         try:
             print("creating config and log directories")
             if self.root_path is None:
-                os.makedirs(os.path.abspath(self.log_path))
-                os.makedirs(os.path.abspath(self.conf_path + "/tasks/"))
+                os.makedirs(self.log_path)
+                os.makedirs(self.conf_path + "/tasks/")
             else:
-                os.makedirs(os.path.abspath(self.root_path))
-                os.makedirs(os.path.abspath(self.conf_path + "/tasks/"))
-                os.mkdir(os.path.abspath(self.log_path))
+                os.makedirs((self.root_path)
+                os.makedirs(self.conf_path + "/tasks/")
+                os.mkdir(self.log_path)
         except OSError:
             print("warning: conf and log paths exist")
 

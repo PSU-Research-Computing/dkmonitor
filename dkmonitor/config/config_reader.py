@@ -31,7 +31,7 @@ class ConfigReader():
     """
 
     def __init__(self):
-        self.logger = setup_logger("settings_log.log")
+        self.logger = setup_logger(__name__)
         try:
             self.config_root = os.environ["DKM_CONF"]
         except KeyError as err:

@@ -25,7 +25,7 @@ class DkClean:
         self.host_name=host_name
         self.que = PriorityQueue()
 
-        self.logger = log_setup.setup_logger("clean_log.log")
+        self.logger = log_setup.setup_logger(__name__)
 
 
     def build_file_que(self):
