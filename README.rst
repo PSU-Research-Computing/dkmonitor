@@ -39,24 +39,23 @@ Installation and Setup:
 
 **Install with setuptools:**
 
-If you to install ``dkmonitor`` with default configurations first clone the repo, then run setup.py install: ::
+To install ``dkmonitor`` with default configurations first clone the repo, then run setup.py install: ::
 
     $> git clone https://github.com/willpatterson/dk-monitor.git
     $> cd dk-monitor
     $> python setup.py install
 
-This does three things:
+This does three two things:
 
 1. Installs dkmonitor and its dependcies to your current python version
-2. Creates a directory called dkmonitor in ~/.dkmonitor/conf where it will generate the settings files with default settings
-3. Creates a directory called dkmonitor in ~/.dkmonitor/log/ where it will store log files
+2. Creates a directory called dkmonitor in ~/.dkmonitor/ where it will generate the settings files with default settings and store log files
 
 If you want to specify your own config and log file locations you can use one of these two options:
 
 1. --root-path: specifes a directory where both log and config files should be stored
 2. --log-path and --conf-path: Use both of these options to configure separate locations for log and config files
 
-example: ::
+Example: ::
     
     $> python setup.py install --root-path="/yourpath/goes/here/"
 
@@ -79,15 +78,15 @@ The following arguments are optional:
 2. --password
 3. --database
 
-Run ``create_database -h`` for more info
+Run ``$> create_database -h`` for more info
 
 **Setup configuration files:**
 
 Go to the location of where your config file directory was installed
 
 1. setup ``general_settings.cfg``:
-   a. Add the arguments you used to setup the database with create_db to the Database_Settings section
 
+   a. Add the login credentails you used to setup the database with create_db to the Database_Settings section.
    b. Add a user_postfix to email settings to setup email notifications
       user_postfix will be the second half of the users email address after the @ and their user name is the first half
       Example: ::
@@ -97,10 +96,10 @@ Go to the location of where your config file directory was installed
            User postfix: gmail.com
 
       This setting is designed for university systems where unix usernames are the first half of the user's email address
-
    c. Change other default settings accordingly
 
 2. setup task files:
+
    - A ``task`` file specifies the settings to monitor one disk or directory
    - You can have multiple task files to monitor more than one disk or directory
    
