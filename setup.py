@@ -29,11 +29,11 @@ class BuildDkm(install):
 
         if self.root_path is None:
             if (self.log_path is None):
-                self.log_path = "~/.dkmonitor/log/"
+                self.log_path = os.path.abspath(os.path.expanduser("~/.dkmonitor/log/"))
             else:
                 self.log_path = os.path.abspath(os.path.expanduser(self.log_path))
             if self.conf_path is None:
-                self.conf_path = "~/.dkmonitor/conf/"
+                self.conf_path = os.path.abspath(os.path.expanduser("~/.dkmonitor/conf/"))
             else:
                 self.conf_path = os.path.abspath(os.path.expanduser(self.conf_path))
         else:
@@ -47,17 +47,17 @@ class BuildDkm(install):
             self.conf_path = self.root_path + "/conf/"
 
     def run(self):
-
-        if self.root_path is None:
-            if not os.path.exists(self.log_path):
-                os.makedirs(self.log_path)
-            if not os.path.exists(self.conf_path + "/tasks/"):
-                os.makedirs(self.conf_path + "/tasks/")
-        else:
-            if not os.path.exists(self.root_path):
-                os.makedirs(self.root_path)
-                os.makedirs(self.conf_path + "/tasks/")
-                os.mkdir(self.log_path)
+        try:
+            print("creating config and log directories")
+            if self.root_path is None:
+                os.makedirs(os.path.abspath(self.log_path))
+                os.makedirs(os.path.abspath(self.conf_path + "/tasks/"))
+            else:
+                os.makedirs(os.path.abspath(self.root_path))
+                os.makedirs(os.path.abspath(self.conf_path + "/tasks/"))
+                os.mkdir(os.path.abspath(self.log_path))
+        except OSError:
+            print("warning: conf and log paths exist")
 
 
         generate_config_files(self.conf_path, "dkmonitor/config/settings_configurations.json")
