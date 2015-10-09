@@ -29,7 +29,7 @@ def setup_logger(log_file_name):
     log_path = log_path + '/' + log_file_name
     logger = logging.getLogger(log_path)
     logger.setLevel(logging.INFO)
-    handler = logging.handlers.RotatingFileHandler(log_path, maxBytes=2048, backupCount=5)
+    handler = logging.handlers.RotatingFileHandler(log_path, maxBytes=1048576, backupCount=5)
     formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
     handler.setFormatter(formatter)
     logger.addHandler(handler)
