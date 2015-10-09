@@ -26,7 +26,7 @@ def setup_logger(log_file_name):
         print("Logging to current working directory")
         log_path = os.path.abspath(".")
 
-    log_path = log_path + '/' + log_file_name
+    log_path = log_path + '/' + log_file_name + ".log"
     logger = logging.getLogger(log_path)
     logger.setLevel(logging.INFO)
     handler = logging.handlers.RotatingFileHandler(log_path, maxBytes=1048576, backupCount=5)
