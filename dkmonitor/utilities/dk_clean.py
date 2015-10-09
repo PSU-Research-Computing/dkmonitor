@@ -4,7 +4,7 @@ dk_clean is used to move all old files from one directory to another"""
 import re
 import time
 import shutil
-from pwd import getpwuid
+import pwd
 
 import threading
 from queue import PriorityQueue
@@ -43,26 +43,44 @@ class DkClean:
     def move_file(self, file_path, delete_if_full=False):
         """Moves individual file while still preseving its file path"""
 
-        user = getpwuid(os.stat(file_path).st_uid).pw_name
-        root_dir = self.move_to + '/' + user +  '/' + self.host_name + '/' + self.search_dir.replace('/', '.')
-        #print("ROOT: " + root_dir)
-        #if not os.path.exists(root_dir):
-            #os.makedirs(root_dir)
+        uid = os.stat(file_path).st_uid
+        user = pwd.getpwuid(uid).pw_name
+
+        root_dir = self.move_to + '/' + user +  '/' + self.host_name + '/' + self.search_dir.replace('/', '.')[1:]
+        print("ROOT: " + root_dir)
+        self.create_file_tree(uid, root_dir)
+
         new_file_path = re.sub(r"^{old_path}".format(old_path=self.search_dir), root_dir, file_path)
         last_slash = new_file_path.rfind('/')
         dir_path = new_file_path[:last_slash]
-        #print("NEW: " + new_file_path)
+        print("NEW: " + new_file_path)
+
         try:
-            pass
-            #if not os.path.exists(dir_path):
-                #os.makedirs(dir_path)
-            #shutil.move(file_path, new_file_path)
-        except IOError:
+            self.create_file_tree(uid, dir_path)
+            shutil.move(file_path, new_file_path)
+        except IOError as err:
             if delete_if_full is True:
                 os.remove(file_path)
+            raise(err)
 
     def delete_file(self, file_path):
         os.remove(file_path)
+
+    def create_file_tree(self, uid, path):
+        path = path.replace(self.move_to, "")
+        dirs = path.split("/")
+        current_path = self.move_to
+        for d in dirs:
+            try:
+                new_dir = current_path + '/' + d
+                os.mkdir(new_dir)
+                os.chown(new_dir, uid, uid)
+            except OSError:
+                pass
+            current_path = new_dir
+
+
+
 
 
 ####MULTI-THREADING######################################
