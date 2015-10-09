@@ -24,6 +24,7 @@ Installation and Setup:
 2. A postgresql database
 
 **Dependencies:**
+
 1. psycopg2
 2. termcolor
 3. setuptools
