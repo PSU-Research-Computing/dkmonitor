@@ -30,7 +30,7 @@ Installation and Setup:
 4. Setup config files
 5. Set ``cron`` jobs
 
-**Install with ``pip``:**
+**Install with pip:**
 
 If you want pip to install with default configurations just run: ::
 
