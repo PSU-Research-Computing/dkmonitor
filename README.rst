@@ -102,15 +102,15 @@ Go to the location of where your config file directory was installed
    c. Set other settings accordingly
 
 **Creating New Tasks:**
-Use the ``create_task`` utility to create new empty task files. Create task gives you several options on where you want the new file stored
+Use the ``dktask`` utility to create new empty task files. ``dktask`` gives you several options on where you want the new file stored
 
 Example: ::
 
-    $> create_task default //creates blank task file in the directory you set to store you task files (DKM_CONF)
+    $> dktask default //creates blank task file in the directory you set to store you task files (DKM_CONF)
     
-    $> create_task file_name <filename> //creates a task in the default location with the file name you specify
+    $> dktask file_name <filename> //creates a task in the default location with the file name you specify
 
-    $> create_task full_path </path/to/task/taskname> //creates a task file in the specifed location
+    $> dktask full_path </path/to/task/taskname> //creates a task file in the specifed location
 
 **Set cron Jobs:**
 
@@ -130,7 +130,7 @@ or ::
     
     $> dkmonitor quick
 
-dkmonitor will only perform the tasks where ``system_host_name`` is the same as the machine's hostname.
+``dkmonitor`` will only perform the tasks where ``system_host_name`` is the same as the machine's hostname.
 
 
 **dkviewer:**
