@@ -34,7 +34,7 @@ Installation and Setup:
 
 If you want pip to install with default configurations just run: ::
 
-    sudo pip install dkmonitor
+    $> sudo pip install dkmonitor
 
 This does three things:
 
@@ -49,7 +49,7 @@ If you want to specify your own config and log file locations you can use one of
 
 example: ::
     
-    sudo pip install dkmonitor --root-path="/yourpath/goes/here/"
+    $> sudo pip install dkmonitor --root-path="/yourpath/goes/here/"
 
 
 **Exporting Config and Log path variables:**
@@ -62,7 +62,7 @@ Setup ``postgresql`` database:
 
 Run the ``create_database`` command to create your postgres database: ::
     
-    create_database --username user --password <your-password> --database <database-name> host <db-hostname>
+    $> create_database --username user --password <your-password> --database <database-name> host <db-hostname>
 
 The following arguments are optional:
 
@@ -83,7 +83,7 @@ Go to the location of where your config file directory was installed
       user_postfix will be the second half of the users email address after the @ and their user name is the first half
       Example: ::
 
-           email address: username@gmail.com
+           Email address: username@gmail.com
            Unix username: username
            User postfix: gmail.com
 
