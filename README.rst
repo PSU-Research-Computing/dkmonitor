@@ -155,3 +155,20 @@ Usage: ::
 
     $> dkviewer system <systemname> //displays information about the system usage including all users on the system
 
+
+Example Emails:
+===============
+These are examples of the emails that dkmonitor would send if it found usage warnings on a system.
+
+Email sent if data might be moved: ::
+
+    Dear {user_name},
+    You have been flagged for improper use of {searched_directory} on {system}.
+    Please address the message(s) below to fix the problem.
+
+    WARNING: Disk {directory_path} on {system_host_name} is over it's warning quota of {disk_use_percent_warning_threshold} %
+    If {directory_path} is over its critical threshold of {disk_use_percent_critical_threshold} % all files accessed more than {last_access_threshold} days ago will be moved to {file_relocation_path} 
+
+    Number of old files: {number_of_old_files}
+    Combined size of old files: {total_old_file_size} GBs
+
