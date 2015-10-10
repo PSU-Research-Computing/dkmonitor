@@ -38,14 +38,13 @@ Installation and Setup:
 5. Set ``cron`` jobs
 
 **Install with setuptools:**
-
 To install ``dkmonitor`` with default configurations first clone the repo, then run setup.py install: ::
 
     $> git clone https://github.com/willpatterson/dk-monitor.git
     $> cd dk-monitor
     $> python setup.py install
 
-This does three two things:
+This does two things:
 
 1. Installs dkmonitor and its dependcies to your current python version
 2. Creates a directory called dkmonitor in ~/.dkmonitor/ where it will generate the settings files with default settings and store log files
@@ -61,13 +60,11 @@ Example: ::
 
 
 **Exporting Config and Log path variables:**
-
 After you have successfuly installed dkmonitor you need to export the config and log file path variables.
 
 When ``dkmonitor`` is done installing it will output the two lines you need to add to your ``profile`` or ``rc`` (``.bashrc, .zshrc``) file.
 
 **Setup postgresql database:**
-
 Run the ``create_database`` command to create your postgres database: ::
     
     $> create_database --username <user> --password <your-password> --database <database-name> host <db-hostname>
@@ -81,8 +78,7 @@ The following arguments are optional:
 Run ``$> create_database -h`` for more info
 
 **Setup configuration files:**
-
-Go to the location of where your config file directory was installed
+Go to the location of your ``dkmonitor's`` config directory and follow the instructions below:
 
 1. setup ``general_settings.cfg``:
 
