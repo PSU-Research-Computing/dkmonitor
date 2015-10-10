@@ -122,7 +122,6 @@ Example: ::
     $> dktask full_path </path/to/task/taskname> //creates a task file in the specifed location
 
 **Set cron Jobs:**
-
 There are two types of scans that dkmonitor preforms: 
 
 1. ``full scan``. -- Recursively search through every file under the specified directory and log usage stats in the database
