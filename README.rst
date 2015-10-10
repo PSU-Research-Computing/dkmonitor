@@ -158,7 +158,7 @@ Usage: ::
 
 Example Emails:
 ===============
-These are examples of the emails that dkmonitor would send if it found usage warnings on a system.
+These are examples of the emails that dkmonitor would send if it found usage warnings on a system. These email messages will be combined into one email if a user is flagged for multiple things in one scan. The statements enclosed in the curly braces ({}) will be replaced with the proper data at runtime.
 
 Email sent if data might be moved: ::
 
@@ -171,4 +171,39 @@ Email sent if data might be moved: ::
 
     Number of old files: {number_of_old_files}
     Combined size of old files: {total_old_file_size} GBs
+
+Email sent if data will be moved: ::
+
+    Dear {user_name},
+    You have been flagged for improper use of {searched_directory} on {system}.
+    Please address the message(s) below to fix the problem.
+
+    IMPORTANT WARNING: Disk {directory_path} on {system_host_name} is over it's critical quota of {disk_use_percent_critical_threshold} %
+    All files older than {last_access_threshold} days are being moved to {file_relocation_path}
+
+    Number of old files you own: {number_of_old_files}
+    Combined size of your old files: {total_old_file_size} GBs
+
+Email sent if user is a top consumer of diskspace: ::
+
+    Dear {user_name},
+    You have been flagged for improper use of {searched_directory} on {system}.
+    Please address the message(s) below to fix the problem.
+
+    WARNING: You have been flagged as a top space user of {searched_directory} on
+    {system}.
+    {searched_directory} is over it's use threshold. Please reduce your data usage.
+    Total size of all files: {total_file_size} GBs
+    Total disk use: {disk_use_percent} %
+
+Email sent if user is a top holder of old data: ::
+
+    Dear {user_name},
+    You have been flagged for improper use of {searched_directory} on {system}.
+    Please address the message(s) below to fix the problem.
+
+    WARNING: You have been flagged as a top owner of old files in {searched_directory} on {system}.
+    Please use or remove all of your old files or they will be removed for you.
+    Last access average of all your files: {last_access_average} days
+
 
