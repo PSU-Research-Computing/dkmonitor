@@ -61,7 +61,7 @@ class AdminInterface(DbViewer):
                         colored_size = termcolor.colored(str(round(d_stats[7]/1024/1024/1024, 2)), "yellow")
                     else:
                         colored_access = termcolor.colored(str(round(d_stats[7], 2)), "green")
-                    print("|||Last Access Average: {} days".format(colored_access))
+                    print("|||Average File Age: {} days".format(colored_access))
                 print("")
 
         else:
@@ -93,7 +93,7 @@ class AdminInterface(DbViewer):
                     colored_access = termcolor.colored(str(round(d_stats['disk_stats'][6], 2)), "yellow")
                 else:
                     colored_access = termcolor.colored(str(round(d_stats['disk_stats'][6], 2)), "green")
-                print("||Last Access Average: {} days".format(colored_access))
+                print("||Average File Age: {} days".format(colored_access))
 
                 print("|Users on: {}".format(disk))
                 for user in d_stats["users"]:

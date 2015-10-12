@@ -206,6 +206,6 @@ Email sent if user is a top holder of old data: ::
 
     WARNING: You have been flagged as a top owner of old files in {searched_directory} on {system}.
     Please use or remove all of your old files or they will be removed for you.
-    Last access average of all your files: {last_access_average} days
+    Average age of all your files: {last_access_average} days
 
 
