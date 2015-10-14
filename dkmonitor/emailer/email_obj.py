@@ -36,8 +36,7 @@ class Email:
         self.msg.attach(body)
 
         server = smtplib.SMTP('localhost')
-        server.sendmail("Do-Not-Reply", "wpatt2@pdx.edu", self.msg.as_string())
-        #self.server.sendmail(self.user_name, message["To"], message.as_string())
+        server.sendmail("Do-Not-Reply", self.msg["To"], self.msg.as_string())
 
     def add_message(self, message_file, data_dict):
         """Loads a pre-written message from external file and adds info to it from data_dict"""

@@ -46,7 +46,7 @@ class DkClean:
         user = pwd.getpwuid(uid).pw_name
 
         root_dir = self.move_to + '/' + user +  '/' + self.host_name + '/' + self.search_dir.replace('/', '.')[1:]
-        #self.create_file_tree(uid, root_dir)
+        self.create_file_tree(uid, root_dir)
 
         new_file_path = re.sub(r"^{old_path}".format(old_path=self.search_dir),
                                                      root_dir,
@@ -55,8 +55,8 @@ class DkClean:
         dir_path = new_file_path[:last_slash]
 
         try:
-            #self.create_file_tree(uid, dir_path)
-            #shutil.move(file_path, new_file_path)
+            self.create_file_tree(uid, dir_path)
+            shutil.move(file_path, new_file_path)
             pass
         except IOError as err:
             if delete_if_full is True:
