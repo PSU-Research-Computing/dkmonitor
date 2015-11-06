@@ -1,39 +1,79 @@
 from sqlalchemy import *
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-import datetime
+import datetime, os
 
 
 Base = declarative_base()
 
-class DirectoryStats(Base):
+class StatObj(object):
+    datetime = Column("datetime", DateTime, primary_key=True)
+    hostname = Column("hostname", String)
+    target_path = Column("target_path", String)
+    total_file_size = Column("total_file_size", BigInteger)
+    disk_use_percent = Column("disk_use_percent", Float)
+    #disk_use_change = Column("disk_use_change", Float)
+    average_file_age = Column("average_file_age", Float)
+    #average_file_age_change = Column("average_file_age_change", Float)
+
+    stats = {'total_file_size': 0,
+                 'number_of_files': 0,
+                 'number_of_old_files' : 0,
+                 'total_old_file_size' : 0,
+                 'total_access_time': 0}
+
+    def add_file(self, file_to_add, last_access_threshold):
+        """Adds stats of a file to the stat dictionary"""
+        self.stats["total_file_size"] += file_to_add.file_size
+        self.stats["number_of_files"] += 1
+        self.stats["total_access_time"] += file_to_add.last_access
+        if file_to_add.last_access > last_access_threshold:
+            self.stats["number_of_old_files"] += 1
+            self.stats["total_old_file_size"] += file_to_add.file_size
+
+    def get_total_space(self):
+        """Calculates total file size of all files in file_list"""
+
+        self.total_file_size = self.stats["total_file_size"]
+
+    def get_disk_use_percentage(self):
+        """Calculates the disk use percentage of all files"""
+
+        stat_tup = os.statvfs(self.target_path) #TODO try except
+        total = stat_tup.f_blocks * stat_tup.f_frsize
+
+        user_percentage = 100 * float(self.stats["total_file_size"])/float(total)
+        self.disk_use_percent = user_percentage
+
+
+    def get_access_average(self):
+        """Calculates the last access average for all stored files"""
+
+        try: #possibly change this to an if statement
+            average_last_access = self.stats["total_access_time"] / self.stats["number_of_old_files"]
+        except ZeroDivisionError:
+            average_last_access = self.stats["total_access_time"]
+
+        self.average_file_age = average_last_access
+
+    def calculate_stats(self):
+        """Caclutes all stats and returns the object"""
+
+        self.get_total_space()
+        self.get_disk_use_percentage()
+        self.get_access_average()
+
+        return self
+
+class DirectoryStats(StatObj, Base):
     __tablename__ = "directorystats"
 
-    datetime = Column("datetime", DateTime, primary_key=True)
-    hostname = Column("hostname", String)
-    target_path = Column("target_path", String)
-    total_file_size = Column("total_file_size", Integer)
-    disk_use_percent = Column("disk_use_percent", Float)
-    disk_use_change = Column("disk_use_change", Float)
-    average_file_age = Column("average_file_age", Float)
-    average_file_age_change = Column("average_file_age_change", Float)
 
-class UserStats(Base):
+class UserStats(StatObj, Base):
     __tablename__ = "userstats"
 
-    datetime = Column("datetime", DateTime, primary_key=True)
-    hostname = Column("hostname", String)
     username = Column("username", String)
-    target_path = Column("target_path", String)
-    total_file_size = Column("total_file_size", Integer)
-    disk_use_percent = Column("disk_use_percent", Float)
-    disk_use_change = Column("disk_use_change", Float)
-    average_file_age = Column("average_file_age", Float)
-    average_file_age_change = Column("average_file_age_change", Float)
 
-class UserStats2(UserStats):
-    def a():
-        print(1+1)
 
 class Tasks(Base):
     __tablename__ = "tasks"
@@ -50,6 +90,7 @@ class Tasks(Base):
     email_usage_warnings = Column("email_usage_warnings", Boolean)
     email_data_altercations = Column("email_data_altercations", Boolean)
     email_top_percent = Column("email_top_percent", Integer)
+
 
 
 class DataBase:
@@ -78,9 +119,17 @@ class DataBase:
         ses.add(table_row)
         ses.commit()
 
+    def store_rows(self, table_rows):
+        Session = sessionmaker(bind=self.db)
+        ses = Session()
+        ses.add_all(table_rows)
+        ses.commit()
+
 
 
 if __name__ == '__main__':
     db = DataBase(hostname='pgsql.rc.pdx.edu', database='diskspace_monitor', username='diskspace_monitor_l', password='')
-    #u = UserStats(datetime=datetime.datetime.now(),username="will")
+    d = DirectoryStats(datetime=datetime.datetime.now())
+    u = UserStats(datetime=datetime.datetime.now(), hostname="will2")
+    db.store_row(d)
     db.store_row(u)
