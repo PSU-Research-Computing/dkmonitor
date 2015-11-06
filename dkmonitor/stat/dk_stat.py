@@ -19,6 +19,8 @@ from dkmonitor.stat.user_obj import User
 from dkmonitor.stat.dir_obj import Directory
 from dkmonitor.utilities import log_setup
 
+from dkmonitor.utilities.new_db_int import UserStats, DirectoryStats
+
 FileTuple = namedtuple('FileTuple', 'file_size last_access')
 
 class DkStat:
@@ -52,9 +54,9 @@ class DkStat:
         """Searches through the self.search_directory for old files"""
 
         search_time = datetime.datetime.now()
-        self.directory_obj = Directory(search_dir=self.search_directory,
-                                       system=self.system,
-                                       datetime=search_time) #Creates dir_obj
+        self.directory_obj = DirectoryStats(target_path=self.search_directory,
+                                            hostname=self.system,
+                                            datetime=datetime.datetime.now()) #Creates dir_obj
         for file_path in dir_scan(self.search_directory):
             last_access = (time.time() - os.path.getatime(file_path)) / 86400
             file_size = int(os.path.getsize(file_path))
@@ -66,11 +68,16 @@ class DkStat:
             try:
                 self.user_hash[name].add_file(file_tup, last_access_threshold)
             except KeyError:
-                self.user_hash[name] = User(name,
-                                            search_dir=self.search_directory,
-                                            system=self.system,
-                                            datetime=search_time)
+                self.user_hash[name] = UserStats(username=name,
+                                                 target_path=self.search_directory,
+                                                 hostname=self.system,
+                                                 datetime=datetime.datetime.now())
                 self.user_hash[name].add_file(file_tup, last_access_threshold)
+
+    def export_rows(self):
+        rows = [x[1].calculate_stats() for x in self.user_hash.items()]
+        rows.append(self.directory_obj)
+        return rows
 
     def export_data(self, db_obj):
         """Exports the file data from the User dict to a database object"""
