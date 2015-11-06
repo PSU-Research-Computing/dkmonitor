@@ -11,7 +11,8 @@ import socket
 import sys, os
 sys.path.append(os.path.abspath(".."))
 
-from dkmonitor.utilities.db_interface import DbEditor
+#from dkmonitor.utilities.db_interface import DbEditor
+from dkmonitor.utilities.new_db_int import DataBase
 from dkmonitor.utilities.dk_clean import DkClean
 from dkmonitor.utilities import log_setup
 from dkmonitor.config.config_reader import ConfigReader
@@ -29,14 +30,20 @@ class MonitorManager():
         self.logger = log_setup.setup_logger(__name__)
 
         #Configures database
+        """
         self.database = DbEditor(host_name=self.settings["DataBase_Settings"]["host"],
                                  database=self.settings["DataBase_Settings"]["database"],
                                  user_name=self.settings["DataBase_Settings"]["user_name"],
                                  password=self.settings["DataBase_Settings"]["password"])
+         """
+        self.database = DataBase(hostname=self.settings["DataBase_Settings"]["host"],
+                                 username=self.settings["DataBase_Settings"]["user_name"],
+                                 password=self.settings["DataBase_Settings"]["password"],
+                                 database=self.settings["DataBase_Settings"]["database"])
 
         if self.settings["DataBase_Settings"]["purge_database"] == "yes":
             self.logger.info("Cleaning Database")
-            self.database.clean_data_base(self.settings["DataBase_Settings"]["purge_after_day_number"])
+            #self.database.clean_data_base(self.settings["DataBase_Settings"]["purge_after_day_number"])
 
     def quick_scan(self, task):
         """
@@ -52,7 +59,7 @@ class MonitorManager():
         if disk_use > task["Threshold_Settings"]["disk_use_percent_warning_threshold"]:
             dk_stat_obj.dir_search(task["Threshold_Settings"]["last_access_threshold"])
             dk_stat_obj.export_data(self.database)
-            dk_stat_obj.email_users(self.settings["Email_Settings"]["user_postfix"], task, disk_use)
+            #dk_stat_obj.email_users(self.settings["Email_Settings"]["user_postfix"], task, disk_use)
 
         if disk_use > task["Threshold_Settings"]["disk_use_percent_critical_threshold"]:
             self.clean_disk(task)
@@ -72,12 +79,14 @@ class MonitorManager():
             dk_stat_obj.dir_search(task["Threshold_Settings"]["last_access_threshold"]) #Searches the Directory
 
             self.logger.info("Exporting %s data to database", task["System_Settings"]["directory_path"])
-            dk_stat_obj.export_data(self.database) #Exports data from dk_stat_obj to the database
+            #dk_stat_obj.export_data(self.database) #Exports data from dk_stat_obj to the database
+            self.database.store_rows(dk_stat_obj.export_rows())
 
             self.logger.info("Emailing Users for %s", task["System_Settings"]["directory_path"])
             disk_use = dk_stat_obj.get_disk_use_percent()
             if disk_use > task["Threshold_Settings"]["disk_use_percent_warning_threshold"]:
-                dk_stat_obj.email_users(self.settings["Email_Settings"]["user_postfix"], task, disk_use)
+                #dk_stat_obj.email_users(self.settings["Email_Settings"]["user_postfix"], task, disk_use)
+                pass
 
             if disk_use > task["Threshold_Settings"]["disk_use_percent_critical_threshold"]:
                 self.clean_disk(task)
@@ -162,8 +171,10 @@ class MonitorManager():
         """
         Checks if directory needs to be cleaned
         Starts cleaning routine if flagged
-        """
 
+        """
+        #TODO Clean this up with new database
+        """
         if task["relocate_old_files"] == "yes":
             query_str = self.build_query_str(task)
             collumn_names = "disk_use_percent"
@@ -176,6 +187,8 @@ class MonitorManager():
             elif query_data[0] > task["disk_use_percent_threshold"]:
                 self.clean_disk(task)
 
+        """
+        pass
 
     def check_host_name(self, task):
         host_name = socket.gethostname()
