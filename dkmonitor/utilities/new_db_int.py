@@ -129,6 +129,7 @@ class DataBase:
         Session = sessionmaker(bind=self.db)
         return Session()
 
+
 class DataBaseViewer(DataBase):
 
     def __init__(self,
