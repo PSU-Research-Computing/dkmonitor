@@ -15,11 +15,12 @@ import sys, os
 sys.path.append(os.path.abspath("../.."))
 
 from dkmonitor.stat.dir_scan import dir_scan
-from dkmonitor.stat.user_obj import User
-from dkmonitor.stat.dir_obj import Directory
+#from dkmonitor.stat.user_obj import User
+#from dkmonitor.stat.dir_obj import Directory
 from dkmonitor.utilities import log_setup
+from dkmonitor.config.settings_manager import export_settings
 
-from dkmonitor.utilities.new_db_int import UserStats, DirectoryStats
+from dkmonitor.utilities.new_db_int import DataBase, UserStats, DirectoryStats
 
 FileTuple = namedtuple('FileTuple', 'file_size last_access')
 
@@ -49,6 +50,9 @@ class DkStat:
         self.system = system
         self.search_directory = search_dir
 
+        self.settings = export_settings()
+        self.database = DataBase(**settings["DataBase_Settings"])
+
 
     def dir_search(self, last_access_threshold):
         """Searches through the self.search_directory for old files"""
@@ -73,6 +77,10 @@ class DkStat:
                                                  hostname=self.system,
                                                  datetime=datetime.datetime.now())
                 self.user_hash[name].add_file(file_tup, last_access_threshold)
+
+        rows = [x[1].calculate_stats() for x in self.user_hash.items()]
+        rows.append(self.directory_obj)
+        database.store_rows(rows)
 
     def export_rows(self):
         rows = [x[1].calculate_stats() for x in self.user_hash.items()]

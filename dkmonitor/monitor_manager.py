@@ -63,7 +63,7 @@ class MonitorManager():
         disk_use = dk_stat_obj.get_disk_use_percent()
         if disk_use > task["usage_warning_threshold"]:
             dk_stat_obj.dir_search(task["old_file_threshold"])
-            dk_stat_obj.export_data(self.database)
+            #dk_stat_obj.export_data(self.database)
             #dk_stat_obj.email_users(self.settings["Email_Settings"]["user_postfix"], task, disk_use)
 
         if disk_use > task["usage_critical_threshold"]:
@@ -85,7 +85,7 @@ class MonitorManager():
 
             self.logger.info("Exporting %s data to database", task["target_path"])
             #dk_stat_obj.export_data(self.database) #Exports data from dk_stat_obj to the database
-            self.database.store_rows(dk_stat_obj.export_rows())
+            #self.database.store_rows(dk_stat_obj.export_rows()) #TODO: Move this to dk_stat
 
             self.logger.info("Emailing Users for %s", task["target_path"])
             disk_use = dk_stat_obj.get_disk_use_percent()
