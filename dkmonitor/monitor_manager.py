@@ -17,6 +17,9 @@ from dkmonitor.utilities.dk_clean import DkClean
 from dkmonitor.utilities import log_setup
 from dkmonitor.config.config_reader import ConfigReader
 
+from dkmonitor.config.settings_manager import export_settings()
+from dkmonitor.config.task_manager import export_tasks()
+
 from dkmonitor.stat.dk_stat import DkStat
 
 class MonitorManager():
@@ -24,8 +27,10 @@ class MonitorManager():
     It runs preset tasks that are found in the json settings file"""
 
     def __init__(self):
-        config_reader = ConfigReader()
-        self.settings = config_reader.configs_to_dict()
+        #config_reader = ConfigReader()
+        #self.settings = config_reader.configs_to_dict()
+        self.settings = export_settings()
+        self.tasks = export_tasks()
 
         self.logger = log_setup.setup_logger(__name__)
 
@@ -52,16 +57,16 @@ class MonitorManager():
         if over quota, email users / clean disk if neccessary
         """
 
-        dk_stat_obj = DkStat(system=task["System_Settings"]["system_host_name"],
-                             search_dir=task["System_Settings"]["directory_path"])
+        dk_stat_obj = DkStat(system=task["hostname"],
+                             search_dir=task["target_path"])
 
         disk_use = dk_stat_obj.get_disk_use_percent()
-        if disk_use > task["Threshold_Settings"]["disk_use_percent_warning_threshold"]:
-            dk_stat_obj.dir_search(task["Threshold_Settings"]["last_access_threshold"])
+        if disk_use > task["usage_warning_threshold"]:
+            dk_stat_obj.dir_search(task["old_file_threshold"])
             dk_stat_obj.export_data(self.database)
             #dk_stat_obj.email_users(self.settings["Email_Settings"]["user_postfix"], task, disk_use)
 
-        if disk_use > task["Threshold_Settings"]["disk_use_percent_critical_threshold"]:
+        if disk_use > task["usage_critical_threshold"]:
             self.clean_disk(task)
 
     def full_scan(self, task):
@@ -72,47 +77,47 @@ class MonitorManager():
         """
 
         try:
-            dk_stat_obj = DkStat(system=task["System_Settings"]["system_host_name"],
-                                 search_dir=task["System_Settings"]["directory_path"])
+            dk_stat_obj = DkStat(system=task["hostname"],
+                                 search_dir=task["target_path"])
 
-            self.logger.info("Searching %s", task["System_Settings"]["directory_path"])
-            dk_stat_obj.dir_search(task["Threshold_Settings"]["last_access_threshold"]) #Searches the Directory
+            self.logger.info("Searching %s", task["target_path"])
+            dk_stat_obj.dir_search(task["old_file_threshold"]) #Searches the Directory
 
-            self.logger.info("Exporting %s data to database", task["System_Settings"]["directory_path"])
+            self.logger.info("Exporting %s data to database", task["target_path"])
             #dk_stat_obj.export_data(self.database) #Exports data from dk_stat_obj to the database
             self.database.store_rows(dk_stat_obj.export_rows())
 
-            self.logger.info("Emailing Users for %s", task["System_Settings"]["directory_path"])
+            self.logger.info("Emailing Users for %s", task["target_path"])
             disk_use = dk_stat_obj.get_disk_use_percent()
-            if disk_use > task["Threshold_Settings"]["disk_use_percent_warning_threshold"]:
+            if disk_use > task["usage_warning_threshold"]:
                 #dk_stat_obj.email_users(self.settings["Email_Settings"]["user_postfix"], task, disk_use)
                 pass
 
-            if disk_use > task["Threshold_Settings"]["disk_use_percent_critical_threshold"]:
+            if disk_use > task["usage_critical_threshold"]:
                 self.clean_disk(task)
 
 
-            self.logger.info("%s scan task complete", task["System_Settings"]["directory_path"])
+            self.logger.info("%s scan task complete", task["target_path"])
         except PermissionError:
-            print("You do not have permission to {}".format(task["System_Settings"]["directory_path"]))
+            print("You do not have permission to {}".format(task["target_path"]))
         except OSError:
-            print("There is no directory: {}".format(task["System_Settings"]["directory_path"]))
+            print("There is no directory: {}".format(task["target_path"]))
 
     def clean_disk(self, task):
         """Cleaning routine function"""
 
         print("CLeaning Disk")
 
-        self.logger.info("Cleaning %s", task["System_Settings"]["directory_path"])
+        self.logger.info("Cleaning %s", task["target_path"])
         thread_settings = self.settings["Thread_Settings"]
-        clean_obj = DkClean(search_dir=task["System_Settings"]["directory_path"],
-                            move_to=task["Scan_Settings"]["file_relocation_path"],
-                            access_threshold=task["Threshold_Settings"]["last_access_threshold"],
-                            host_name=task["System_Settings"]["system_host_name"])
+        clean_obj = DkClean(search_dir=task["target_path"],
+                            move_to=task["relocation_path"],
+                            access_threshold=task["old_file_threshold"],
+                            host_name=task["hostname"])
 
 
-        if task["Scan_Settings"]["relocate_old_files"] == "yes":
-            if task["Scan_Settings"]["delete_when_relocation_is_full"] == "yes":
+        if task["relocation_path"] != None:
+            if task["delete_when_full"] is True:
                 if thread_settings["thread_mode"] == "yes":
                     clean_obj.move_all_threaded(thread_settings["thread_number"], delete_if_full=True)
                 else:
@@ -123,7 +128,7 @@ class MonitorManager():
                 else:
                     clean_obj.move_all()
 
-        elif task["Scan_Settings"]["delete_old_files"] == "yes":
+        elif task["delete_old_files"] is True:
             if thread_settings["thread_mode"] == "yes":
                 clean_obj.delete_all_threaded(thread_settings["thread_number"])
             else:
@@ -143,7 +148,7 @@ class MonitorManager():
 
         print("Starting Full Scan")
 
-        for key, task in list(self.settings["Scheduled_Tasks"].items()):
+        for key, task in list(self.tasks].items()):
             if self.check_host_name(task) is True:
                 if self.settings["Thread_Settings"]["thread_mode"] == "yes":
                     thread = threading.Thread(target=self.full_scan, args=(task,))
@@ -158,7 +163,7 @@ class MonitorManager():
 
         print("Starting Quick Scan")
 
-        for key, task in list(self.settings["Scheduled_Tasks"].items()):
+        for key, task in list(self.tasks.items()):
             if self.check_host_name(task) is True:
                 if self.settings["Thread_Settings"]["thread_mode"] == "yes":
                     thread = threading.Thread(target=self.quick_scan, args=(task,))
@@ -192,7 +197,7 @@ class MonitorManager():
 
     def check_host_name(self, task):
         host_name = socket.gethostname()
-        if host_name == task["System_Settings"]["system_host_name"]:
+        if host_name == task["hostname"]:
             return True
         return False
 
