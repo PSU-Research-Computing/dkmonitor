@@ -111,7 +111,7 @@ class DataBase:
         Base.metadata.bind = self.db
         Base.metadata.create_all()
         #print(self.db.table_names())
-    
+
     #TODO: Add eception for duplicate column value error
     def store_row(self, table_row):
         Session = sessionmaker(bind=self.db)
