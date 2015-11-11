@@ -51,7 +51,7 @@ class DkStat:
         self.search_directory = search_dir
 
         self.settings = export_settings()
-        self.database = DataBase(**settings["DataBase_Settings"])
+        self.database = DataBase(**self.settings["DataBase_Settings"])
 
 
     def dir_search(self, last_access_threshold):
@@ -80,7 +80,7 @@ class DkStat:
 
         rows = [x[1].calculate_stats() for x in self.user_hash.items()]
         rows.append(self.directory_obj)
-        database.store_rows(rows)
+        self.database.store_rows(rows)
 
     def export_rows(self):
         rows = [x[1].calculate_stats() for x in self.user_hash.items()]
