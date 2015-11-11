@@ -17,8 +17,8 @@ from dkmonitor.utilities.dk_clean import DkClean
 from dkmonitor.utilities import log_setup
 from dkmonitor.config.config_reader import ConfigReader
 
-from dkmonitor.config.settings_manager import export_settings()
-from dkmonitor.config.task_manager import export_tasks()
+from dkmonitor.config.settings_manager import export_settings
+from dkmonitor.config.task_manager import export_tasks
 
 from dkmonitor.stat.dk_stat import DkStat
 
@@ -40,15 +40,15 @@ class MonitorManager():
                                  database=self.settings["DataBase_Settings"]["database"],
                                  user_name=self.settings["DataBase_Settings"]["user_name"],
                                  password=self.settings["DataBase_Settings"]["password"])
-         """
         self.database = DataBase(hostname=self.settings["DataBase_Settings"]["host"],
                                  username=self.settings["DataBase_Settings"]["user_name"],
                                  password=self.settings["DataBase_Settings"]["password"],
                                  database=self.settings["DataBase_Settings"]["database"])
+         """
 
-        if self.settings["DataBase_Settings"]["purge_database"] == "yes":
+        if self.settings["DataBase_Cleaning_Settings"]["purge_database"] == "yes":
             self.logger.info("Cleaning Database")
-            #self.database.clean_data_base(self.settings["DataBase_Settings"]["purge_after_day_number"])
+            #self.database.clean_data_base(self.settings["DataBase_Cleaning_Settings"]["purge_after_day_number"])
 
     def quick_scan(self, task):
         """
@@ -85,7 +85,7 @@ class MonitorManager():
 
             self.logger.info("Exporting %s data to database", task["target_path"])
             #dk_stat_obj.export_data(self.database) #Exports data from dk_stat_obj to the database
-            #self.database.store_rows(dk_stat_obj.export_rows()) #TODO: Move this to dk_stat
+            #self.database.store_rows(dk_stat_obj.export_rows()) #TODO: Move this to dk_stat --DONE
 
             self.logger.info("Emailing Users for %s", task["target_path"])
             disk_use = dk_stat_obj.get_disk_use_percent()
@@ -148,7 +148,7 @@ class MonitorManager():
 
         print("Starting Full Scan")
 
-        for key, task in list(self.tasks].items()):
+        for key, task in list(self.tasks.items()):
             if self.check_host_name(task) is True:
                 if self.settings["Thread_Settings"]["thread_mode"] == "yes":
                     thread = threading.Thread(target=self.full_scan, args=(task,))
