@@ -8,11 +8,11 @@ from dkmonitor.config.settings_manager import export_settings
 
 class TaskDataBase(DataBase):
     def __init__(self, db_settings):
-        super().__init__(hostname=db_settings["host"],
+        super().__init__(hostname=db_settings["hostname"],
                          database=db_settings["database"],
                          password=db_settings["password"],
-                         username=db_settings["user_name"],
-                         db_type=db_settings["database_type"])
+                         username=db_settings["username"],
+                         db_type=db_settings["db_type"])
 
     def get_all_tasks(self):
         session = self.create_session()
@@ -283,7 +283,6 @@ def read_bool(question):
 
 
 if __name__ == "__main__":
-    #main()
-    print(export_tasks())
+    main()
 
 
