@@ -34,15 +34,26 @@ class MonitorManager():
             self.logger.info("Cleaning Database")
             #self.database.clean_data_base(self.settings["DataBase_Cleaning_Settings"]["purge_after_day_number"])
 
+    def scan_wrapper(self, scan, task):
+        try:
+            print("Running Task: '{}'".format(task["taskname"]))
+            scan(task)
+            print("Task: '{}' is complete".format(task["taskname"]))
+            self.logger.info("Task: %s complete!", task["taskname"])
+        except PermissionError:
+            print("You do not have permissions to {}".format(task["target_path"]), file=sys.stderr)
+        except OSError:
+            print("There is no directory: {}".format(task["target_path"]), file=sys.stderr)
+
     def quick_scan(self, task):
         """
         Ment to be run hourly
         Checks use percent on a task
         if over quota, email users / clean disk if neccessary
         """
-        #TODO: Try except
+        print("Starting Quick Scan of: {}".format(task["target_path"]))
 
-        disk_use = get_disk_use_percent()
+        disk_use = get_disk_use_percent(task["target_path"])
         if disk_use > task["usage_warning_threshold"]:
             scan_store_email(task)
             self.check_then_clean(task)
@@ -53,91 +64,76 @@ class MonitorManager():
         logs disk statistics information in db
         if over quota, email users / clean disk if neccessary
         """
-        print("Starting Full Scan")
+        print("Starting Full Scan of: {}".format(task["target_path"]))
 
-        try:
-            scan_store_email(task)
-            self.check_then_clean(task)
+        scan_store_email(task)
+        self.check_then_clean(task)
 
-            self.logger.info("Task: {} complete", task["taskname"])
-        except PermissionError:
-            print("You do not have permissions to {}".format(task["target_path"]), file=sys.stderr)
-        except OSError:
-            print("There is no directory: {}".format(task["target_path"]), file=sys.stderr)
 
     def check_then_clean(self, task):
         """Cleaning routine function"""
 
-        print("Checking if disk: '{}' needs to be cleaned".format(task["target_path"]))
+        if (task["relocation_path"] != "") or (task["delete_old_files"] is True):
+            print("Checking if disk: '{}' needs to be cleaned".format(task["target_path"]))
 
-        disk_use = get_disk_use_percent(task)
-        if disk_use > task["usage_critical_threshold"]:
+            disk_use = get_disk_use_percent(task["target_path"])
+            if disk_use > task["usage_critical_threshold"]:
 
-            thread_settings = self.settings["Thread_Settings"]
-            clean_obj = DkClean(search_dir=task["target_path"],
-                                move_to=task["relocation_path"],
-                                access_threshold=task["old_file_threshold"],
-                                host_name=task["hostname"])
+                thread_settings = self.settings["Thread_Settings"]
+                clean_obj = DkClean(task)
 
-            if task["relocation_path"] != None:
-                print("Relocating Files")
-                if task["delete_when_full"] is True:
-                    if thread_settings["thread_mode"] == "yes":
-                        clean_obj.move_all_threaded(thread_settings["thread_number"], delete_if_full=True)
+                if task["relocation_path"] != "":
+                    print("Relocating Files")
+                    if task["delete_when_full"] is True:
+                        if thread_settings["thread_mode"] == "yes":
+                            clean_obj.move_all_threaded(thread_settings["thread_number"], delete_if_full=True)
+                        else:
+                            clean_obj.move_all(delete_if_full=True)
                     else:
-                        clean_obj.move_all(delete_if_full=True)
-                else:
+                        if thread_settings["thread_mode"] == "yes":
+                            clean_obj.move_all_threaded(thread_settings["thread_number"])
+                        else:
+                            clean_obj.move_all()
+
+                elif task["delete_old_files"] is True:
+                    print("Deleting Old Files")
                     if thread_settings["thread_mode"] == "yes":
-                        clean_obj.move_all_threaded(thread_settings["thread_number"])
+                        clean_obj.delete_all_threaded(thread_settings["thread_number"])
                     else:
-                        clean_obj.move_all()
-
-            elif task["delete_old_files"] is True:
-                print("Deleting Old Files")
-                if thread_settings["thread_mode"] == "yes":
-                    clean_obj.delete_all_threaded(thread_settings["thread_number"])
-                else:
-                    clean_obj.delete_all()
-        else:
-            print("Disk: '{}' does not need to be cleaned".format(task["target_path"]))
-
-    @staticmethod
-    def build_query_str(task):
-        """Builds query string used to determine if disk needs to be cleaned"""
-
-        query_str = "searched_directory = '{directory_path}' AND system = '{system_host_name}'"
-        query_str = query_str.format(**task)
-        return query_str
+                        clean_obj.delete_all()
+            else:
+                print("Disk: '{}' does not need to be cleaned".format(task["target_path"]))
 
 
+    #TODO Combine into one function
     def start_full_scans(self):
         """starts full scan on tasks"""
 
-        print("Starting Full Scan")
+        print("Starting Full Scans")
 
         for key, task in list(self.tasks.items()):
             if check_host_name(task) is True:
                 if self.settings["Thread_Settings"]["thread_mode"] == "yes":
-                    thread = threading.Thread(target=self.full_scan, args=(task,))
+                    thread = threading.Thread(target=self.scan_wrapper, args=(self.full_scan,task,))
                     thread.daemon = False
                     thread.start()
                 else:
-                    self.full_scan(task)
+                    self.scan_wrapper(self.full_scan, task)
 
 
     def start_quick_scans(self):
         """Starts quick scan on tasks"""
 
-        print("Starting Quick Scan")
+        print("Starting Quick Scans")
 
         for key, task in list(self.tasks.items()):
             if check_host_name(task) is True:
                 if self.settings["Thread_Settings"]["thread_mode"] == "yes":
-                    thread = threading.Thread(target=self.quick_scan, args=(task,))
+                    thread = threading.Thread(target=self.scan_wrapper, args=(self.quick_scan,task,))
                     thread.daemon = False
                     thread.start()
                 else:
-                    self.quick_scan(task)
+                    self.scan_wrapper(self.quick_scan, task)
 
 
 def check_host_name(task):
