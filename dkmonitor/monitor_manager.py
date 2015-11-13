@@ -63,8 +63,6 @@ class MonitorManager():
         disk_use = dk_stat_obj.get_disk_use_percent()
         if disk_use > task["usage_warning_threshold"]:
             dk_stat_obj.dir_search(task["old_file_threshold"])
-            #dk_stat_obj.export_data(self.database)
-            #dk_stat_obj.email_users(self.settings["Email_Settings"]["user_postfix"], task, disk_use)
 
         if disk_use > task["usage_critical_threshold"]:
             self.clean_disk(task)
@@ -75,27 +73,25 @@ class MonitorManager():
         logs disk statistics information in db
         if over quota, email users / clean disk if neccessary
         """
+        print("Starting Full Scan")
 
         try:
             dk_stat_obj = DkStat(system=task["hostname"],
                                  search_dir=task["target_path"])
 
             self.logger.info("Searching %s", task["target_path"])
+            print("Scanning dir")
             dk_stat_obj.dir_search(task["old_file_threshold"]) #Searches the Directory
-
-            self.logger.info("Exporting %s data to database", task["target_path"])
-            #dk_stat_obj.export_data(self.database) #Exports data from dk_stat_obj to the database
-            #self.database.store_rows(dk_stat_obj.export_rows()) #TODO: Move this to dk_stat --DONE
 
             self.logger.info("Emailing Users for %s", task["target_path"])
             disk_use = dk_stat_obj.get_disk_use_percent()
             if disk_use > task["usage_warning_threshold"]:
+                print("Emailing Users")
                 #dk_stat_obj.email_users(self.settings["Email_Settings"]["user_postfix"], task, disk_use)
-                pass
 
             if disk_use > task["usage_critical_threshold"]:
-                self.clean_disk(task)
-
+                print("Cleaning Disk")
+                #self.clean_disk(task)
 
             self.logger.info("%s scan task complete", task["target_path"])
         except PermissionError:
