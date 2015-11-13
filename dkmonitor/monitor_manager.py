@@ -11,40 +11,24 @@ import socket
 import sys, os
 sys.path.append(os.path.abspath(".."))
 
-#from dkmonitor.utilities.db_interface import DbEditor
 from dkmonitor.utilities.new_db_int import DataBase
 from dkmonitor.utilities.dk_clean import DkClean
 from dkmonitor.utilities import log_setup
-from dkmonitor.config.config_reader import ConfigReader
 
 from dkmonitor.config.settings_manager import export_settings
 from dkmonitor.config.task_manager import export_tasks
 
-from dkmonitor.stat.dk_stat import DkStat
+from dkmonitor.stat.dk_stat import scan_store_email, get_disk_use_percent
 
 class MonitorManager():
     """This class is the main managing class for all other classes
     It runs preset tasks that are found in the json settings file"""
 
     def __init__(self):
-        #config_reader = ConfigReader()
-        #self.settings = config_reader.configs_to_dict()
         self.settings = export_settings()
         self.tasks = export_tasks()
 
         self.logger = log_setup.setup_logger(__name__)
-
-        #Configures database
-        """
-        self.database = DbEditor(host_name=self.settings["DataBase_Settings"]["host"],
-                                 database=self.settings["DataBase_Settings"]["database"],
-                                 user_name=self.settings["DataBase_Settings"]["user_name"],
-                                 password=self.settings["DataBase_Settings"]["password"])
-        self.database = DataBase(hostname=self.settings["DataBase_Settings"]["host"],
-                                 username=self.settings["DataBase_Settings"]["user_name"],
-                                 password=self.settings["DataBase_Settings"]["password"],
-                                 database=self.settings["DataBase_Settings"]["database"])
-         """
 
         if self.settings["DataBase_Cleaning_Settings"]["purge_database"] == "yes":
             self.logger.info("Cleaning Database")
@@ -56,16 +40,12 @@ class MonitorManager():
         Checks use percent on a task
         if over quota, email users / clean disk if neccessary
         """
+        #TODO: Try except
 
-        dk_stat_obj = DkStat(system=task["hostname"],
-                             search_dir=task["target_path"])
-
-        disk_use = dk_stat_obj.get_disk_use_percent()
+        disk_use = get_disk_use_percent()
         if disk_use > task["usage_warning_threshold"]:
-            dk_stat_obj.dir_search(task["old_file_threshold"])
-
-        if disk_use > task["usage_critical_threshold"]:
-            self.clean_disk(task)
+            scan_store_email(task)
+            self.check_then_clean(task)
 
     def full_scan(self, task):
         """
@@ -76,59 +56,50 @@ class MonitorManager():
         print("Starting Full Scan")
 
         try:
-            dk_stat_obj = DkStat(system=task["hostname"],
-                                 search_dir=task["target_path"])
+            scan_store_email(task)
+            self.check_then_clean(task)
 
-            self.logger.info("Searching %s", task["target_path"])
-            print("Scanning dir")
-            dk_stat_obj.dir_search(task["old_file_threshold"]) #Searches the Directory
-
-            self.logger.info("Emailing Users for %s", task["target_path"])
-            disk_use = dk_stat_obj.get_disk_use_percent()
-            if disk_use > task["usage_warning_threshold"]:
-                print("Emailing Users")
-                #dk_stat_obj.email_users(self.settings["Email_Settings"]["user_postfix"], task, disk_use)
-
-            if disk_use > task["usage_critical_threshold"]:
-                print("Cleaning Disk")
-                #self.clean_disk(task)
-
-            self.logger.info("%s scan task complete", task["target_path"])
+            self.logger.info("Task: {} complete", task["taskname"])
         except PermissionError:
-            print("You do not have permission to {}".format(task["target_path"]))
+            print("You do not have permissions to {}".format(task["target_path"]), file=sys.stderr)
         except OSError:
-            print("There is no directory: {}".format(task["target_path"]))
+            print("There is no directory: {}".format(task["target_path"]), file=sys.stderr)
 
-    def clean_disk(self, task):
+    def check_then_clean(self, task):
         """Cleaning routine function"""
 
-        print("CLeaning Disk")
+        print("Checking if disk: '{}' needs to be cleaned".format(task["target_path"]))
 
-        self.logger.info("Cleaning %s", task["target_path"])
-        thread_settings = self.settings["Thread_Settings"]
-        clean_obj = DkClean(search_dir=task["target_path"],
-                            move_to=task["relocation_path"],
-                            access_threshold=task["old_file_threshold"],
-                            host_name=task["hostname"])
+        disk_use = get_disk_use_percent(task)
+        if disk_use > task["usage_critical_threshold"]:
 
+            thread_settings = self.settings["Thread_Settings"]
+            clean_obj = DkClean(search_dir=task["target_path"],
+                                move_to=task["relocation_path"],
+                                access_threshold=task["old_file_threshold"],
+                                host_name=task["hostname"])
 
-        if task["relocation_path"] != None:
-            if task["delete_when_full"] is True:
-                if thread_settings["thread_mode"] == "yes":
-                    clean_obj.move_all_threaded(thread_settings["thread_number"], delete_if_full=True)
+            if task["relocation_path"] != None:
+                print("Relocating Files")
+                if task["delete_when_full"] is True:
+                    if thread_settings["thread_mode"] == "yes":
+                        clean_obj.move_all_threaded(thread_settings["thread_number"], delete_if_full=True)
+                    else:
+                        clean_obj.move_all(delete_if_full=True)
                 else:
-                    clean_obj.move_all(delete_if_full=True)
-            else:
-                if thread_settings["thread_mode"] == "yes":
-                    clean_obj.move_all_threaded(thread_settings["thread_number"])
-                else:
-                    clean_obj.move_all()
+                    if thread_settings["thread_mode"] == "yes":
+                        clean_obj.move_all_threaded(thread_settings["thread_number"])
+                    else:
+                        clean_obj.move_all()
 
-        elif task["delete_old_files"] is True:
-            if thread_settings["thread_mode"] == "yes":
-                clean_obj.delete_all_threaded(thread_settings["thread_number"])
-            else:
-                clean_obj.delete_all()
+            elif task["delete_old_files"] is True:
+                print("Deleting Old Files")
+                if thread_settings["thread_mode"] == "yes":
+                    clean_obj.delete_all_threaded(thread_settings["thread_number"])
+                else:
+                    clean_obj.delete_all()
+        else:
+            print("Disk: '{}' does not need to be cleaned".format(task["target_path"]))
 
     @staticmethod
     def build_query_str(task):
@@ -145,7 +116,7 @@ class MonitorManager():
         print("Starting Full Scan")
 
         for key, task in list(self.tasks.items()):
-            if self.check_host_name(task) is True:
+            if check_host_name(task) is True:
                 if self.settings["Thread_Settings"]["thread_mode"] == "yes":
                     thread = threading.Thread(target=self.full_scan, args=(task,))
                     thread.daemon = False
@@ -160,7 +131,7 @@ class MonitorManager():
         print("Starting Quick Scan")
 
         for key, task in list(self.tasks.items()):
-            if self.check_host_name(task) is True:
+            if check_host_name(task) is True:
                 if self.settings["Thread_Settings"]["thread_mode"] == "yes":
                     thread = threading.Thread(target=self.quick_scan, args=(task,))
                     thread.daemon = False
@@ -168,34 +139,12 @@ class MonitorManager():
                 else:
                     self.quick_scan(task)
 
-    def check_clean_task(self, task):
-        """
-        Checks if directory needs to be cleaned
-        Starts cleaning routine if flagged
 
-        """
-        #TODO Clean this up with new database
-        """
-        if task["relocate_old_files"] == "yes":
-            query_str = self.build_query_str(task)
-            collumn_names = "disk_use_percent"
-
-            query_data = self.database.query_date_compare("directory_stats",
-                                                          query_str,
-                                                          collumn_names)
-            if query_data == None:
-                pass
-            elif query_data[0] > task["disk_use_percent_threshold"]:
-                self.clean_disk(task)
-
-        """
-        pass
-
-    def check_host_name(self, task):
-        host_name = socket.gethostname()
-        if host_name == task["hostname"]:
-            return True
-        return False
+def check_host_name(task):
+    host_name = socket.gethostname()
+    if host_name == task["hostname"]:
+        return True
+    return False
 
 
 
