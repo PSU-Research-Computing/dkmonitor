@@ -90,13 +90,6 @@ class UserStats(StatObj, Base):
                 send_flag = True
 
             if task["email_data_alterations"] is True:
-                """
-                message_dict = task_dict["System_Settings"].copy()
-                message_dict.update(task_dict["Threshold_Settings"])
-                message_dict.update(task_dict["Scan_Settings"])
-                message_dict.update(self.stat_dict)
-                message_dict["total_old_file_size"] = self.stat_dict["total_old_file_size"] / 1024 / 1024 / 1024
-                """
                 if self.stat_dict["number_of_old_files"] > 0:
                     if current_use > task_dict["usage_critical_threshold"]:
                         #message.add_message("file_move_notice.txt", message_dict)
@@ -155,9 +148,9 @@ class DataBase:
         self.db = create_engine(eng_str)
         Base.metadata.bind = self.db
         Base.metadata.create_all()
-        #print(self.db.table_names())
 
     #TODO: Add eception for duplicate column value error
+    #TODO: Combine store_row and store_rows
     def store_row(self, table_row):
         Session = sessionmaker(bind=self.db)
         ses = Session()
@@ -175,56 +168,5 @@ class DataBase:
         return Session()
 
 
-class DataBaseViewer(DataBase):
-
-    def __init__(self,
-                 db_type='postgresql',
-                 hostname='127.0.0.1',
-                 database='postgres',
-                 username='postgres',
-                 password=''):
-        super().__init__(db_type=db_type,
-                         hostname=hostname,
-                         database=database,
-                         username=username,
-                         password=password)
-
-    def get_all_users(self):
-        session = self.create_session()
-        return [username for username in session.query(UserStats.username).distinct()]
-
-    def get_users_on_system(self, hostname):
-        session = self.create_session()
-        return [username for username in session.query(UserStats.username).filter(UserStats.hostname==hostname).distinct()]
-
-    def get_users_on_system_disk(self, hostname, diskname):
-        session = self.create_session()
-        return [username for username in session.query(UserStats.username).filter(UserStats.hostname==hostname).filter(UserStats.target_path==diskname).distinct()]
-
-    def get_user_stats(self, username):
-        pass
-
-    def get_all_systems(self):
-        session = self.create_session()
-        return [hostname for hostname in session.query(DirectoryStats.hostname).distinct()]
-
-    def get_all_disks_on_system(self, hostname):
-        session = self.create_session()
-        return [disk for disk in session.query(DirectoryStats.target_path).filter(DirectoryStats.hostname==hostname).distinct()]
-
-    def get_all_disks_on_all_systems(self):
-        session = self.create_session()
-        return [disk for disk in session.query(DirectoryStats.target_path).distinct()]
-
-    def get_agregate_system_stats(self):
-        disks = self.get_all_disks_on_all_systems()
-
-
-
-
-
-
 if __name__ == '__main__':
-    db = DataBaseViewer(hostname='pgsql.rc.pdx.edu', database='diskspace_monitor', username='diskspace_monitor_l', password='9JgN7pwNbB')
-    print(db.get_all_users())
-    print(db.get_users_on_system("circe.rc.pdx.edu"))
+    pass
