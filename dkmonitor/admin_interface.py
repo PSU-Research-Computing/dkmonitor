@@ -11,15 +11,67 @@ sys.path.append(os.path.abspath(".."))
 from dkmonitor.utilities.db_interface import DbViewer
 from dkmonitor.config.config_reader import ConfigReader
 
+from dkmonitor.utilities.new_db_int import DataBase, DirectoryStats, UserStats
+from dkmonitor.config.settings_manager import export_settings
 
-class AdminInterface(DbViewer):
-    def __init__(self):
-        config_reader = ConfigReader()
-        self.settings = config_reader.configs_to_dict()
-        super().__init__(host_name=self.settings["DataBase_Settings"]["host"],
-                         database=self.settings["DataBase_Settings"]["database"],
-                         user_name=self.settings["DataBase_Settings"]["user_name"],
-                         password=self.settings["DataBase_Settings"]["password"])
+class DataBaseViewer(DataBase):
+
+    def __init__(self,
+                 db_type='postgresql',
+                 hostname='127.0.0.1',
+                 database='postgres',
+                 username='postgres',
+                 password=''):
+        super().__init__(db_type=db_type,
+                         hostname=hostname,
+                         database=database,
+                         username=username,
+                         password=password)
+
+    def get_all_users(self): ##
+        session = self.create_session()
+        return [username for username in session.query(UserStats.username).distinct()]
+
+    def get_users_on_system(self, hostname):
+        session = self.create_session()
+        return [username for username in session.query(UserStats.username).filter(UserStats.hostname==hostname).distinct()]
+
+    def get_users_on_system_disk(self, hostname, diskname):
+        session = self.create_session()
+        return [username for username in session.query(UserStats.username).filter(UserStats.hostname==hostname).filter(UserStats.target_path==diskname).distinct()]
+
+    def get_user_stats(self, username):
+        pass
+
+    def get_all_systems(self): ##
+        session = self.create_session()
+        return [hostname for hostname in session.query(DirectoryStats.hostname).distinct()]
+
+    def get_all_disks_on_system(self, hostname):
+        session = self.create_session()
+        return [disk for disk in session.query(DirectoryStats.target_path).filter(DirectoryStats.hostname==hostname).distinct()]
+
+    def get_all_disks_on_all_systems(self):
+        session = self.create_session()
+        return [disk for disk in session.query(DirectoryStats.target_path).distinct()]
+
+    def get_agregate_system_stats(self):
+        disks = self.get_all_disks_on_all_systems()
+
+
+
+class AdminStatViewer(DataBase):
+    def __init__(self,
+                 db_type='postgresql',
+                 hostname='127.0.0.1',
+                 database='postgres',
+                 username='postgres',
+                 password=''):
+        super().__init__(db_type=db_type,
+                         hostname=hostname,
+                         database=database,
+                         username=username,
+                         password=password)
 
     def print_color_key(self):
         """Print the color key"""
@@ -67,16 +119,27 @@ class AdminInterface(DbViewer):
         else:
             print("User Not found")
 
-    def display_system(self, system_host_name):
+    def display_lastest(self, hostname):
+        session = self.create_session()
+        obj = session.query(DirectoryStats).order_by(DirectoryStats.datetime.desc()).limit(2).all()
+        for row in obj:
+            for column in row.__table__.columns:
+                print(column.name)
+                print(getattr(row, column.name))
+
+    def display_system(self, hostname):
         """
         Displays system stats in color with information gathered by the
         DbViewer object from the dkmonitor database
         """
 
+        #session = self.create_session()
+        #for disk in session.query(DirectoryStats).filter(DirectoryStats.hostname==hostname).distinct().all()]
+
         self.print_color_key()
         system_stats = self.get_system_stats(system_host_name)
         if system_stats != {}:
-            print("System Name: {}".format(system_stats["system_host_name"]))
+            print("System Name: {}".format(hostname))
             for disk, d_stats in system_stats["disks"].items():
                 print("|Disk Name: {}".format(disk))
                 if d_stats['disk_stats'][5] > 1:
@@ -103,15 +166,15 @@ class AdminInterface(DbViewer):
 
     def display_users(self):
         """Displays all users"""
-
-        for user in self.get_all_users():
-            print(user)
+        session = self.create_session()
+        for username in session.query(UserStats.username).distinct():
+            print(username)
 
     def display_systems(self):
         """Displays all systems"""
-
-        for system in self.get_all_systems():
-            print(system)
+        session = self.create_session()
+        for hostname in session.query(DirectoryStats.hostname).distinct():
+            print(hostname)
 
 
 def get_args():
@@ -160,8 +223,8 @@ def main():
 
 
 if __name__ == "__main__":
-    adint = AdminInterface()
-    #adint.display_user("rclaire")
-    #adint.display_system("Circe")
-    main()
+    settings = export_settings()
+    adminviewer = AdminStatViewer(**settings["DataBase_Settings"])
+    adminviewer.display_lastest("circe.rc.pdx.edu")
+    #main()
 
