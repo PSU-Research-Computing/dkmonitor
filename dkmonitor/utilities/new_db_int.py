@@ -13,8 +13,6 @@ class StatObj(object):
     total_file_size = Column("total_file_size", BigInteger)
     disk_use_percent = Column("disk_use_percent", Float)
     average_file_age = Column("average_file_age", Float)
-    #disk_use_change = Column("disk_use_change", Float)
-    #average_file_age_change = Column("average_file_age_change", Float)
 
     stats = {'total_file_size': 0,
              'number_of_files': 0,
@@ -90,8 +88,8 @@ class UserStats(StatObj, Base):
                 send_flag = True
 
             if task["email_data_alterations"] is True:
-                if self.stat_dict["number_of_old_files"] > 0:
-                    if current_use > task_dict["usage_critical_threshold"]:
+                if self.stats["number_of_old_files"] > 0:
+                    if current_use > task["usage_critical_threshold"]:
                         #message.add_message("file_move_notice.txt", message_dict)
                         pass
                     else:
