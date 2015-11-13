@@ -17,10 +17,10 @@ class StatObj(object):
     #average_file_age_change = Column("average_file_age_change", Float)
 
     stats = {'total_file_size': 0,
-                 'number_of_files': 0,
-                 'number_of_old_files' : 0,
-                 'total_old_file_size' : 0,
-                 'total_access_time': 0}
+             'number_of_files': 0,
+             'number_of_old_files' : 0,
+             'total_old_file_size' : 0,
+             'total_access_time': 0}
 
     def add_file(self, file_to_add, last_access_threshold):
         """Adds stats of a file to the stat dictionary"""
@@ -74,6 +74,51 @@ class UserStats(StatObj, Base):
 
     username = Column("username", String)
 
+    def email_user(self, postfix, problem_lists, task, current_use):
+        """Emails the user associated with the object if they are flagged"""
+
+        if current_use > task["usage_warning_threshold"]:
+            send_flag = False
+            if task["email_usage_warnings"] is True:
+                message = self.create_message(postfix)
+                if self.username in problem_lists[0]:
+                    #message.add_message("top_use_warning.txt", self.collumn_dict)
+                    pass
+                if self.username in problem_lists[1]:
+                    #message.add_message("top_old_warning.txt", self.collumn_dict)
+                    pass
+                send_flag = True
+
+            if task["email_data_alterations"] is True:
+                """
+                message_dict = task_dict["System_Settings"].copy()
+                message_dict.update(task_dict["Threshold_Settings"])
+                message_dict.update(task_dict["Scan_Settings"])
+                message_dict.update(self.stat_dict)
+                message_dict["total_old_file_size"] = self.stat_dict["total_old_file_size"] / 1024 / 1024 / 1024
+                """
+                if self.stat_dict["number_of_old_files"] > 0:
+                    if current_use > task_dict["usage_critical_threshold"]:
+                        #message.add_message("file_move_notice.txt", message_dict)
+                        pass
+                    else:
+                        #message.add_message("file_move_warning.txt", message_dict)
+                        pass
+
+                    send_flag = True
+
+            if send_flag is True:
+                #message.build_and_send_message()
+                print("Sending Message")
+
+
+    def create_message(self, postfix):
+        """Creates message to be sent to user"""
+
+        address = self.collumn_dict["user_name"] + "@" + postfix
+        message = Email(address, self.collumn_dict)
+
+        return message
 
 class Tasks(Base):
     __tablename__ = "tasks"
