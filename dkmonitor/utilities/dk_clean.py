@@ -42,12 +42,17 @@ class DkClean:
         uid = os.stat(file_path).st_uid
         user = pwd.getpwuid(uid).pw_name
 
-        root_dir = self.task["relocation_path"] + '/' + user +  '/' + self.task["hostname"] + '/' + self.task["target_path"].replace('/', '.')[1:]
+        #root_dir = self.task["relocation_path"] + '/' + user +  '/' + self.task["hostname"] + '/' + self.task["target_path"].replace('/', '.')[1:]
+        root_dir = os.path.join(self.task["relocation_path"],
+                                user,
+                                self.task["hostname"],
+                                self.task["target_path"].replace('/', '.')[1:])
+
         self.create_file_tree(uid, root_dir)
 
         new_file_path = re.sub(r"^{old_path}".format(old_path=self.task["target_path"]),
-                                                     root_dir,
-                                                     file_path)
+                               root_dir,
+                               file_path)
         last_slash = new_file_path.rfind('/')
         dir_path = new_file_path[:last_slash]
 
@@ -72,7 +77,8 @@ class DkClean:
         current_path = self.task["relocation_path"]
         for d in dirs:
             try:
-                new_dir = current_path + '/' + d
+                #new_dir = current_path + '/' + d
+                new_dir = os.path.join(current_path, d)
                 os.mkdir(new_dir)
                 os.chown(new_dir, uid, uid)
             except OSError:
