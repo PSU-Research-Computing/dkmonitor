@@ -18,11 +18,8 @@ class DkClean:
     """The class dk_clean is used to move old files from one directory to an other.
     The process can be run with multithreading or just iterativly"""
 
-    def __init__(self, search_dir='', move_to='', access_threshold='', host_name='127.0.0.1'):
-        self.search_dir = search_dir
-        self.move_to = move_to
-        self.access_threshold = access_threshold
-        self.host_name=host_name
+    def __init__(self, task):
+        self.task = task
         self.que = PriorityQueue()
 
         self.logger = log_setup.setup_logger(__name__)
@@ -30,9 +27,9 @@ class DkClean:
 
     def build_file_que(self):
         print("Moving Files")
-        for file_path in dir_scan(self.search_dir):
+        for file_path in dir_scan(self.task["target_path"]):
             last_access = (time.time() - os.path.getatime(file_path)) / 86400
-            if last_access > self.access_threshold:
+            if last_access > self.task["old_file_threshold"]:
                 old_file_size = int(os.path.getsize(file_path))
                 priority_num = - (old_file_size * last_access)
                 self.que.put((priority_num, file_path))
@@ -45,10 +42,10 @@ class DkClean:
         uid = os.stat(file_path).st_uid
         user = pwd.getpwuid(uid).pw_name
 
-        root_dir = self.move_to + '/' + user +  '/' + self.host_name + '/' + self.search_dir.replace('/', '.')[1:]
+        root_dir = self.task["relocation_path"] + '/' + user +  '/' + self.task["hostname"] + '/' + self.task["target_path"].replace('/', '.')[1:]
         self.create_file_tree(uid, root_dir)
 
-        new_file_path = re.sub(r"^{old_path}".format(old_path=self.search_dir),
+        new_file_path = re.sub(r"^{old_path}".format(old_path=self.task["target_path"]),
                                                      root_dir,
                                                      file_path)
         last_slash = new_file_path.rfind('/')
@@ -70,9 +67,9 @@ class DkClean:
     def create_file_tree(self, uid, path):
         """Creates file tree after move_to with user ownership"""
 
-        path = path.replace(self.move_to, "")
+        path = path.replace(self.task["relocation_path"], "")
         dirs = path.split("/")
-        current_path = self.move_to
+        current_path = self.task["relocation_path"]
         for d in dirs:
             try:
                 new_dir = current_path + '/' + d
