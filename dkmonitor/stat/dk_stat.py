@@ -111,10 +111,10 @@ class DkStat:
         flag_user_number = int(len(self.users.keys()) * problem_threshold)
         for user in self.users.items():
             try:
-                bytes_per_access_time = user[1].stats["total_file_size"]/user[1].stats["total_access_time"] #Bytes per total access time 
+                bytes_per_access_time = user[1].total_file_size_count/user[1].total_access_time_count #Bytes per total access time 
             except ZeroDivisionError:
                 bytes_per_access_time = 0
-            stat_list.append([user[0], user[1].stats["total_file_size"], bytes_per_access_time])
+            stat_list.append([user[0], user[1].total_file_size_count, bytes_per_access_time])
 
         large_list = sorted(stat_list, key=operator.itemgetter(1), reverse=True)[:flag_user_number]
         old_list = sorted(stat_list, key=operator.itemgetter(2), reverse=True)[:flag_user_number]
