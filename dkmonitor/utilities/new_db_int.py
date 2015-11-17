@@ -14,25 +14,25 @@ class StatObj(object):
     disk_use_percent = Column("disk_use_percent", Float)
     average_file_age = Column("average_file_age", Float)
 
-    stats = {'total_file_size': 0,
-             'number_of_files': 0,
-             'number_of_old_files' : 0,
-             'total_old_file_size' : 0,
-             'total_access_time': 0}
+    total_file_size_count = 0
+    total_old_file_size_count = 0
+    number_of_files_count = 0
+    number_of_old_files_count = 0
+    total_access_time_count = 0
 
     def add_file(self, file_to_add, last_access_threshold):
         """Adds stats of a file to the stat dictionary"""
-        self.stats["total_file_size"] += file_to_add.file_size
-        self.stats["number_of_files"] += 1
-        self.stats["total_access_time"] += file_to_add.last_access
+        self.total_file_size_count += file_to_add.file_size
+        self.number_of_files_count += 1
+        self.total_access_time_count += file_to_add.last_access
         if file_to_add.last_access > last_access_threshold:
-            self.stats["number_of_old_files"] += 1
-            self.stats["total_old_file_size"] += file_to_add.file_size
+            self.number_of_old_files_count += 1
+            self.total_old_file_size_count += file_to_add.file_size
 
     def get_total_space(self):
         """Calculates total file size of all files in file_list"""
 
-        self.total_file_size = self.stats["total_file_size"]
+        self.total_file_size = self.total_file_size_count
 
     def get_disk_use_percentage(self):
         """Calculates the disk use percentage of all files"""
@@ -40,7 +40,7 @@ class StatObj(object):
         stat_tup = os.statvfs(self.target_path) #TODO try except
         total = stat_tup.f_blocks * stat_tup.f_frsize
 
-        user_percentage = 100 * float(self.stats["total_file_size"])/float(total)
+        user_percentage = 100 * float(self.total_file_size_count)/float(total)
         self.disk_use_percent = user_percentage
 
 
@@ -48,9 +48,9 @@ class StatObj(object):
         """Calculates the last access average for all stored files"""
 
         try: #possibly change this to an if statement
-            average_last_access = self.stats["total_access_time"] / self.stats["number_of_old_files"]
+            average_last_access = self.total_access_time_count / self.number_of_old_files_count
         except ZeroDivisionError:
-            average_last_access = self.stats["total_access_time"]
+            average_last_access = self.total_access_time_count
 
         self.average_file_age = average_last_access
 
@@ -88,7 +88,7 @@ class UserStats(StatObj, Base):
                 send_flag = True
 
             if task["email_data_alterations"] is True:
-                if self.stats["number_of_old_files"] > 0:
+                if self.number_of_old_files > 0:
                     if current_use > task["usage_critical_threshold"]:
                         #message.add_message("file_move_notice.txt", message_dict)
                         pass
