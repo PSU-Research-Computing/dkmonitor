@@ -27,7 +27,7 @@ class Email:
 
         self.msg = MIMEMultipart()
         self.msg["To"] = address
-        self.msg["Subject"] = "Usage Warning on {system}".format(**data_dict)
+        self.msg["Subject"] = "Usage Warning on {hostname}".format(**data_dict)
 
     def build_and_send_message(self):
         """Attaches all the body string to the message"""
@@ -36,7 +36,8 @@ class Email:
         self.msg.attach(body)
 
         server = smtplib.SMTP('localhost')
-        server.sendmail("Do-Not-Reply", self.msg["To"], self.msg.as_string())
+        #server.sendmail("Do-Not-Reply", self.msg["To"], self.msg.as_string())
+        server.sendmail("Do-Not-Reply", "wpatt2@pdx.edu", self.msg.as_string())
 
     def add_message(self, message_file, data_dict):
         """Loads a pre-written message from external file and adds info to it from data_dict"""
@@ -54,7 +55,7 @@ class Email:
         except IOError as err:
             self.logger.error("File %s does not exist", message_file)
         except KeyError as keyerr:
-            m = re.search("'([^']*)'", keyerr.message)
+            m = re.search("'([^']*)'", keyerr.message) #TODO fix this broken line
             key = m.group(1)
             self.logger.error("Key %s does not exist", key)
             raise keyerr

@@ -1,7 +1,12 @@
 from sqlalchemy import *
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-import datetime, os
+import datetime
+
+import os, sys
+sys.path.append(os.path.abspath("../.."))
+
+from dkmonitor.emailer.email_obj import Email
 
 
 Base = declarative_base()
@@ -75,41 +80,64 @@ class UserStats(StatObj, Base):
     def email_user(self, postfix, problem_lists, task, current_use):
         """Emails the user associated with the object if they are flagged"""
 
+        email_info = self.build_email_stats(task)
         if current_use > task["usage_warning_threshold"]:
             send_flag = False
             if task["email_usage_warnings"] is True:
-                message = self.create_message(postfix)
+
+                print (email_info)
+                address = email_info["username"] + "@" + postfix
+                message = Email(address, email_info)
+
                 if self.username in problem_lists[0]:
-                    #message.add_message("top_use_warning.txt", self.collumn_dict)
+                    message.add_message("top_use_warning.txt", email_info)
                     pass
                 if self.username in problem_lists[1]:
-                    #message.add_message("top_old_warning.txt", self.collumn_dict)
+                    message.add_message("top_old_warning.txt", email_info)
                     pass
                 send_flag = True
 
             if task["email_data_alterations"] is True:
                 if self.number_of_old_files > 0:
                     if current_use > task["usage_critical_threshold"]:
-                        #message.add_message("file_move_notice.txt", message_dict)
+                        message.add_message("file_move_notice.txt", email_info)
                         pass
                     else:
-                        #message.add_message("file_move_warning.txt", message_dict)
+                        message.add_message("file_move_warning.txt", email_info)
                         pass
 
                     send_flag = True
 
             if send_flag is True:
-                #message.build_and_send_message()
+                message.build_and_send_message()
                 print("Sending Message")
 
 
     def create_message(self, postfix):
-        """Creates message to be sent to user"""
+        """Creates message to be sent to user
 
-        address = self.collumn_dict["user_name"] + "@" + postfix
+        address = self.column_dict["user_name"] + "@" + postfix
         message = Email(address, self.collumn_dict)
 
-        return message
+        return message"""
+        pass 
+
+    def build_email_stats(self, task):
+        email_info = {}
+        for column in self.__table__.columns:
+            email_info[column.name] = getattr(self, column.name)
+            print(getattr(self, column.name))
+
+        stats_vars = {"total_old_file_size": self.total_file_size_count,
+                      "number_of_old_files": self.number_of_old_files_count,
+                      "usage_warning_threshold": task["usage_warning_threshold"],
+                      "usage_critical_threshold": task["usage_critical_threshold"],
+                      "old_file_threshold": task["old_file_threshold"],
+                      "relocation_path": task["relocation_path"]}
+
+        email_info.update(stats_vars)
+        return email_info
+
 
 class Tasks(Base):
     __tablename__ = "tasks"

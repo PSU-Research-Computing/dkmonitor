@@ -1,4 +1,4 @@
-Dear {user_name},
-You have been flagged for improper use of {searched_directory} on {system}.
+Dear {username},
+You have been flagged for improper use of {target_path} on {hostname}.
 Please address the message(s) below to fix the problem.
 
