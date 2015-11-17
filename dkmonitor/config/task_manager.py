@@ -102,7 +102,7 @@ def creation_interface():
     if (relocate_old is True) or (task_input["delete_old_files"] is True):
         task_input["old_file_threshold"] = read_int("Old file threshold(days)(int): ")
 
-    task_input["email_usage_warning"] = read_bool("Send emails when the disk is over it's warning threshold?(y/n): ")
+    task_input["email_usage_warnings"] = read_bool("Send emails when the disk is over it's warning threshold?(y/n): ")
 
     if task_input["email_usage_warnings"] is True:
         task_input["email_top_percent"] = read_percent("Percent of top users to be emailed(percent)(int): ")
