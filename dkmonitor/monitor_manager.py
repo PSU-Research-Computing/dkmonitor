@@ -20,6 +20,10 @@ from dkmonitor.config.task_manager import export_tasks
 
 from dkmonitor.stat.dk_stat import scan_store_email, get_disk_use_percent
 
+class ScanTypeNotFound(Exception):
+    def __init__(self, message):
+        super(ScanTypeNotFound, self).__init__(message)
+
 class MonitorManager():
     """This class is the main managing class for all other classes
     It runs preset tasks that are found in the json settings file"""
@@ -61,7 +65,7 @@ class MonitorManager():
     def full_scan(self, task):
         """
         Performs full scan of directory by default
-        logs disk statistics information in db
+        saves disk statistics information in db
         if over quota, email users / clean disk if neccessary
         """
         print("Starting Full Scan of: {}".format(task["target_path"]))
@@ -105,35 +109,24 @@ class MonitorManager():
                 print("Disk: '{}' does not need to be cleaned".format(task["target_path"]))
 
 
-    #TODO Combine into one function
-    def start_full_scans(self):
-        """starts full scan on tasks"""
-
-        print("Starting Full Scans")
-
-        for key, task in list(self.tasks.items()):
-            if check_host_name(task) is True:
-                if self.settings["Thread_Settings"]["thread_mode"] == "yes":
-                    thread = threading.Thread(target=self.scan_wrapper, args=(self.full_scan,task,))
-                    thread.daemon = False
-                    thread.start()
-                else:
-                    self.scan_wrapper(self.full_scan, task)
-
-
-    def start_quick_scans(self):
-        """Starts quick scan on tasks"""
-
-        print("Starting Quick Scans")
+    def start_scans(self, scan_type="full"):
+        """ """
+        if scan_type == "full":
+            scan_function = self.full_scan
+        elif scan_type == "quick":
+            scan_function = self.quick_scan
+        else:
+            raise ScanTypeNotFound("Scan type '{}' was not found".format(scan_type))
 
         for key, task in list(self.tasks.items()):
             if check_host_name(task) is True:
                 if self.settings["Thread_Settings"]["thread_mode"] == "yes":
-                    thread = threading.Thread(target=self.scan_wrapper, args=(self.quick_scan,task,))
+                    thread = threading.Thread(target=self.scan_wrapper, args=(scan_function,task,))
                     thread.daemon = False
                     thread.start()
                 else:
                     self.scan_wrapper(self.quick_scan, task)
+
 
 
 def check_host_name(task):
@@ -148,14 +141,10 @@ def main():
     """Runs monitor_manager"""
     monitor = MonitorManager()
     parser = argparse.ArgumentParser(description="")
-    parser.add_argument("scan_type", help="Specify scan type: quick or full")
+    parser.add_argument("scan_type", help="Specify scan type: 'quick' or 'full'")
     args = parser.parse_args()
-    if args.scan_type == "quick":
-        monitor.start_quick_scans()
-    elif args.scan_type == "full":
-        monitor.start_full_scans()
-    else:
-        raise "Error: scan_type must be either 'full' or 'quick'"
+    monitor.start_scans(args.scan_type)
+
 
 
 
