@@ -42,11 +42,10 @@ class DkClean:
         uid = os.stat(file_path).st_uid
         user = pwd.getpwuid(uid).pw_name
 
-        #root_dir = self.task["relocation_path"] + '/' + user +  '/' + self.task["hostname"] + '/' + self.task["target_path"].replace('/', '.')[1:]
         root_dir = os.path.join(self.task["relocation_path"],
                                 user,
                                 self.task["hostname"],
-                                self.task["target_path"].replace('/', '.')[1:])
+                                self.task["target_path"].replace("/", "_")[1:])
 
         self.create_file_tree(uid, root_dir)
 
@@ -57,13 +56,14 @@ class DkClean:
         dir_path = new_file_path[:last_slash]
 
         try:
-            self.create_file_tree(uid, dir_path)
-            shutil.move(file_path, new_file_path)
+            #self.create_file_tree(uid, dir_path)
+            #shutil.move(file_path, new_file_path)
             pass
         except IOError as err:
             if delete_if_full is True:
                 os.remove(file_path)
-            raise(err)
+            else:
+                raise(err)
 
     def delete_file(self, file_path):
         """Deletes file"""
