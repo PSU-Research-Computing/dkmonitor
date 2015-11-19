@@ -26,7 +26,7 @@ class ScanTypeNotFound(Exception):
 
 class MonitorManager():
     """This class is the main managing class for all other classes
-    It runs preset tasks that are found in the json settings file"""
+    It runs preset tasks that are found in a database"""
 
     def __init__(self):
         self.settings = export_settings()
@@ -77,7 +77,7 @@ class MonitorManager():
     def check_then_clean(self, task):
         """Cleaning routine function"""
 
-        if (task["relocation_path"] != "") or (task["delete_old_files"] is True):
+        if (task["relocation_path"] is not None) or (task["delete_old_files"] is True):
             print("Checking if disk: '{}' needs to be cleaned".format(task["target_path"]))
 
             disk_use = get_disk_use_percent(task["target_path"])
@@ -86,18 +86,12 @@ class MonitorManager():
                 thread_settings = self.settings["Thread_Settings"]
                 clean_obj = DkClean(task)
 
-                if task["relocation_path"] != "":
+                if task["relocation_path"] is not None:
                     print("Relocating Files")
-                    if task["delete_when_full"] is True:
-                        if thread_settings["thread_mode"] == "yes":
-                            clean_obj.move_all_threaded(thread_settings["thread_number"], delete_if_full=True)
-                        else:
-                            clean_obj.move_all(delete_if_full=True)
+                    if thread_settings["thread_mode"] == "yes":
+                        clean_obj.move_all_threaded(thread_settings["thread_number"], delete_if_full=task["delete_when_full"])
                     else:
-                        if thread_settings["thread_mode"] == "yes":
-                            clean_obj.move_all_threaded(thread_settings["thread_number"])
-                        else:
-                            clean_obj.move_all()
+                        clean_obj.move_all(delete_when_full=task["delete_when_full"])
 
                 elif task["delete_old_files"] is True:
                     print("Deleting Old Files")
@@ -128,13 +122,11 @@ class MonitorManager():
                     self.scan_wrapper(self.quick_scan, task)
 
 
-
 def check_host_name(task):
     host_name = socket.gethostname()
     if host_name == task["hostname"]:
         return True
     return False
-
 
 
 def main():
@@ -144,8 +136,6 @@ def main():
     parser.add_argument("scan_type", help="Specify scan type: 'quick' or 'full'")
     args = parser.parse_args()
     monitor.start_scans(args.scan_type)
-
-
 
 
 if __name__ == "__main__":
