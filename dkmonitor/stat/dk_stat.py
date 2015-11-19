@@ -21,25 +21,6 @@ from dkmonitor.config.settings_manager import export_settings
 from dkmonitor.utilities.new_db_int import DataBase, UserStats, DirectoryStats
 
 FileTuple = namedtuple('FileTuple', 'file_size last_access')
-"""
-class DkStat:
-    This class is meant to gather stats on a disk or directory
-    It stores stats in a directory object and separate user objects
-    for each user
-
-    def __init__(self, task):
-
-
-        #Input search directory path verification exception
-        try:
-            os.listdir(task["target_path"])
-        except OSError as err:
-            self.logger.error("Directory path: %s is invalid", task["target_path"])
-            raise err
-        except PermissionError as err:
-            self.logger.error("Invalid Permissions to: %s", task["target_path"])
-            raise err
-"""
 
 class DkStat:
     def __init__(self, task):
