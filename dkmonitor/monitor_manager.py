@@ -9,16 +9,17 @@ import threading, argparse, socket
 import sys, os
 sys.path.append(os.path.abspath(".."))
 
-from dkmonitor.utilities.new_db_int import DataBase
 
 from dkmonitor.utilities import log_setup
 from dkmonitor.config.settings_manager import export_settings
 from dkmonitor.config.task_manager import export_tasks
 
-from dkmonitor.stat.dk_stat import scan_store_email, get_disk_use_percent
+from dkmonitor.utilities.new_db_int import clean_data_base
 from dkmonitor.utilities.dk_clean import check_then_clean
+from dkmonitor.stat.dk_stat import scan_store_email, get_disk_use_percent
 
 class ScanTypeNotFound(Exception):
+    """Error thrown when scan type passed to start_scans is invalid"""
     def __init__(self, message):
         super(ScanTypeNotFound, self).__init__(message)
 
@@ -34,9 +35,10 @@ class MonitorManager():
 
         if self.settings["DataBase_Cleaning_Settings"]["purge_database"] == "yes":
             self.logger.info("Cleaning Database")
-            #self.database.clean_data_base(self.settings["DataBase_Cleaning_Settings"]["purge_after_day_number"])
+            clean_data_base(self.settings["DataBase_Cleaning_Settings"]["purge_after_day_number"])
 
     def scan_wrapper(self, scan, task):
+        """Error catching wrapper for quick and full scan fucntions"""
         try:
             print("Running Task: '{}'".format(task["taskname"]))
             scan(task)
@@ -72,7 +74,7 @@ class MonitorManager():
         check_then_clean(task)
 
     def start_scans(self, scan_type="full"):
-        """ """
+        """Starts scans based on thread settings and scantype"""
         if scan_type == "full":
             scan_function = self.full_scan
         elif scan_type == "quick":
@@ -91,13 +93,14 @@ class MonitorManager():
 
 
 def check_host_name(task):
+    """Gets current hostname and compares with a task"""
     host_name = socket.gethostname()
     if host_name == task["hostname"]:
         return True
     return False
 
 def main(args=None):
-    """Runs monitor_manager"""
+    """Monitor Manager Command line interface"""
     if args is None:
         args = sys.argv[1:0]
 

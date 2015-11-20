@@ -3,11 +3,13 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 import datetime
+import argparse
 
 import os, sys
 sys.path.append(os.path.abspath("../.."))
 
 from dkmonitor.emailer.email_obj import Email
+from dkmonitor.config.settings_manager import export_settings
 
 
 Base = declarative_base()
@@ -179,6 +181,108 @@ class DataBase:
     def create_session(self):
         Session = sessionmaker(bind=self.db)
         return Session()
+
+class DataBaseCleaner(DataBase):
+    def __init__(self, db_settings):
+        super().__init__(hostname=db_settings["hostname"],
+                         database=db_settings["database"],
+                         password=db_settings["password"],
+                         username=db_settings["username"],
+                         db_type=db_settings["db_type"])
+
+    def drop_table(self, tablename):
+        meta_data = MetaData()
+        meta_data.reflect(self.db)
+        found_flag = False
+        for table in meta_data.tables.values():
+            if table.name == tablename:
+                table.drop(self.db)
+                found_flag = True
+                print("Table: '{}' dropped".format(table.name))
+        if found_flag is False:
+            print("Table: '{}' not found".format(tablename), file=sys.stderr)
+
+    def drop_all(self):
+        meta_data = MetaData()
+        meta_data.reflect(self.db)
+        for table in meta_data.tables.values():
+            table.drop(self.db)
+            print("Table: '{}' dropped".format(table.name))
+
+    def list_tables(self):
+        meta_data = MetaData()
+        meta_data.reflect(self.db)
+        for table in meta_data.tables.values():
+            print(table.name)
+
+    def clean_table(self, days, tablename):
+        meta_data = MetaData()
+        meta_data.reflect(self.db)
+        too_old = datetime.datetime.now() - datetime.timedelta(days=days)
+        found_flag = False
+        try:
+            for table in reversed(meta_data.sorted_tables):
+                if table.name == tablename:
+                    self.db.execute(table.delete().where(table.columns.datetime <= too_old))
+                    print("Table '{}' was successfully cleaned".format(table.name))
+                    found_flag = True
+        except AttributeError:
+            print("Table '{}' does not have a date column".format(tablename), file=sys.stderr)
+
+        if found_flag is False:
+            print("Table '{}' was not found".format(tablename), file=sys.stderr)
+
+def clean_database(days):
+    database_settings = export_settings()["DataBase_Settings"]
+    database_cleaner = DataBaseCleaner(database_settings)
+    database_cleaner.clean_table(days, "userstats")
+    database_cleaner.clean_table(days, "directorystats")
+
+def get_args(args):
+    parser = argparse.ArgumentParser(description="")
+    subparser = parser.add_subparsers()
+
+    list_parser = subparser.add_parser("list")
+    list_parser.set_defaults(which="list")
+
+    clean_parser = subparser.add_parser("clean")
+    clean_parser.set_defaults(which="clean")
+    clean_parser.add_argument("days", type=int, help="Delete database entries older than days")
+    clean_parser.add_argument("--all", dest="all", action="store_true", help="Delete entries older than days in all tables")
+    clean_parser.add_argument("--table", dest="table_name", type=str, help="Table to clean")
+
+    clear_parser = subparser.add_parser("drop")
+    clear_parser.set_defaults(which="drop")
+    clear_parser.add_argument("--all", dest="all", action="store_true", default=False, help="Clear all tables")
+    clear_parser.add_argument("--table", dest="table_name", type=str, help="Name of table to clear")
+
+    return parser.parse_args(args)
+
+def main(args=None):
+    if args is None:
+        args = sys.argv[1:]
+
+    args = get_args(args)
+    db_settings = export_settings()["DataBase_Settings"]
+    database_cleaner = DataBaseCleaner(db_settings)
+
+    if args.which == "list":
+        database_cleaner.list_tables()
+    if args.which == "drop":
+        if args.all is True:
+            database_cleaner.drop_all()
+        elif args.table_name != None:
+            database_cleaner.drop_table(args.table_name)
+    if args.which == "clean":
+        if args.all is True:
+            database_cleaner.clean_table(args.days, "userstats")
+            database_cleaner.clean_table(args.days, "directorystats")
+        elif args.table_name != None:
+            database_cleaner.clean_table(args.days, args.table_name)
+
+
+
+
 
 
 if __name__ == '__main__':
