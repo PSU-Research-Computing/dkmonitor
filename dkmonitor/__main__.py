@@ -26,12 +26,11 @@ def main(args=None):
 
     try:
         parsed_arg = parser.parse_args([args[0]])
-        which = parsed_arg.which
-        if which == "run":
+        if parsed_arg.which == "run":
             monitor_main(args[1:])
-        elif which == "view":
+        elif parsed_arg.which == "view":
             admin_main(args[1:])
-        elif which == "task":
+        elif parsed_arg.which == "task":
             task_main(args[1:])
     except IndexError:
         print("First argument required (run, view, task)", file=sys.stderr)
