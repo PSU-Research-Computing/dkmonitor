@@ -8,9 +8,6 @@ import argparse
 import sys, os
 sys.path.append(os.path.abspath(".."))
 
-from dkmonitor.utilities.db_interface import DbViewer
-from dkmonitor.config.config_reader import ConfigReader
-
 from dkmonitor.utilities.new_db_int import DataBase, DirectoryStats, UserStats
 from dkmonitor.config.settings_manager import export_settings
 
@@ -61,17 +58,12 @@ class DataBaseViewer(DataBase):
 
 
 class AdminStatViewer(DataBase):
-    def __init__(self,
-                 db_type='postgresql',
-                 hostname='127.0.0.1',
-                 database='postgres',
-                 username='postgres',
-                 password=''):
-        super().__init__(db_type=db_type,
-                         hostname=hostname,
-                         database=database,
-                         username=username,
-                         password=password)
+    def __init__(self, db_settings):
+        super().__init__(hostname=db_settings["hostname"],
+                         database=db_settings["database"],
+                         password=db_settings["password"],
+                         username=db_settings["username"],
+                         db_type=db_settings["db_type"])
 
     def print_color_key(self):
         """Print the color key"""
@@ -133,36 +125,43 @@ class AdminStatViewer(DataBase):
         DbViewer object from the dkmonitor database
         """
 
-        #session = self.create_session()
-        #for disk in session.query(DirectoryStats).filter(DirectoryStats.hostname==hostname).distinct().all()]
+        session = self.create_session()
+        disks_on_system = [disk[0] for disk in session.query(DirectoryStats.target_path).filter(DirectoryStats.hostname==hostname).distinct()]
+        system_disk_stats = []
+        for disk in disks_on_system:
+            system_disk_stats.append(session.query(DirectoryStats).filter(DirectoryStats.hostname==hostname).filter(DirectoryStats.target_path==disk).order_by(DirectoryStats.datetime.desc()).limit(2).all())
 
         self.print_color_key()
-        system_stats = self.get_system_stats(system_host_name)
-        if system_stats != {}:
-            print("System Name: {}".format(hostname))
-            for disk, d_stats in system_stats["disks"].items():
-                print("|Disk Name: {}".format(disk))
-                if d_stats['disk_stats'][5] > 1:
-                    colored_size = termcolor.colored(str(round(d_stats['disk_stats'][3]/1024/1024/1024, 2)), "red")
-                elif d_stats['disk_stats'][5] > 1:
-                    colored_size = termcolor.colored(str(round(d_stats['disk_stats'][3]/1024/1024/1024, 2)), "yellow")
-                else:
-                    colored_size = termcolor.colored(str(round(d_stats['disk_stats'][3]/1024/1024/1024, 2)), "green")
-                print("||Total File Size    : {} GB".format(colored_size))
+        if system_disk_stats != []:
+            print("System Name        : {}".format(hostname))
+            for disk in system_disk_stats:
+                print("|Disk Name         : {}".format(disk[0].target_path))
 
-                if d_stats['disk_stats'][7] > 1:
-                    colored_access = termcolor.colored(str(round(d_stats['disk_stats'][6], 2)), "red")
-                elif d_stats['disk_stats'][7] == 1:
-                    colored_access = termcolor.colored(str(round(d_stats['disk_stats'][6], 2)), "yellow")
-                else:
-                    colored_access = termcolor.colored(str(round(d_stats['disk_stats'][6], 2)), "green")
-                print("||Average File Age: {} days".format(colored_access))
+                size_change = disk[0].total_file_size / disk[1].total_file_size
+                color = self.get_color(size_change)
+                colored_size = termcolor.colored(str(round(disk[0].total_file_size/1024/1024/1024, 2)), color)
+                print("||Total File Size  : {} GB".format(colored_size))
 
-                print("|Users on: {}".format(disk))
-                for user in d_stats["users"]:
-                    print("|| {}".format(user))
+                age_change = disk[0].average_file_age / disk[1].average_file_age
+                color = self.get_color(age_change)
+                colored_access = termcolor.colored(str(round(disk[0].average_file_age, 2)), color)
+                print("||Average File Age : {} days".format(colored_access))
+
+                print("|Users on: {}".format(disk[0].target_path))
+                for username in session.query(UserStats.username).filter(UserStats.hostname==hostname).filter(UserStats.target_path==disk[0].target_path).distinct():
+                    print("|| {}".format(username[0]))
         else:
             print("System Not Found")
+
+    def get_color(self, difference):
+        if difference > 1:
+            color = "green"
+        elif difference == 1:
+            color = "yellow"
+        elif difference < 1:
+            color = "red"
+        return color
+
 
     def display_users(self):
         """Displays all users"""
@@ -208,7 +207,8 @@ def main(args=None):
     if args is None:
         args = sys.argv[1:]
 
-    admin_int = AdminInterface()
+    db_settings = export_settings()["DataBase_Settings"]
+    admin_int = AdminStatViewer(db_settings)
     args = get_args(args)
 
     if args.which == "system":
@@ -226,8 +226,8 @@ def main(args=None):
 
 
 if __name__ == "__main__":
-    settings = export_settings()
-    adminviewer = AdminStatViewer(**settings["DataBase_Settings"])
-    adminviewer.display_lastest("circe.rc.pdx.edu")
-    #main()
+    #settings = export_settings()
+    #adminviewer = AdminStatViewer(**settings["DataBase_Settings"])
+    #adminviewer.display_lastest("circe.rc.pdx.edu")
+    main()
 
