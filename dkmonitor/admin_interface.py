@@ -11,58 +11,6 @@ sys.path.append(os.path.abspath(".."))
 from dkmonitor.utilities.new_db_int import DataBase, DirectoryStats, UserStats
 from dkmonitor.config.settings_manager import export_settings
 
-class DataBaseViewer(DataBase):
-
-    def __init__(self,
-                 db_type='postgresql',
-                 hostname='127.0.0.1',
-                 database='postgres',
-                 username='postgres',
-                 password=''):
-        super().__init__(db_type=db_type,
-                         hostname=hostname,
-                         database=database,
-                         username=username,
-                         password=password)
-
-    def get_all_users(self): ##
-        session = self.create_session()
-        return [username for username in session.query(UserStats.username).distinct()]
-
-    def get_users_on_system(self, hostname):
-        session = self.create_session()
-        return [username for username in session.query(UserStats.username).filter(UserStats.hostname==hostname).distinct()]
-
-    def get_users_on_system_disk(self, hostname, diskname):
-        session = self.create_session()
-        return [username for username in session.query(UserStats.username).filter(UserStats.hostname==hostname).filter(UserStats.target_path==diskname).distinct()]
-
-    def get_user_stats(self, username):
-        pass
-
-    def get_all_systems(self): ##
-        session = self.create_session()
-        return [hostname for hostname in session.query(DirectoryStats.hostname).distinct()]
-
-    def get_all_disks_on_system(self, hostname):
-        session = self.create_session()
-        return [disk for disk in session.query(DirectoryStats.target_path).filter(DirectoryStats.hostname==hostname).distinct()]
-
-    def get_all_disks_on_all_systems(self):
-        session = self.create_session()
-        return [disk for disk in session.query(DirectoryStats.target_path).distinct()]
-
-    def get_agregate_system_stats(self):
-        disks = self.get_all_disks_on_all_systems()
-
-    def display_lastest(self, hostname):
-        session = self.create_session()
-        obj = session.query(DirectoryStats).order_by(DirectoryStats.datetime.desc()).limit(2).all()
-        for row in obj:
-            for column in row.__table__.columns:
-                print(column.name)
-                print(getattr(row, column.name))
-
 
 class AdminStatViewer(DataBase):
     def __init__(self, db_settings):
