@@ -85,7 +85,4 @@ setup(name="dkmonitor",
       install_requires=["psycopg2", "termcolor"],
       long_description="long_description",
       cmdclass={'install': BuildDkm},
-      entry_points={"console_scripts": ["dkmonitor=dkmonitor.monitor_manager:main",
-                                        "create_database=dkmonitor.utilities.create_db:main",
-                                        "dkviewer=dkmonitor.admin_interface:main",
-                                        "dktask=dkmonitor.config.settings_file_generator:main"],})
+      entry_points={"console_scripts": ["dkmonitor=dkmonitor.__main__:main"],})
