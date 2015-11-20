@@ -9,7 +9,6 @@ import threading, argparse, socket
 import sys, os
 sys.path.append(os.path.abspath(".."))
 
-
 from dkmonitor.utilities import log_setup
 from dkmonitor.config.settings_manager import export_settings
 from dkmonitor.config.task_manager import export_tasks
