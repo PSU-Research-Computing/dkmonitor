@@ -1,7 +1,7 @@
 import argparse
-import sys, os
-#sys.path.append(os.path.realpath(__file__)[:os.path.realpath(__file__).rfind("/")] + "/")
 from sqlalchemy.exc import InvalidRequestError, DataError
+
+import sys, os
 sys.path.append(os.path.abspath("../.."))
 
 from dkmonitor.utilities.new_db_int import Tasks, DataBase
