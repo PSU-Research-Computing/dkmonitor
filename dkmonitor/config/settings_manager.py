@@ -28,11 +28,9 @@ def load_settings():
             file_not_found = True
 
     if (len(raw_settings) == 1) or (file_not_found is True):
-        #print("No setting file found at /etc/dkmonitor.conf, checking ~/.dkmonitor/settings.cfg", file=sys.stderr)
         raw_settings.read(os.path.expanduser("~/.dkmonitor/settings.conf"))
 
     if (len(raw_settings) == 1):
-        #print("No settings file found at ~/.dkmonitor/settings.conf, checking DKM_CONF", file=sys.stderr)
         try:
             raw_settings.read(os.path.join(os.environ["DKM_CONF"], "settings.cfg"))
         except KeyError as e:
