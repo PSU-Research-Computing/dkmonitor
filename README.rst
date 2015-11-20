@@ -21,7 +21,7 @@ Installation and Setup:
 **Requirements:**
 
 1. Python 3 
-2. A postgresql database
+2. A SQL database
 
 **Dependencies:**
 
@@ -33,7 +33,7 @@ Installation and Setup:
 
 1. Install dkmonitor with setuptools
 2. Export config and log path variables in profile
-3. Setup ``postgresql`` Database
+3. Create Database
 4. Setup config files
 5. Set ``cron`` jobs
 
@@ -47,7 +47,7 @@ To install ``dkmonitor`` with default configurations first clone the repo, then 
 This does two things:
 
 1. Installs dkmonitor and its dependcies to your current python version
-2. Creates a directory called dkmonitor in ~/.dkmonitor/ where it will generate the settings files with default settings and store log files
+2. Creates a directory called dkmonitor in ~/.dkmonitor/ (/etc/dkmonitor and /var/log/dkmonitor if you are root) where it will save a settings file with default settings and store log files
 
 If you want to specify your own config and log file locations you can use one of these two options:
 
@@ -60,66 +60,45 @@ Example: ::
 
 
 **Exporting Config and Log path variables:**
-After you have successfuly installed dkmonitor you need to export the config and log file path variables.
+If you chose a different location to store your settings or log files you will need to export that path in your environment.
 
 When ``dkmonitor`` is done installing it will output the two lines you need to add to your ``profile`` or ``rc`` (``.bashrc, .zshrc``) file.
 
 **Setup postgresql database:**
-Run the ``create_database`` command to create your postgres database: ::
-    
-    $> create_database --username <user> --password <your-password> --database <database-name> host <db-hostname>
-
-The following arguments are optional:
-
-1. --username
-2. --password
-3. --database
-
-Run ``$> create_database -h`` for more info
+Create your database with the standard method of the database type you are using. After you create the database, fill out the DataBase_Settings in the settings.cfg file.
 
 **Setup configuration files:**
 Go to the location of your ``dkmonitor's`` config directory and follow the instructions below:
 
-1. setup ``general_settings.cfg``:
-
-   a. Add the login credentails you used to setup the database with create_db to the Database_Settings section.
-   b. Add a user_postfix to email settings to setup email notifications
-      user_postfix will be the second half of the users email address after the @ and their user name is the first half
-      Example: ::
+In ``settings.cfg``:
+1. Add the login credentails you used to setup the database with create_db to the Database_Settings section.
+2. Add a user_postfix to email settings to setup email notifications
+   user_postfix will be the second half of the users email address after the @ and their user name is the first half
+   Example: ::
 
            Email address: username@gmail.com
            Unix username: username
            User postfix: gmail.com
 
-      This setting is designed for university systems where unix usernames are the first half of the user's email address
-   c. Change other default settings accordingly
-
-2. setup task files:
-   
-    Notes:
-
-   - A ``task`` file specifies the settings used to monitor one disk or directory
-   - You can have multiple task files to monitor more than one disk or directory
-
-
-   Instructions:
-
-   a. Set ``system_host_name`` to the host name of the system you want to run it on.
-      If the ``system_host_name`` is incorrect the task will not run
-   
-   b. Set directory_path to the directory you want to search
-   c. Set other settings accordingly
+   This setting is designed for university systems where unix usernames are the first half of the user's email address
+c. Change other default settings accordingly
 
 **Creating New Tasks:**
-Use the ``dktask`` utility to create new empty task files. ``dktask`` gives you several options on where you want the new file stored
+There are two ways you can easily create tasks without touching the sql database, both using the ``dkmonitor task`` interface.
 
-Example: ::
+1. Captive interface:
+   The captive interface walks you through task creation one setting at a time
+   to use the captive interface run: ::
 
-    $> dktask default //creates blank task file in the directory you set to store you task files (DKM_CONF)
-    
-    $> dktask file_name <filename> //creates a task in the default location with the file name you specify
+    $> dkmonitor task creation_interface
 
-    $> dktask full_path </path/to/task/taskname> //creates a task file in the specifed location
+2. Command:
+   You can also use a command to create a task. This can be a little trickier because there are a fair amount of settings.
+   For more information run: ::
+
+    $> dkmonitor task creation_command -h
+
+``dkmonitor task`` can also be used to display, edit, and delete tasks.
 
 **Set cron Jobs:**
 ``cron`` Jobs are used to run ``dkmonitor's`` scans periodically without having dkmonitor run in the background as a deamon.
@@ -134,28 +113,37 @@ However, any cron configuration should work
 
 To run a scan run the command: ::
 
-    $> dkmonitor full
+    $> dkmonitor run full
 
 or ::
     
-    $> dkmonitor quick
+    $> dkmonitor run quick
 
-``dkmonitor`` will only perform the tasks where ``system_host_name`` is the same as the machine's hostname.
+``dkmonitor`` will only perform the tasks where `'hostname`` is the same as the machine's hostname.
 
 
-dkviewer:
-=========
+View Command:
+=============
 
-``dkviewer`` is a command line utility that allows you to view the gathered statistics stored in your postgresql database.
-``dkviewer`` will have many more viewing options in the future.
+``dkmonitor view`` is a command line utility that allows you to view the gathered statistics stored in your database.
+``dkmonitor view`` will have many more viewing options in the future.
 
 Usage: ::
 
-    $> dkviewer all <users/systems> // displays all current users or systems in the database
+    $> dkmonitor view all <users/systems> // displays all current users or systems in the database
 
-    $> dkviewer user <username> //displays information about specific user (data usage, access average)
+    $> dkmonitor view user <username> //displays information about specific user (data usage, access average)
 
-    $> dkviewer system <systemname> //displays information about the system usage including all users on the system
+    $> dkmonitor view system <systemname> //displays information about the system usage including all users on the system
+
+
+DataBase Command:
+=================
+
+``dkmonitor database`` is a command that allows your to list, drop, and clean tables in your dkmonitor database without ever touching your database directly
+
+For more information run: ::
+    $> dkmonitor database -h 
 
 
 Example Emails:
