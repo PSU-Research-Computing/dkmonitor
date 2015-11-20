@@ -1,6 +1,4 @@
 import configparser
-from configparser import NoOptionError
-from configparser import NoSectionError
 
 import sys, os
 sys.path.append(os.path.abspath("../.."))
