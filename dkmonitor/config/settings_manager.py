@@ -3,7 +3,7 @@ from configparser import NoOptionError
 from configparser import NoSectionError
 
 import sys, os
-sys.path.append(os.path.realpath(__file__)[:os.path.realpath(__file__).rfind("/")] + "/")
+sys.path.append(os.path.abspath("../.."))
 
 from dkmonitor.utilities.log_setup import setup_logger
 
