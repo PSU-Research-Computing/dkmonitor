@@ -8,6 +8,7 @@ from dkmonitor.utilities.new_db_int import Tasks, DataBase
 from dkmonitor.config.settings_manager import export_settings
 
 class TaskDataBase(DataBase):
+    """An interface used to create, display, edit, remove, and list tasks"""
     def __init__(self, db_settings):
         super().__init__(hostname=db_settings["hostname"],
                          database=db_settings["database"],
@@ -16,11 +17,13 @@ class TaskDataBase(DataBase):
                          db_type=db_settings["db_type"])
 
     def get_all_tasks(self):
+        """Gets a list of all tasks"""
         session = self.create_session()
         tasks = session.query(Tasks).all()
         return tasks
 
     def get_task_info(self, taskname):
+        """Gets a task row based on task name"""
         session = self.create_session()
         task = session.query(Tasks).filter(Tasks.taskname==taskname).all()
         task_info = {}
@@ -35,6 +38,7 @@ class TaskDataBase(DataBase):
 
     ##INTERFACE METHODS
     def display_task_info(self, taskname):
+        """Displays task varibales to console based on a taskname"""
         task_info = self.get_task_info(taskname)
         display_format = """Task_Name: {taskname}
         Host_Name: {hostname}
@@ -66,6 +70,7 @@ class TaskDataBase(DataBase):
             print("No tasks found", file=sys.stderr)
 
     def remove_task(self, taskname):
+        """Removes a task forthe database"""
         session = self.create_session()
         if session.query(Tasks).filter(Tasks.taskname==taskname).delete() == 1:
             session.commit()
@@ -74,6 +79,7 @@ class TaskDataBase(DataBase):
             print("Task '{}' does not exist".format(taskname), file=sys.stderr)
 
     def update_column(self, taskname, column_name, update_value):
+        """Changes a column value in an existing row"""
         session = self.create_session()
         try:
             if session.query(Tasks).filter(Tasks.taskname==taskname).update({column_name: update_value}) == 1:
@@ -87,8 +93,24 @@ class TaskDataBase(DataBase):
             print("Value {} is incorrect type".format(update_value))
 
 
+def parse_create_command(args):
+    """Creates a new task from command line arguments"""
+    new_task = Tasks(taskname=args.taskname,
+                     hostname=args.hostname,
+                     target_path=args.target_path,
+                     relocation_path=args.relocation_path,
+                     delete_old_files=args.delete_old_files,
+                     delete_when_full=args.delete_when_full,
+                     usage_warning_threshold=args.usage_warning_threshold,
+                     usage_critical_threshold=args.usage_critical_threshold,
+                     old_file_threshold=args.old_file_threshold,
+                     email_usage_warnings=args.email_usage_warnings,
+                     email_data_alterations=args.email_data_alterations,
+                     email_top_percent=args.email_top_percent)
+    return new_task
 
 def creation_interface():
+    """Captive interface for creating a new task"""
     task_input = {"taskname":"",
                   "hostname":"",
                   "target_path":"",
@@ -145,25 +167,57 @@ def creation_interface():
                      enabled=task_input["enabled"])
     return new_task
 
-#TODO Should probably clean up the names so they are all the same
+###UTILITY INPUT FUNCTIONS FOR CREATION INTERFACE###########
+def read_int(question):
+    """Reads an int, will not exit unless int is entered"""
+    while True:
+        raw_in = input(question)
+        if raw_in.isdigit():
+            return int(raw_in)
+        else:
+            print("Please enter an integer")
 
-def parse_create_command(args):
-    new_task = Tasks(taskname=args.taskname,
-                     hostname=args.hostname,
-                     target_path=args.target_path,
-                     relocation_path=args.relocation_path,
-                     delete_old_files=args.delete_old_files,
-                     delete_when_full=args.delete_when_full,
-                     usage_warning_threshold=args.usage_warning_threshold,
-                     usage_critical_threshold=args.usage_critical_threshold,
-                     old_file_threshold=args.old_file_threshold,
-                     email_usage_warnings=args.email_usage_warnings,
-                     email_data_alterations=args.email_data_alterations,
-                     email_top_percent=args.email_top_percent)
-    return new_task
+def read_percent(question):
+    """Reads in a percent, will not exit unless value is between 1 and 100"""
+    while True:
+        raw_in = input(question)
+        if (raw_in.isdigit()) and (int(raw_in) in range(100)):
+            return int(raw_in)
+        else:
+            print("Please enter an integer between 1 and 100")
 
+
+def read_bool(question):
+    """Reads in boolean, will not exit unless y or n is entered"""
+    while True:
+        raw_in = input(question)
+        if raw_in.lower() == 'y':
+            return True
+        elif raw_in.lower() == 'n':
+            return False
+        else:
+            print("Please enter either 'y' or 'n'")
+##############################################################
+
+def export_tasks():
+    """Exports tasks from database in a dictionary"""
+    settings = export_settings()
+    taskdb = TaskDataBase(settings["DataBase_Settings"])
+    raw_tasks = taskdb.get_all_tasks()
+    formatted_tasks = {}
+    try:
+        for task in raw_tasks:
+            task_info = {}
+            for column in task.__table__.columns:
+                task_info[column.name] = getattr(task, column.name)
+            formatted_tasks[task.taskname] = task_info
+
+        return formatted_tasks
+    except IndexError as e:
+        return None
 
 def get_args(args):
+    """Defines arguments for command line"""
     description = ""
     parser = argparse.ArgumentParser(description=description)
 
@@ -258,7 +312,9 @@ def get_args(args):
 
     return parser.parse_args(args)
 
+
 def main(args=None):
+    """Commandline interface"""
     if args is None:
         args = sys.argv[1:]
     args = get_args(args)
@@ -281,51 +337,6 @@ def main(args=None):
         taskdb.update_column(args.ditaskname, "enabled", False)
     elif args.which == "edit":
         taskdb.update_column(args.edtaskname, args.column_name.lower(), args.update_value)
-
-def export_tasks():
-    settings = export_settings()
-    taskdb = TaskDataBase(settings["DataBase_Settings"])
-    raw_tasks = taskdb.get_all_tasks()
-    formatted_tasks = {}
-    try:
-        for task in raw_tasks:
-            task_info = {}
-            for column in task.__table__.columns:
-                task_info[column.name] = getattr(task, column.name)
-            formatted_tasks[task.taskname] = task_info
-
-        return formatted_tasks
-    except IndexError as e:
-        return None
-
-
-###UTILITY INPUT FUNCTIONS###########
-def read_int(question):
-    while True:
-        raw_in = input(question)
-        if raw_in.isdigit():
-            return int(raw_in)
-        else:
-            print("Please enter an integer")
-
-def read_percent(question):
-    while True:
-        raw_in = input(question)
-        if (raw_in.isdigit()) and (int(raw_in) in range(100)):
-            return int(raw_in)
-        else:
-            print("Please enter an integer between 1 and 100")
-
-
-def read_bool(question):
-    while True:
-        raw_in = input(question)
-        if raw_in.lower() == 'y':
-            return True
-        elif raw_in.lower() == 'n':
-            return False
-        else:
-            print("Please enter either 'y' or 'n'")
 
 
 if __name__ == "__main__":
