@@ -5,11 +5,8 @@ from distutils.errors import DistutilsOptionError
 from setuptools import setup, find_packages
 from setuptools.command.install import install
 
-import sys
-import os
-sys.path.append(os.path.abspath("."))
-
-from dkmonitor.config.settings_file_generator import generate_config_files
+import shutil
+import os, sys
 
 long_description = "open file here"
 
@@ -42,25 +39,25 @@ class BuildDkm(install):
             if self.conf_path is not None:
                 raise DistutilsOptionError("Cannot combine conf-path and root-path options")
 
-            self.root_path = os.path.abspath(os.path.expanduser(self.root_path) + "/dkmonitor/")
-            self.log_path = self.root_path + "/log/"
-            self.conf_path = self.root_path + "/conf/"
+            self.root_path = os.path.abspath(os.path.join(os.path.expanduser(self.root_path), "dkmonitor")
+            self.log_path = os.path.join(self.root_path, "log")
+            self.conf_path = os.path.join(self.root_path, "conf")
 
     def run(self):
         try:
             print("creating config and log directories")
             if self.root_path is None:
                 os.makedirs(self.log_path)
-                os.makedirs(self.conf_path + "/tasks/")
+                os.makedirs(self.conf_path)
+                shutil.copyfile("./dkmonitor/config/settings.cfg", conf_path)
             else:
                 os.makedirs(self.root_path)
-                os.makedirs(self.conf_path + "/tasks/")
+                os.makedirs(self.conf_path)
+                shutil.copyfile("./dkmonitor/config/settings.cfg", conf_path)
                 os.mkdir(self.log_path)
         except OSError:
             print("warning: conf and log paths exist")
 
-
-        generate_config_files(self.conf_path, "dkmonitor/config/settings_configurations.json")
 
         #install.run(self)
         install.do_egg_install(self)
@@ -79,9 +76,8 @@ setup(name="dkmonitor",
       license="MIT",
       author="William Patterson",
       packages=find_packages(),
-      package_data={'dkmonitor.config': ['*.json'],
-                    'dkmonitor.emailer.messages': ['*.txt'],
-                    'dkmonitor.utilities': ['*.sql']},
+      package_data={'dkmonitor.config': ['*.cfg'],
+                    'dkmonitor.emailer.messages': ['*.txt']},
       install_requires=["psycopg2", "termcolor"],
       long_description="long_description",
       cmdclass={'install': BuildDkm},
