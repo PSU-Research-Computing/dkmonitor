@@ -248,13 +248,15 @@ def get_args(args):
     clean_parser = subparser.add_parser("clean")
     clean_parser.set_defaults(which="clean")
     clean_parser.add_argument("days", type=int, help="Delete database entries older than days")
-    clean_parser.add_argument("--all", dest="all", action="store_true", help="Delete entries older than days in all tables")
-    clean_parser.add_argument("--table", dest="table_name", type=str, help="Table to clean")
+    clean_name_group = clean_parser.add_mutually_exclusive_group()
+    clean_name_group.add_argument("--all", dest="all", action="store_true", help="Delete entries older than days in all tables")
+    clean_name_group.add_argument("--table", dest="table_name", type=str, help="Table to clean")
 
     clear_parser = subparser.add_parser("drop")
     clear_parser.set_defaults(which="drop")
-    clear_parser.add_argument("--all", dest="all", action="store_true", default=False, help="Clear all tables")
-    clear_parser.add_argument("--table", dest="table_name", type=str, help="Name of table to clear")
+    clear_name_group = clear_parser.add_mutually_exclusive_group()
+    clear_name_group.add_argument("--all", dest="all", action="store_true", default=False, help="Clear all tables")
+    clear_name_group.add_argument("--table", dest="table_name", type=str, help="Name of table to clear")
 
     return parser.parse_args(args)
 
