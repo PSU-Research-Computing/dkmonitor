@@ -177,7 +177,7 @@ class AdminStatViewer(DataBase):
             print(hostname)
 
 
-def get_args():
+def get_args(args):
     """Gets args from argparse"""
 
     description = """
@@ -199,14 +199,17 @@ def get_args():
     all_parser.set_defaults(which="all")
     all_parser.add_argument("display_name", help="Name of system or user you want to search for")
 
-    return parser.parse_args()
+    return parser.parse_args(args)
 
 
-def main():
+def main(args=None):
     """Main function that runs the command line interface"""
 
+    if args is None:
+        args = sys.argv[1:]
+
     admin_int = AdminInterface()
-    args = get_args()
+    args = get_args(args)
 
     if args.which == "system":
         admin_int.display_system(args.system_host_name)

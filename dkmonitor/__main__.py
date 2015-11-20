@@ -5,6 +5,7 @@ sys.path.append(os.path.abspath(".."))
 
 from dkmonitor.monitor_manager import main as monitor_main
 from dkmonitor.config.task_manager import main as task_main
+from dkmonitor.admin_interface import main as admin_main
 
 
 def main(args=None):
@@ -31,7 +32,7 @@ def main(args=None):
         if which == "run":
             monitor_main(args[1:])
         elif which == "view":
-            pass
+            admin_main(args[1:])
         elif which == "task":
             task_main(args[1:])
     except IndexError:
