@@ -140,6 +140,7 @@ class Tasks(Base):
     email_usage_warnings = Column("email_usage_warnings", Boolean)
     email_data_alterations = Column("email_data_alterations", Boolean)
     email_top_percent = Column("email_top_percent", Integer)
+    enabled = Column("enabled", Boolean)
 
 
 class DataBase:

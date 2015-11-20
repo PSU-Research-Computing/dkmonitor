@@ -81,7 +81,7 @@ class MonitorManager():
             raise ScanTypeNotFound("Scan type '{}' was not found".format(scan_type))
 
         for key, task in list(self.tasks.items()):
-            if check_host_name(task) is True:
+            if (check_host_name(task) is True) and (task["enabled"] is True):
                 if self.settings["Thread_Settings"]["thread_mode"] == "yes":
                     thread = threading.Thread(target=self.scan_wrapper, args=(scan_function,task,))
                     thread.daemon = False

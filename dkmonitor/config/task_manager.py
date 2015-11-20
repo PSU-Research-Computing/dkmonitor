@@ -46,7 +46,8 @@ class TaskDataBase(DataBase):
         Old File Threshold: {old_file_threshold} days
         Email Usage Warnings: {email_usage_warnings}
         Email Data Alerations: {email_data_alterations}
-        Email Top Percent: {email_top_percent} %"""
+        Email Top Percent: {email_top_percent} %
+        Enabled: {enabled}"""
 
         if task_info is not None:
             print(display_format.format(**task_info))
@@ -71,6 +72,16 @@ class TaskDataBase(DataBase):
         else:
             print("Task '{}' does not exist".format(taskname), file=sys.stderr)
 
+    def enable_task(self, taskname, flag):
+        session = self.create_session()
+        if session.query(Tasks).filter(Tasks.taskname==taskname).update({"enabled": flag}) == 1:
+            session.commit()
+            print("Task '{}' was disabled".format(taskname))
+        else:
+            print("Task '{}' does not exist".format(taskname))
+
+
+
 def creation_interface():
     task_input = {"taskname":"",
                   "hostname":"",
@@ -83,7 +94,8 @@ def creation_interface():
                   "old_file_threshold":0,
                   "email_usage_warnings":False,
                   "email_top_percent":0,
-                  "email_data_alterations":False}
+                  "email_data_alterations":False,
+                  "enabled":True}
 
     task_input["taskname"] = input("Task name(unique): ")
     task_input["hostname"] = input("Target hostname: ")
@@ -110,6 +122,8 @@ def creation_interface():
     if (relocate_old is True) or (task_input["delete_old_files"] is True):
         task_input["email_data_alterations"] = read_bool("Send emails when data has been altered?(y/n): ")
 
+    task_input["enabled"] = read_bool("Would you like to enable this task?(y/n): ")
+
     new_task = Tasks(taskname=task_input["taskname"],
                      hostname=task_input["hostname"],
                      target_path=task_input["target_path"],
@@ -121,7 +135,8 @@ def creation_interface():
                      old_file_threshold=task_input["old_file_threshold"],
                      email_usage_warnings=task_input["email_usage_warnings"],
                      email_data_alterations=task_input["email_data_alterations"],
-                     email_top_percent=task_input["email_top_percent"])
+                     email_top_percent=task_input["email_top_percent"],
+                     enabled=task_input["enabled"])
     return new_task
 
 #TODO Should probably clean up the names so they are all the same
@@ -206,6 +221,9 @@ def get_args(args):
                                        type=int,
                                        default=25,
                                        help="Percent of users to flag as top users")
+    create_command_parser.add_argument("--disabled",
+                                       action="store_true",
+                                       help="Use this flag to disable the task you are creating")
 
     list_parser = subparsers.add_parser("list")
     list_parser.set_defaults(which="list")
@@ -217,6 +235,14 @@ def get_args(args):
     remove_parser = subparsers.add_parser("remove")
     remove_parser.set_defaults(which="remove")
     remove_parser.add_argument("rtaskname", help="Name of task to remove")
+
+    enable_parser = subparsers.add_parser("enable")
+    enable_parser.set_defaults(which="enable")
+    enable_parser.add_argument("etaskname", help="Name of task to enable")
+
+    disable_parser = subparsers.add_parser("disable")
+    disable_parser.set_defaults(which="disable")
+    disable_parser.add_argument("ditaskname", help="Name of task to disable")
 
     return parser.parse_args(args)
 
@@ -237,6 +263,10 @@ def main(args=None):
         taskdb.display_task_info(args.dtaskname)
     elif args.which == "remove":
         taskdb.remove_task(args.rtaskname)
+    elif args.which == "enable":
+        taskdb.enable_task(args.etaskname, True)
+    elif args.which == "disable":
+        taskdb.enable_task(args.ditaskname, False)
 
 def export_tasks():
     settings = export_settings()
