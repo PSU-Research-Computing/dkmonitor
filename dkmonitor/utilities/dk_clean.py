@@ -11,6 +11,7 @@ sys.path.append(os.path.abspath("../.."))
 
 from dkmonitor.utilities import log_setup
 from dkmonitor.stat.dir_scan import dir_scan
+from dkmonitor.stat.dk_stat import get_disk_use_percent
 from dkmonitor.config.settings_manager import export_settings
 
 class DkClean:
@@ -131,5 +132,27 @@ class DkClean:
         while not self.que.empty():
             file_path = self.que.get()
             clean_function(path[1])
+
+
+def check_then_clean(task):
+    if (task["relocation_path"] != "") or (task["delete_old_files"] is True):
+        print("Checking if disk: '{}' needs to be cleaned".format(task["target_path"]))
+
+        disk_use = get_disk_use_percent(task["target_path"])
+        if disk_use > task["usage_critical_threshold"]:
+            clean_obj = DkClean(task)
+            if task["relocation_path"] != "":
+                clean_function = clean_obj.move_file
+            elif task["delete_old_files"] is True:
+                clean_function = clean_obj.delete_file
+            else:
+                #TODO Raise Error for incorrect settings
+                pass
+            if clean_obj.thread_settings["thread_mode"] == 'yes':
+                clean_obj.clean_disk_threaded(clean_function)
+            else:
+                clean_obj.clean_disk_iterative(clean_function)
+        else:
+            print("Disk: '{}' does not need to be cleaned".format(task["target_path"]))
 
 

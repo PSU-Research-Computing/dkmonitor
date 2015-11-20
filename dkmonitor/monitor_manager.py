@@ -10,13 +10,13 @@ import sys, os
 sys.path.append(os.path.abspath(".."))
 
 from dkmonitor.utilities.new_db_int import DataBase
-from dkmonitor.utilities.dk_clean import DkClean
 
 from dkmonitor.utilities import log_setup
 from dkmonitor.config.settings_manager import export_settings
 from dkmonitor.config.task_manager import export_tasks
 
 from dkmonitor.stat.dk_stat import scan_store_email, get_disk_use_percent
+from dkmonitor.utilities.dk_clean import check_then_clean
 
 class ScanTypeNotFound(Exception):
     def __init__(self, message):
@@ -58,7 +58,7 @@ class MonitorManager():
         disk_use = get_disk_use_percent(task["target_path"])
         if disk_use > task["usage_warning_threshold"]:
             scan_store_email(task)
-            self.check_then_clean(task)
+            check_then_clean(task)
 
     def full_scan(self, task):
         """
@@ -69,19 +69,7 @@ class MonitorManager():
         print("Starting Full Scan of: {}".format(task["target_path"]))
 
         scan_store_email(task)
-        self.check_then_clean(task)
-
-
-    def check_then_clean(self, task):
-        if (task["relocation_path"] != "") or (task["delete_old_files"] is True):
-            print("Checking if disk: '{}' needs to be cleaned".format(task["target_path"]))
-
-            disk_use = get_disk_use_percent(task["target_path"])
-            if disk_use > task["usage_critical_threshold"]:
-                clean_obj = DkClean(task)
-                clean_obj.clean_disk()
-            else:
-                print("Disk: '{}' does not need to be cleaned".format(task["target_path"]))
+        check_then_clean(task)
 
     def start_scans(self, scan_type="full"):
         """ """
@@ -108,7 +96,6 @@ def check_host_name(task):
         return True
     return False
 
-
 def main(args=None):
     """Runs monitor_manager"""
     if args is None:
@@ -119,7 +106,6 @@ def main(args=None):
     parser.add_argument("scan_type", help="Specify scan type: 'quick' or 'full'")
     args = parser.parse_args(args)
     monitor.start_scans(args.scan_type)
-
 
 if __name__ == "__main__":
     main()
