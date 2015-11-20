@@ -4,17 +4,15 @@ This script is indented to be run as a cron job to monitor actions on any
 given disk or directory that is set by the adminstrator
 """
 
-import threading
-import argparse
-import socket
+import threading, argparse, socket
 
 import sys, os
 sys.path.append(os.path.abspath(".."))
 
 from dkmonitor.utilities.new_db_int import DataBase
 from dkmonitor.utilities.dk_clean import DkClean
-from dkmonitor.utilities import log_setup
 
+from dkmonitor.utilities import log_setup
 from dkmonitor.config.settings_manager import export_settings
 from dkmonitor.config.task_manager import export_tasks
 
