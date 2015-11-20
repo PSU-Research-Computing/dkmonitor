@@ -1,6 +1,7 @@
 from sqlalchemy import *
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+
 import datetime
 
 import os, sys
@@ -85,26 +86,21 @@ class UserStats(StatObj, Base):
             send_flag = False
             if task["email_usage_warnings"] is True:
 
-                print (email_info)
                 address = email_info["username"] + "@" + postfix
                 message = Email(address, email_info)
 
                 if self.username in problem_lists[0]:
                     message.add_message("top_use_warning.txt", email_info)
-                    pass
                 if self.username in problem_lists[1]:
                     message.add_message("top_old_warning.txt", email_info)
-                    pass
                 send_flag = True
 
             if task["email_data_alterations"] is True:
                 if self.number_of_old_files > 0:
                     if current_use > task["usage_critical_threshold"]:
                         message.add_message("file_move_notice.txt", email_info)
-                        pass
                     else:
                         message.add_message("file_move_warning.txt", email_info)
-                        pass
 
                     send_flag = True
 
@@ -113,20 +109,10 @@ class UserStats(StatObj, Base):
                 print("Sending Message")
 
 
-    def create_message(self, postfix):
-        """Creates message to be sent to user
-
-        address = self.column_dict["user_name"] + "@" + postfix
-        message = Email(address, self.collumn_dict)
-
-        return message"""
-        pass 
-
     def build_email_stats(self, task):
         email_info = {}
         for column in self.__table__.columns:
             email_info[column.name] = getattr(self, column.name)
-            print(getattr(self, column.name))
 
         stats_vars = {"total_old_file_size": self.total_file_size_count,
                       "number_of_old_files": self.number_of_old_files_count,
