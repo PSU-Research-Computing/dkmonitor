@@ -25,15 +25,15 @@ Installation and Setup:
 
 **Dependencies:**
 
-1. psycopg2
+1. sqlalchemy
 2. termcolor
 3. setuptools
 
 **There are 5 steps to complete installation and setup:**
 
 1. Install dkmonitor with setuptools
-2. Export config and log path variables in profile
-3. Create Database
+2. Export config and log path variables in profile (if nessesary)
+3. Create your database
 4. Setup config files
 5. Set ``cron`` jobs
 
@@ -71,17 +71,19 @@ Create your database with the standard method of the database type you are using
 Go to the location of your ``dkmonitor's`` config directory and follow the instructions below:
 
 In ``settings.cfg``:
+
 1. Add the login credentails you used to setup the database with create_db to the Database_Settings section.
-2. Add a user_postfix to email settings to setup email notifications
-   user_postfix will be the second half of the users email address after the @ and their user name is the first half
-   Example: ::
+
+2. Add a user_postfix to email settings to setup email notifications. user_postfix will be the second half of the users email address after the @ and their user name is the first half
+Example: ::
 
            Email address: username@gmail.com
            Unix username: username
            User postfix: gmail.com
 
-   This setting is designed for university systems where unix usernames are the first half of the user's email address
-c. Change other default settings accordingly
+This setting is designed for university systems where unix usernames are the first half of the user's email address
+
+3. Change other default settings accordingly
 
 **Creating New Tasks:**
 There are two ways you can easily create tasks without touching the sql database, both using the ``dkmonitor task`` interface.
@@ -111,7 +113,7 @@ There are two types of scans that dkmonitor preforms:
 It is recommended that ``quick scan`` is run hourly and ``full scan`` is run nightly.
 However, any cron configuration should work
 
-To run a scan run the command: ::
+To run a scan routine run the command: ::
 
     $> dkmonitor run full
 
@@ -143,6 +145,7 @@ DataBase Command:
 ``dkmonitor database`` is a command that allows your to list, drop, and clean tables in your dkmonitor database without ever touching your database directly
 
 For more information run: ::
+
     $> dkmonitor database -h 
 
 
