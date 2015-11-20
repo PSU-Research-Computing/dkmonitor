@@ -89,7 +89,7 @@ class DkClean:
 
 
     def clean_disk(self):
-        if self.task["relocation_path"] is not None:
+        if self.task["relocation_path"] != "":
             clean_function = self.move_file
         elif self.task["delete_old_files"] is True:
             clean_function = self.delete_file

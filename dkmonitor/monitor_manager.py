@@ -73,7 +73,7 @@ class MonitorManager():
 
 
     def check_then_clean(self, task):
-        if (task["relocation_path"] is not None) or (task["delete_old_files"] is True):
+        if (task["relocation_path"] != "") or (task["delete_old_files"] is True):
             print("Checking if disk: '{}' needs to be cleaned".format(task["target_path"]))
 
             disk_use = get_disk_use_percent(task["target_path"])
