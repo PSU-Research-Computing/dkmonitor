@@ -142,7 +142,7 @@ def parse_create_command(args):
     return new_task
 
 
-def get_args():
+def get_args(args):
     description = ""
     parser = argparse.ArgumentParser(description=description)
 
@@ -218,10 +218,12 @@ def get_args():
     remove_parser.set_defaults(which="remove")
     remove_parser.add_argument("rtaskname", help="Name of task to remove")
 
-    return parser.parse_args()
+    return parser.parse_args(args)
 
-def main():
-    args = get_args()
+def main(args=None):
+    if args is None:
+        args = sys.argv[1:]
+    args = get_args(args)
     settings = export_settings()
     taskdb = TaskDataBase(settings["DataBase_Settings"])
 

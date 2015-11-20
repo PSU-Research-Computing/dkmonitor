@@ -109,12 +109,15 @@ def check_host_name(task):
     return False
 
 
-def main():
+def main(args=None):
     """Runs monitor_manager"""
+    if args is None:
+        args = sys.argv[1:0]
+
     monitor = MonitorManager()
     parser = argparse.ArgumentParser(description="")
     parser.add_argument("scan_type", help="Specify scan type: 'quick' or 'full'")
-    args = parser.parse_args()
+    args = parser.parse_args(args)
     monitor.start_scans(args.scan_type)
 
 
