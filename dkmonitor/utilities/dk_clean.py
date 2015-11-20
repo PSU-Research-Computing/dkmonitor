@@ -14,12 +14,15 @@ sys.path.append(os.path.abspath("../.."))
 from dkmonitor.utilities import log_setup
 from dkmonitor.stat.dir_scan import dir_scan
 
+from dkmonitor.config.settings_manager import export_settings
+
 class DkClean:
     """The class dk_clean is used to move old files from one directory to an other.
     The process can be run with multithreading or just iterativly"""
 
     def __init__(self, task):
         self.task = task
+        self.thread_settings = export_settings()["Thread_Settings"]
         self.que = PriorityQueue()
 
         self.logger = log_setup.setup_logger(__name__)
@@ -36,7 +39,7 @@ class DkClean:
         print("Done")
 
 
-    def move_file(self, file_path, delete_if_full=False):
+    def move_file(self, file_path):
         """Moves individual file while still preseving its file path"""
 
         uid = os.stat(file_path).st_uid
@@ -52,21 +55,24 @@ class DkClean:
         new_file_path = re.sub(r"^{old_path}".format(old_path=self.task["target_path"]),
                                root_dir,
                                file_path)
+
         last_slash = new_file_path.rfind('/')
         dir_path = new_file_path[:last_slash]
 
         try:
             #self.create_file_tree(uid, dir_path)
             #shutil.move(file_path, new_file_path)
+            #print("OLD {o} :: NEW {n}".format(o=file_path, n=new_file_path))
             pass
         except IOError as err:
-            if delete_if_full is True:
+            if self.task["delete_when_full"] is True:
                 os.remove(file_path)
             else:
                 raise(err)
 
     def delete_file(self, file_path):
         """Deletes file"""
+        #TODO Throw in some try excpets
         os.remove(file_path)
 
     def create_file_tree(self, uid, path):
@@ -77,7 +83,6 @@ class DkClean:
         current_path = self.task["relocation_path"]
         for d in dirs:
             try:
-                #new_dir = current_path + '/' + d
                 new_dir = os.path.join(current_path, d)
                 os.mkdir(new_dir)
                 os.chown(new_dir, uid, uid)
@@ -86,65 +91,48 @@ class DkClean:
             current_path = new_dir
 
 
+    def clean_disk(self):
+        if self.task["relocation_path"] is not None:
+            clean_function = self.move_file
+        elif self.task["delete_old_files"] is True:
+            clean_function = self.delete_file
+        else:
+            #TODO Raise Error for incorrect settings
+            pass
+        if self.thread_settings["thread_mode"] == 'yes':
+            self.clean_disk_threaded(clean_function)
+        else:
+            self.clean_disk_iterative(clean_function)
+
 ####MULTI-THREADING######################################
-    def worker(self, delete_or_move, delete_if_full):
+
+    def worker(self, clean_function):
         """Worker Function"""
 
         while True:
             path = self.que.get()
-            if delete_or_move == "delete":
-                self.delete_file(path[1])
-            elif delete_or_move == "move":
-                self.move_file(path[1], delete_if_full=delete_if_full)
+            clean_function(path[1])
             self.que.task_done()
 
-    def build_pool(self, thread_number, delete_or_move, delete_if_full=False):
+    def build_pool(self, clean_function):
         """Builds Pool of thread workers"""
 
-        for i in range(thread_number):
-            thread = threading.Thread(target=self.worker,
-                                      args=(delete_or_move, delete_if_full))
+        for i in range(self.thread_settings["thread_number"]):
+            thread = threading.Thread(target=self.worker, args=(clean_function,))
             thread.daemon = True
             thread.start()
 
-    def move_all_threaded(self, thread_number, delete_if_full=False):
-        """Moves all files with multithreading"""
-
-        self.build_pool(thread_number, "move", delete_if_full=delete_if_full)
-        self.build_file_que()
-        self.que.join() #waits for threads to finish
-
-    def delete_all_threaded(self, thread_number):
-        """Deletes all old files multithreaded"""
-
-        self.build_pool(thread_number, "delete")
+    def clean_disk_threaded(self, clean_function):
+        self.build_pool(clean_function)
         self.build_file_que()
         self.que.join()
 
-
 ####ITERATIVE###########################################
-    def move_all(self, delete_if_full=False):
-        """Moves all files sequentailly"""
+
+    def clean_disk_iterative(self, clean_function):
         self.build_file_que()
-        self.move_que(delete_if_full=delete_if_full)
-
-    def delete_all(self):
-        """Deletes all files iterativley"""
-        self.build_file_que()
-        self.delete_que()
-
-    def move_que(self, delete_if_full=False):
-        """Moves all files in queue sequentailly"""
-
         while not self.que.empty():
             file_path = self.que.get()
-            self.move_file(file_path[1], delete_if_full=delete_if_full)
-
-    def delete_que(self):
-        """Deletes files in the que"""
-
-        while not self.que.empty():
-            file_path = self.que.get()
-            self.delete_file(file_path[1])
+            clean_function(path[1])
 
 
