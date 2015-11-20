@@ -75,33 +75,15 @@ class MonitorManager():
 
 
     def check_then_clean(self, task):
-        """Cleaning routine function"""
-
         if (task["relocation_path"] is not None) or (task["delete_old_files"] is True):
             print("Checking if disk: '{}' needs to be cleaned".format(task["target_path"]))
 
             disk_use = get_disk_use_percent(task["target_path"])
             if disk_use > task["usage_critical_threshold"]:
-
-                thread_settings = self.settings["Thread_Settings"]
                 clean_obj = DkClean(task)
-
-                if task["relocation_path"] is not None:
-                    print("Relocating Files")
-                    if thread_settings["thread_mode"] == "yes":
-                        clean_obj.move_all_threaded(thread_settings["thread_number"], delete_if_full=task["delete_when_full"])
-                    else:
-                        clean_obj.move_all(delete_when_full=task["delete_when_full"])
-
-                elif task["delete_old_files"] is True:
-                    print("Deleting Old Files")
-                    if thread_settings["thread_mode"] == "yes":
-                        clean_obj.delete_all_threaded(thread_settings["thread_number"])
-                    else:
-                        clean_obj.delete_all()
+                clean_obj.clean_disk()
             else:
                 print("Disk: '{}' does not need to be cleaned".format(task["target_path"]))
-
 
     def start_scans(self, scan_type="full"):
         """ """
