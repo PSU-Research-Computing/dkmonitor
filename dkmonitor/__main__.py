@@ -19,10 +19,8 @@ def main(args=None):
 
     run_parser = subparsers.add_parser("run")
     run_parser.set_defaults(which="run")
-
     view_parser = subparsers.add_parser("view")
     view_parser = view_parser.set_defaults(which="view")
-
     task_parser = subparsers.add_parser("task")
     task_parser = task_parser.set_defaults(which="task")
 
