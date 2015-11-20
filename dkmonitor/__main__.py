@@ -41,7 +41,7 @@ def main(args=None):
         elif parsed_arg.which == "database":
             data_main(args[1:])
     except IndexError:
-        print("First argument required (run, view, task)", file=sys.stderr)
+        print("First argument required (run, view, task, database)", file=sys.stderr)
 
 
 if __name__ == "__main__":
