@@ -67,7 +67,7 @@ class AdminStatViewer(DataBase):
             print("|Average File Age: {} days".format(round(average_file_age/len(user_stats), 2)))
 
         else:
-            print("User Not found")
+            print("User '{}' Not found".format(username), file=sys.stderr)
 
 
     def display_system(self, hostname):
@@ -100,7 +100,7 @@ class AdminStatViewer(DataBase):
             print("|Total File Size : {} GB".format(round(total_file_size/1024/1024/1024, 2)))
             print("|Average File Age: {} days".format(round(average_file_age/len(system_disk_stats), 2)))
         else:
-            print("System Not Found")
+            print("System '{}' Not Found".format(hostname), file=sys.stderr)
 
     def get_color(self, difference):
         if difference > 1:
