@@ -1,6 +1,7 @@
 import argparse
 import sys, os
 #sys.path.append(os.path.realpath(__file__)[:os.path.realpath(__file__).rfind("/")] + "/")
+from sqlalchemy.exc import InvalidRequestError, DataError
 sys.path.append(os.path.abspath("../.."))
 
 from dkmonitor.utilities.new_db_int import Tasks, DataBase
@@ -35,18 +36,18 @@ class TaskDataBase(DataBase):
     ##INTERFACE METHODS
     def display_task_info(self, taskname):
         task_info = self.get_task_info(taskname)
-        display_format = """Task Name: {taskname}
-        Host Name: {hostname}
-        Target Path: {target_path}
-        Relocation Path: {relocation_path}
-        Delete Old Files: {delete_old_files}
-        Delete When Full: {delete_when_full}
-        Disk Usage Warning Threshold: {usage_warning_threshold} %
-        Disk Usage Critical Threshold: {usage_critical_threshold} %
-        Old File Threshold: {old_file_threshold} days
-        Email Usage Warnings: {email_usage_warnings}
-        Email Data Alerations: {email_data_alterations}
-        Email Top Percent: {email_top_percent} %
+        display_format = """Task_Name: {taskname}
+        Host_Name: {hostname}
+        Target_Path: {target_path}
+        Relocation_Path: {relocation_path}
+        Delete_Old_Files: {delete_old_files}
+        Delete_When_Full: {delete_when_full}
+        Disk_Usage_Warning_Threshold: {usage_warning_threshold} %
+        Disk_Usage_Critical_Threshold: {usage_critical_threshold} %
+        Old_File_Threshold: {old_file_threshold} days
+        Email_Usage_Warnings: {email_usage_warnings}
+        Email_Data_Alerations: {email_data_alterations}
+        Email_Top_Percent: {email_top_percent} %
         Enabled: {enabled}"""
 
         if task_info is not None:
@@ -72,13 +73,18 @@ class TaskDataBase(DataBase):
         else:
             print("Task '{}' does not exist".format(taskname), file=sys.stderr)
 
-    def enable_task(self, taskname, flag):
+    def update_column(self, taskname, column_name, update_value):
         session = self.create_session()
-        if session.query(Tasks).filter(Tasks.taskname==taskname).update({"enabled": flag}) == 1:
-            session.commit()
-            print("Task '{}' was disabled".format(taskname))
-        else:
-            print("Task '{}' does not exist".format(taskname))
+        try:
+            if session.query(Tasks).filter(Tasks.taskname==taskname).update({column_name: update_value}) == 1:
+                session.commit()
+                print("Task: '{task}', column: '{cname}' was set to {val}".format(task=taskname, cname=column_name, val=update_value))
+            else:
+                print("Task '{}' does not exist".format(taskname))
+        except InvalidRequestError:
+            print("Column Name {} is invalid".format(column_name))
+        except DataError:
+            print("Value {} is incorrect type".format(update_value))
 
 
 
@@ -244,6 +250,12 @@ def get_args(args):
     disable_parser.set_defaults(which="disable")
     disable_parser.add_argument("ditaskname", help="Name of task to disable")
 
+    edit_parser = subparsers.add_parser("edit")
+    edit_parser.set_defaults(which="edit")
+    edit_parser.add_argument("edtaskname", help="Name of task to edit")
+    edit_parser.add_argument("column_name", help="Name of column to update")
+    edit_parser.add_argument("update_value", help="Value to update column with")
+
     return parser.parse_args(args)
 
 def main(args=None):
@@ -264,9 +276,11 @@ def main(args=None):
     elif args.which == "remove":
         taskdb.remove_task(args.rtaskname)
     elif args.which == "enable":
-        taskdb.enable_task(args.etaskname, True)
+        taskdb.update_column(args.etaskname, "enabled", True)
     elif args.which == "disable":
-        taskdb.enable_task(args.ditaskname, False)
+        taskdb.update_column(args.ditaskname, "enabled", False)
+    elif args.which == "edit":
+        taskdb.update_column(args.edtaskname, args.column_name.lower(), args.update_value)
 
 def export_tasks():
     settings = export_settings()
