@@ -6,6 +6,7 @@ sys.path.append(os.path.abspath(".."))
 from dkmonitor.monitor_manager import main as monitor_main
 from dkmonitor.config.task_manager import main as task_main
 from dkmonitor.admin_interface import main as admin_main
+from dkmonitor.utilities.new_db_int import main as data_main
 
 
 def main(args=None):
@@ -19,10 +20,15 @@ def main(args=None):
 
     run_parser = subparsers.add_parser("run")
     run_parser.set_defaults(which="run")
+
     view_parser = subparsers.add_parser("view")
-    view_parser = view_parser.set_defaults(which="view")
+    view_parser.set_defaults(which="view")
+
     task_parser = subparsers.add_parser("task")
-    task_parser = task_parser.set_defaults(which="task")
+    task_parser.set_defaults(which="task")
+
+    data_parser = subparsers.add_parser("database")
+    data_parser.set_defaults(which="database")
 
     try:
         parsed_arg = parser.parse_args([args[0]])
@@ -32,6 +38,8 @@ def main(args=None):
             admin_main(args[1:])
         elif parsed_arg.which == "task":
             task_main(args[1:])
+        elif parsed_arg.which == "database":
+            data_main(args[1:])
     except IndexError:
         print("First argument required (run, view, task)", file=sys.stderr)
 
