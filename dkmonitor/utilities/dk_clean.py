@@ -89,19 +89,6 @@ class DkClean:
             current_path = new_dir
 
 
-    def clean_disk(self):
-        if self.task["relocation_path"] != "":
-            clean_function = self.move_file
-        elif self.task["delete_old_files"] is True:
-            clean_function = self.delete_file
-        else:
-            #TODO Raise Error for incorrect settings
-            pass
-        if self.thread_settings["thread_mode"] == 'yes':
-            self.clean_disk_threaded(clean_function)
-        else:
-            self.clean_disk_iterative(clean_function)
-
 ####MULTI-THREADING######################################
 
     def worker(self, clean_function):
