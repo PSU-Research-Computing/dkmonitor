@@ -16,6 +16,31 @@ class TaskDataBase(DataBase):
                          username=db_settings["username"],
                          db_type=db_settings["db_type"])
 
+    def remove_task(self, taskname):
+        """Removes a task forthe database"""
+        session = self.create_session()
+        if session.query(Tasks).filter(Tasks.taskname==taskname).delete() == 1:
+            session.commit()
+            print("Task '{}' was deleted".format(taskname))
+        else:
+            print("Task '{}' does not exist".format(taskname), file=sys.stderr)
+
+    def update_column(self, taskname, column_name, update_value):
+        """Changes a column value in an existing row"""
+        session = self.create_session()
+        try:
+            if session.query(Tasks).filter(Tasks.taskname==taskname).update({column_name: update_value}) == 1:
+                session.commit()
+                print("Task: '{task}', column: '{cname}' was set to {val}".format(task=taskname,
+                                                                                  cname=column_name,
+                                                                                  val=update_value))
+            else:
+                print("Task '{}' does not exist".format(taskname))
+        except InvalidRequestError:
+            print("Column Name {} is invalid".format(column_name))
+        except DataError:
+            print("Value {} is incorrect type".format(update_value))
+
     def get_all_tasks(self):
         """Gets a list of all tasks"""
         session = self.create_session()
@@ -36,7 +61,6 @@ class TaskDataBase(DataBase):
         except IndexError as e:
             return None
 
-    ##INTERFACE METHODS
     def display_task_info(self, taskname):
         """Displays task varibales to console based on a taskname"""
         task_info = self.get_task_info(taskname)
@@ -68,29 +92,6 @@ class TaskDataBase(DataBase):
                 print(task[0])
         else:
             print("No tasks found", file=sys.stderr)
-
-    def remove_task(self, taskname):
-        """Removes a task forthe database"""
-        session = self.create_session()
-        if session.query(Tasks).filter(Tasks.taskname==taskname).delete() == 1:
-            session.commit()
-            print("Task '{}' was deleted".format(taskname))
-        else:
-            print("Task '{}' does not exist".format(taskname), file=sys.stderr)
-
-    def update_column(self, taskname, column_name, update_value):
-        """Changes a column value in an existing row"""
-        session = self.create_session()
-        try:
-            if session.query(Tasks).filter(Tasks.taskname==taskname).update({column_name: update_value}) == 1:
-                session.commit()
-                print("Task: '{task}', column: '{cname}' was set to {val}".format(task=taskname, cname=column_name, val=update_value))
-            else:
-                print("Task '{}' does not exist".format(taskname))
-        except InvalidRequestError:
-            print("Column Name {} is invalid".format(column_name))
-        except DataError:
-            print("Value {} is incorrect type".format(update_value))
 
 
 def parse_create_command(args):
