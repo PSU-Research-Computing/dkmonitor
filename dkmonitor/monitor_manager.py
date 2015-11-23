@@ -81,15 +81,19 @@ class MonitorManager():
         else:
             raise ScanTypeNotFound("Scan type '{}' was not found".format(scan_type))
 
+        scan_started_flag = False
         for key, task in list(self.tasks.items()):
             if (check_host_name(task) is True) and (task["enabled"] is True):
+                scan_started_flag = True
                 if self.settings["Thread_Settings"]["thread_mode"] == "yes":
                     thread = threading.Thread(target=self.scan_wrapper, args=(scan_function,task,))
                     thread.daemon = False
                     thread.start()
                 else:
-                    self.scan_wrapper(self.quick_scan, task)
+                    self.scan_wrapper(scan_function, task)
 
+        if scan_started_flag is False:
+            print("No tasks to preform")
 
 def check_host_name(task):
     """Gets current hostname and compares with a task"""
