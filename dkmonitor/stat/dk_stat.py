@@ -18,7 +18,7 @@ from dkmonitor.stat.dir_scan import dir_scan
 from dkmonitor.utilities import log_setup
 from dkmonitor.config.settings_manager import export_settings
 
-from dkmonitor.utilities.new_db_int import DataBase, UserStats, DirectoryStats
+from dkmonitor.utilities.database_interface import DataBase, UserStats, DirectoryStats
 
 FileTuple = namedtuple('FileTuple', 'file_size last_access')
 

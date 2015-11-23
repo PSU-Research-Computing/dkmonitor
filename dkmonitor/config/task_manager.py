@@ -4,7 +4,7 @@ from sqlalchemy.exc import InvalidRequestError, DataError
 import sys, os
 sys.path.append(os.path.abspath("../.."))
 
-from dkmonitor.utilities.new_db_int import Tasks, DataBase
+from dkmonitor.utilities.database_interface import Tasks, DataBase
 from dkmonitor.config.settings_manager import export_settings
 
 class TaskDataBase(DataBase):

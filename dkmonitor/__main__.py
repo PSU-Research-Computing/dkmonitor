@@ -5,8 +5,8 @@ sys.path.append(os.path.abspath(".."))
 
 from dkmonitor.monitor_manager import main as monitor_main
 from dkmonitor.config.task_manager import main as task_main
-from dkmonitor.admin_interface import main as admin_main
-from dkmonitor.utilities.new_db_int import main as data_main
+from dkmonitor.stat_viewer import main as admin_main
+from dkmonitor.utilities.database_interface import main as data_main
 
 
 def main(args=None):

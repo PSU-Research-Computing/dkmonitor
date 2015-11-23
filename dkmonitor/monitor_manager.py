@@ -13,7 +13,7 @@ from dkmonitor.utilities import log_setup
 from dkmonitor.config.settings_manager import export_settings
 from dkmonitor.config.task_manager import export_tasks
 
-from dkmonitor.utilities.new_db_int import clean_data_base
+from dkmonitor.utilities.database_interface import clean_database
 from dkmonitor.utilities.dk_clean import check_then_clean
 from dkmonitor.stat.dk_stat import scan_store_email, get_disk_use_percent
 
@@ -34,7 +34,7 @@ class MonitorManager():
 
         if self.settings["DataBase_Cleaning_Settings"]["purge_database"] == "yes":
             self.logger.info("Cleaning Database")
-            clean_data_base(self.settings["DataBase_Cleaning_Settings"]["purge_after_day_number"])
+            clean_database(self.settings["DataBase_Cleaning_Settings"]["purge_after_day_number"])
 
     def scan_wrapper(self, scan, task):
         """Error catching wrapper for quick and full scan fucntions"""
