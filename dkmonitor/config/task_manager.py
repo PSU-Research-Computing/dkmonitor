@@ -323,9 +323,9 @@ def main(args=None):
     taskdb = TaskDataBase(settings["DataBase_Settings"])
 
     if args.which == "creation_interface":
-        taskdb.store_row(creation_interface())
+        taskdb.store(creation_interface())
     elif args.which == "creation_command":
-        taskdb.store_row(parse_create_command(args))
+        taskdb.store(parse_create_command(args))
     elif args.which == "list":
         taskdb.display_tasks()
     elif args.which == "display":

@@ -164,19 +164,13 @@ class DataBase:
         Base.metadata.bind = self.db
         Base.metadata.create_all()
 
-    #TODO: Add eception for duplicate column value error
-    #TODO: Combine store_row and store_rows
-    def store_row(self, table_row):
-        Session = sessionmaker(bind=self.db)
-        ses = Session()
-        ses.add(table_row)
-        ses.commit()
+    def store(self, data):
+        session = self.create_session()
+        if type(data) is list:
+            session.add_all(data)
+        else:
+            session.add(data)
 
-    def store_rows(self, table_rows):
-        Session = sessionmaker(bind=self.db)
-        ses = Session()
-        ses.add_all(table_rows)
-        ses.commit()
 
     def create_session(self):
         Session = sessionmaker(bind=self.db)
@@ -223,7 +217,7 @@ class DataBaseCleaner(DataBase):
         try:
             for table in reversed(meta_data.sorted_tables):
                 if table.name == tablename:
-                    self.db.execute(table.delete().where(table.columns.datetime <= too_old))
+                    print(self.db.execute(table.delete().where(table.columns.datetime <= too_old)))
                     print("Table '{}' was successfully cleaned".format(table.name))
                     found_flag = True
         except AttributeError:

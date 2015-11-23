@@ -68,7 +68,7 @@ class DkStat:
 
         rows = [x[1] for x in self.users.items()]
         rows.append(self.directory)
-        database.store_rows(rows)
+        database.store(rows)
 
     def email(self):
         disk_use = get_disk_use_percent(self.task["target_path"])
