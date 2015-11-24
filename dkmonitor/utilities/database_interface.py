@@ -170,6 +170,7 @@ class DataBase:
             session.add_all(data)
         else:
             session.add(data)
+        session.commit()
 
 
     def create_session(self):
