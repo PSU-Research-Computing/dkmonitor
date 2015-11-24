@@ -105,7 +105,7 @@ class UserStats(StatObj, Base):
                 send_flag = True
 
             if task["email_data_alterations"] is True:
-                if self.number_of_old_files > 0:
+                if self.number_of_old_files_count > 0:
                     if current_use > task["usage_critical_threshold"]:
                         message.add_message("file_move_notice.txt", email_info)
                     else:
