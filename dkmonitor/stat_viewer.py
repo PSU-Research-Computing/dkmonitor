@@ -1,5 +1,6 @@
 """
-Admin interface is a Command Line interface for Administrators that want to view user and system information
+Admin interface is a Command Line interface for Administrators
+that want to view user and system information
 """
 
 import termcolor
@@ -13,6 +14,12 @@ from dkmonitor.config.settings_manager import export_settings
 
 
 class AdminStatViewer(DataBase):
+    """
+    AdminStatViewer is an extention of DataBase that provieds
+    an interface for viewing directory and user statistics stored
+    in the shared database
+    """
+
     def __init__(self, db_settings):
         super().__init__(hostname=db_settings["hostname"],
                          database=db_settings["database"],
@@ -20,7 +27,8 @@ class AdminStatViewer(DataBase):
                          username=db_settings["username"],
                          db_type=db_settings["db_type"])
 
-    def print_color_key(self):
+    @staticmethod
+    def print_color_key():
         """Print the color key"""
 
         print("Color Key----------")
@@ -40,13 +48,21 @@ class AdminStatViewer(DataBase):
         """
 
         session = self.create_session()
-        disks_on_user = [disk[0] for disk in session.query(UserStats.target_path).filter(UserStats.username==username).distinct()]
-        hosts_on_user = [host[0] for host in session.query(UserStats.hostname).filter(UserStats.username==username).distinct()]
+        disks_on_user = [disk[0] for disk in session.query(UserStats.target_path).\
+                                             filter(UserStats.username == username).\
+                                             distinct()]
+        hosts_on_user = [host[0] for host in session.query(UserStats.hostname).\
+                                             filter(UserStats.username == username).\
+                                             distinct()]
 
         user_stats = []
         for disk in disks_on_user:
             for host in hosts_on_user:
-                user_stats.append(session.query(UserStats).filter(UserStats.username==username).filter(UserStats.target_path==disk).filter(UserStats.hostname==host).order_by(UserStats.datetime.desc()).limit(2).all())
+                user_stats.append(session.query(UserStats).
+                                  filter(UserStats.username == username).\
+                                  filter(UserStats.target_path == disk).\
+                                  filter(UserStats.hostname == host).\
+                                  order_by(UserStats.datetime.desc()).limit(2).all())
 
         self.print_color_key()
         if user_stats != []:
@@ -77,10 +93,15 @@ class AdminStatViewer(DataBase):
         """
 
         session = self.create_session()
-        disks_on_system = [disk[0] for disk in session.query(DirectoryStats.target_path).filter(DirectoryStats.hostname==hostname).distinct()]
+        disks_on_system = [disk[0] for disk in session.query(DirectoryStats.target_path).\
+                                               filter(DirectoryStats.hostname == hostname).\
+                                               distinct()]
         system_disk_stats = []
         for disk in disks_on_system:
-            system_disk_stats.append(session.query(DirectoryStats).filter(DirectoryStats.hostname==hostname).filter(DirectoryStats.target_path==disk).order_by(DirectoryStats.datetime.desc()).limit(2).all())
+            system_disk_stats.append(session.query(DirectoryStats).\
+                                     filter(DirectoryStats.hostname == hostname).\
+                                     filter(DirectoryStats.target_path == disk).\
+                                     order_by(DirectoryStats.datetime.desc()).limit(2).all())
 
         self.print_color_key()
         if system_disk_stats != []:
@@ -91,18 +112,24 @@ class AdminStatViewer(DataBase):
                 print("|Disk Name         : {}".format(disk[0].target_path))
                 self.print_size_age_change(disk)
                 print("|Users on: {}".format(disk[0].target_path))
-                for username in session.query(UserStats.username).filter(UserStats.hostname==hostname).filter(UserStats.target_path==disk[0].target_path).distinct():
+                for username in session.query(UserStats.username).\
+                                filter(UserStats.hostname == hostname).\
+                                filter(UserStats.target_path == disk[0].target_path).\
+                                distinct():
                     print("|| {}".format(username[0]))
 
                 total_file_size += disk[0].total_file_size
                 average_file_age += disk[0].average_file_age
 
             print("|Total File Size : {} GB".format(round(total_file_size/1024/1024/1024, 2)))
-            print("|Average File Age: {} days".format(round(average_file_age/len(system_disk_stats), 2)))
+            print("|Average File Age: {} days".format(round(average_file_age/len(system_disk_stats),
+                                                            2)))
         else:
             print("System '{}' Not Found".format(hostname), file=sys.stderr)
 
-    def get_color(self, difference):
+    @staticmethod
+    def get_color(difference):
+        """Returns color string based on the difference of two values"""
         if difference > 1:
             color = "green"
         elif difference == 1:
@@ -112,6 +139,7 @@ class AdminStatViewer(DataBase):
         return color
 
     def print_size_age_change(self, rows):
+        """Prints size and file age change in color for a row from the db"""
         try:
             size_change = rows[0].total_file_size / rows[1].total_file_size
             size_color = self.get_color(size_change)
@@ -120,7 +148,8 @@ class AdminStatViewer(DataBase):
         except IndexError:
             age_color, size_color = 'yellow', 'yellow'
 
-        colored_size = termcolor.colored(str(round(rows[0].total_file_size/1024/1024/1024, 2)), size_color)
+        colored_size = termcolor.colored(str(round(rows[0].total_file_size/1024/1024/1024, 2)),
+                                         size_color)
         print("||Total File Size  : {} GB".format(colored_size))
 
         colored_access = termcolor.colored(str(round(rows[0].average_file_age, 2)), age_color)
