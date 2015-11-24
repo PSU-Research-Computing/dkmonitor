@@ -219,7 +219,7 @@ def export_tasks():
 
 def get_args(args):
     """Defines arguments for command line"""
-    description = ""
+    description = "This command line interface is used to interface with the task database database of dkmonitor"
     parser = argparse.ArgumentParser(description=description)
 
     subparsers = parser.add_subparsers()

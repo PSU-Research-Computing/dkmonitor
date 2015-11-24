@@ -142,24 +142,25 @@ class AdminStatViewer(DataBase):
 def get_args(args):
     """Gets args from argparse"""
 
-    description = """
-    Administrator Interface is a program That allows you to view system and user
-    data stored in a central database managed by the appilcation dkmonitor
-    """
+    description = ("Administrator Interface is a program That allows you to view system and user",
+                   " data stored in a central database managed by the appilcation dkmonitor")
     parser = argparse.ArgumentParser(description=description)
 
     subparser = parser.add_subparsers()
     system_parser = subparser.add_parser("system")
     system_parser.set_defaults(which="system")
-    system_parser.add_argument("system_host_name", help="Name of system you want to search for")
+    system_parser.add_argument("system_host_name",
+                               help="Name of system you want to search for")
 
     user_parser = subparser.add_parser("user")
     user_parser.set_defaults(which="user")
-    user_parser.add_argument("user_name", help="Name of user you want to search for")
+    user_parser.add_argument("user_name",
+                             help="Name of user you want to search for")
 
     all_parser = subparser.add_parser("all")
     all_parser.set_defaults(which="all")
-    all_parser.add_argument("display_name", help="Specify either 'systems' or 'users' to display all found matchs")
+    all_parser.add_argument("display_name",
+                            help="Specify either 'systems' or 'users' to display all found matchs")
 
     return parser.parse_args(args)
 

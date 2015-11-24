@@ -8,13 +8,15 @@ from dkmonitor.config.task_manager import main as task_main
 from dkmonitor.stat_viewer import main as admin_main
 from dkmonitor.utilities.database_interface import main as data_main
 
+def description():
+    return ("dkmonitor is a disk monitoring utility used to monitor, record and notify ",
+            "idividual user's usage statistics on a shared storage space")
 
 def main(args=None):
     if args is None:
         args = sys.argv[1:]
 
-    description = ""
-    parser = argparse.ArgumentParser(description=description)
+    parser = argparse.ArgumentParser(description=description())
 
     subparsers = parser.add_subparsers()
 

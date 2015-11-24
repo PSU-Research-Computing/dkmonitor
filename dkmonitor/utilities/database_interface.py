@@ -234,7 +234,9 @@ def clean_database(days):
     database_cleaner.clean_table(days, "directorystats")
 
 def get_args(args):
-    parser = argparse.ArgumentParser(description="")
+    description = ("The database command line interface is used to list, clean, and drop tables",
+                   " in dkmonitor's database space manually")
+    parser = argparse.ArgumentParser(description=description)
     subparser = parser.add_subparsers()
 
     list_parser = subparser.add_parser("list")
