@@ -18,9 +18,14 @@ from dkmonitor.utilities.dk_clean import check_then_clean
 from dkmonitor.stat.dk_stat import scan_store_email, get_disk_use_percent
 
 class ScanTypeNotFound(Exception):
-    """Error thrown when scan type passed to start_scans is invalid"""
+    """Error thrown when scan type is invalid"""
     def __init__(self, message):
         super(ScanTypeNotFound, self).__init__(message)
+
+class IncorrectHostError(Exception):
+    """Error thrown when task doesnt match current hostname"""
+    def __init__(self, message):
+        super(ScanTypeNotFound, self).__in
 
 class MonitorManager():
     """This class is the main managing class for all other classes
@@ -58,6 +63,7 @@ class MonitorManager():
 
         disk_use = get_disk_use_percent(task["target_path"])
         if disk_use > task["usage_warning_threshold"]:
+            print("Disk use over threshold, Starting full scan of {}".format(task["target_path"]))
             scan_store_email(task)
             check_then_clean(task)
 
@@ -72,35 +78,68 @@ class MonitorManager():
         scan_store_email(task)
         check_then_clean(task)
 
-    def start_scans(self, scan_type="full"):
-        """Starts scans based on thread settings and scantype"""
+    def run_task(self, task, scan_function):
+        """Runs a single task"""
+        check_host_name(task) #raises error if does not match
+        if task["enabled"] is True:
+            if self.settings["Thread_Settings"]["thread_mode"] == "yes":
+                thread = threading.Thread(target=self.scan_wrapper, args=(scan_function,task,))
+                thread.daemon = False
+                thread.start()
+            else:
+                self.scan_wrapper(scan_function, task)
+
+    def start_tasks(self, scan_type="full"):
+        """Starts all tasks that are on current host"""
+        try:
+            scan_function = self.get_scan_function(scan_type)
+            scan_started_flag = False
+            for key, task in list(self.tasks.items()):
+                try:
+                    self.run_task(task, scan_function)
+                    scan_started_flag = True
+                except IncorrectHostError:
+                    pass
+
+            if scan_started_flag is False:
+                print("No tasks to preform")
+        except ScanTypeNotFound:
+            print("Scan type '{}' is invalid, Please specify either 'quick' or 'full'".format(scan_type), file=sys.stderr)
+
+    def start_task(self, task_name, scan_type='full'):
+        """Starts a task givin by the user"""
+        try:
+            task = self.tasks[task_name]
+            scan_function = self.get_scan_function(scan_type)
+            self.run_task(task, scan_function)
+        except KeyError:
+            print("Task '{}' not found".format(task["task_name"]), file=sys.stderr)
+        except ScanTypeNotFound:
+            print("Scan type '{}' is invalid, Please specify either 'quick' or 'full'".format(scan_type), file=sys.stderr)
+        except IncorrectHostError:
+            print("Task '{}' hostname does not match current host".format(task["hostname"]), file=sys.stderr)
+
+    def get_scan_function(self, scan_type):
+        """
+        Checks if string is 'full' or 'quick' and returns the corrisponding function
+        Raises error if string is neither
+        """
         if scan_type == "full":
             scan_function = self.full_scan
         elif scan_type == "quick":
             scan_function = self.quick_scan
         else:
             raise ScanTypeNotFound("Scan type '{}' was not found".format(scan_type))
-
-        scan_started_flag = False
-        for key, task in list(self.tasks.items()):
-            if (check_host_name(task) is True) and (task["enabled"] is True):
-                scan_started_flag = True
-                if self.settings["Thread_Settings"]["thread_mode"] == "yes":
-                    thread = threading.Thread(target=self.scan_wrapper, args=(scan_function,task,))
-                    thread.daemon = False
-                    thread.start()
-                else:
-                    self.scan_wrapper(scan_function, task)
-
-        if scan_started_flag is False:
-            print("No tasks to preform")
+        return scan_function
 
 def check_host_name(task):
-    """Gets current hostname and compares with a task"""
+    """
+    Gets current hostname and compares with a task
+    Raises error if hostname does not match
+    """
     host_name = socket.gethostname()
-    if host_name == task["hostname"]:
-        return True
-    return False
+    if host_name != task["hostname"]:
+        raise IncorrectHostError("Hostname of task '{th}' does not match '{ch}'".format(task["hostname"], host_name))
 
 def main(args=None):
     """Monitor Manager Command line interface"""
@@ -109,9 +148,21 @@ def main(args=None):
 
     monitor = MonitorManager()
     parser = argparse.ArgumentParser(description="")
-    parser.add_argument("scan_type", help="Specify scan type: 'quick' or 'full'")
+    subparsers = parser.add_subparsers()
+    all_parser = subparsers.add_parser("all")
+    all_parser.set_defaults(which="all")
+    all_parser.add_argument("scan_type", help="Specify scan type: 'quick' or 'full'")
+
+    task_parser = subparsers.add_parser("task")
+    task_parser.set_defaults(which="task")
+    task_parser.add_argument("task_name", help="Name of task to run")
+    task_parser.add_argument("scan_type", help="Specify scan type: 'quick' or 'full'")
+
     args = parser.parse_args(args)
-    monitor.start_scans(args.scan_type)
+    if args.which == "all":
+        monitor.start_tasks(scan_type=args.scan_type)
+    elif args.which == "task":
+        monitor.start_task(args.task_name, scan_type=args.scan_type)
 
 if __name__ == "__main__":
     main()
