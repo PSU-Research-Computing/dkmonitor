@@ -53,7 +53,8 @@ class MonitorManager():
         except OSError:
             print("There is no directory: {}".format(task["target_path"]), file=sys.stderr)
 
-    def quick_scan(self, task):
+    @staticmethod
+    def quick_scan(task):
         """
         Ment to be run hourly
         Checks use percent on a task
@@ -67,7 +68,8 @@ class MonitorManager():
             scan_store_email(task)
             check_then_clean(task)
 
-    def full_scan(self, task):
+    @staticmethod
+    def full_scan(task):
         """
         Performs full scan of directory by default
         saves disk statistics information in db
@@ -83,7 +85,7 @@ class MonitorManager():
         check_host_name(task) #raises error if does not match
         if task["enabled"] is True:
             if self.settings["Thread_Settings"]["thread_mode"] == "yes":
-                thread = threading.Thread(target=self.scan_wrapper, args=(scan_function,task,))
+                thread = threading.Thread(target=self.scan_wrapper, args=(scan_function, task,))
                 thread.daemon = False
                 thread.start()
             else:
@@ -104,7 +106,8 @@ class MonitorManager():
             if scan_started_flag is False:
                 print("No tasks to preform")
         except ScanTypeNotFound:
-            print("Scan type '{}' is invalid, Please specify either 'quick' or 'full'".format(scan_type), file=sys.stderr)
+            print("Scan type '{}' is invalid, specify either 'quick' or 'full'".format(scan_type),
+                  file=sys.stderr)
 
     def start_task(self, task_name, scan_type='full'):
         """Starts a task givin by the user"""
@@ -115,9 +118,11 @@ class MonitorManager():
         except KeyError:
             print("Task '{}' not found".format(task_name), file=sys.stderr)
         except ScanTypeNotFound:
-            print("Scan type '{}' is invalid, Please specify either 'quick' or 'full'".format(scan_type), file=sys.stderr)
+            print("Scan type '{}' is invalid, specify either 'quick' or 'full'".format(scan_type),
+                  file=sys.stderr)
         except IncorrectHostError:
-            print("Task '{}' hostname does not match current host".format(task["hostname"]), file=sys.stderr)
+            print("Task '{}' hostname does not match current host".format(task["hostname"]),
+                  file=sys.stderr)
 
     def get_scan_function(self, scan_type):
         """
@@ -139,7 +144,8 @@ def check_host_name(task):
     """
     host_name = socket.gethostname()
     if host_name != task["hostname"]:
-        raise IncorrectHostError("Hostname of task '{th}' does not match '{ch}'".format(th=task["hostname"], ch=host_name))
+        raise IncorrectHostError("Hostname '{th}' does not match '{ch}'".format(th=task["hostname"],
+                                                                                ch=host_name))
 
 def main(args=None):
     """Monitor Manager Command line interface"""
