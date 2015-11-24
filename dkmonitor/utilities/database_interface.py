@@ -1,4 +1,9 @@
-from sqlalchemy import *
+"""
+This module outlines the table objects and raw database interfaces for dkmonitor
+"""
+
+from sqlalchemy import create_engine, MetaData
+from sqlalchemy import Column, String, DateTime, BigInteger, Integer, Float, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
@@ -15,6 +20,7 @@ from dkmonitor.config.settings_manager import export_settings
 Base = declarative_base()
 
 class StatObj(object):
+    """Object used to keep disk usage stats"""
     datetime = Column("datetime", DateTime, primary_key=True)
     hostname = Column("hostname", String)
     target_path = Column("target_path", String)
@@ -45,7 +51,7 @@ class StatObj(object):
     def get_disk_use_percentage(self):
         """Calculates the disk use percentage of all files"""
 
-        stat_tup = os.statvfs(self.target_path) #TODO try except
+        stat_tup = os.statvfs(self.target_path)
         total = stat_tup.f_blocks * stat_tup.f_frsize
 
         user_percentage = 100 * float(self.total_file_size_count)/float(total)
@@ -72,10 +78,11 @@ class StatObj(object):
         return self
 
 class DirectoryStats(StatObj, Base):
+    """extention of StatObj used for storing directory stats"""
     __tablename__ = "directorystats"
 
-
 class UserStats(StatObj, Base):
+    """Extention of StatObj that is used for storing a user's stats"""
     __tablename__ = "userstats"
 
     username = Column("username", String)
@@ -112,6 +119,7 @@ class UserStats(StatObj, Base):
 
 
     def build_email_stats(self, task):
+        """builds a dictionary with all of the stats needed for emailing the user"""
         email_info = {}
         for column in self.__table__.columns:
             email_info[column.name] = getattr(self, column.name)
@@ -128,6 +136,7 @@ class UserStats(StatObj, Base):
 
 
 class Tasks(Base):
+    """Table object for tasks"""
     __tablename__ = "tasks"
 
     taskname = Column("taskname", String, primary_key=True)
@@ -146,6 +155,7 @@ class Tasks(Base):
 
 
 class DataBase:
+    """The Base class for dealing with the dkmonitor database"""
 
     def __init__(self,
                  db_type='postgresql',
@@ -160,13 +170,14 @@ class DataBase:
                                                                        host=hostname,
                                                                        dbname=database)
 
-        self.db = create_engine(eng_str)
-        Base.metadata.bind = self.db
+        self.db_engine = create_engine(eng_str)
+        Base.metadata.bind = self.db_engine
         Base.metadata.create_all()
 
     def store(self, data):
+        """Stores rows in database"""
         session = self.create_session()
-        if type(data) is list:
+        if isinstance(data, list) is True:
             session.add_all(data)
         else:
             session.add(data)
@@ -174,11 +185,13 @@ class DataBase:
 
 
     def create_session(self):
-        Session = sessionmaker(bind=self.db)
-        return Session()
+        """Short hand for creating database sessions"""
+        session = sessionmaker(bind=self.db_engine)
+        return session()
 
 
 class DataBaseCleaner(DataBase):
+    """A class used to modify the database from the commandline/clean when running tasks"""
     def __init__(self, db_settings):
         super().__init__(hostname=db_settings["hostname"],
                          database=db_settings["database"],
@@ -187,39 +200,43 @@ class DataBaseCleaner(DataBase):
                          db_type=db_settings["db_type"])
 
     def drop_table(self, tablename):
+        """Drops a table specied by string"""
         meta_data = MetaData()
-        meta_data.reflect(self.db)
+        meta_data.reflect(self.db_engine)
         found_flag = False
         for table in meta_data.tables.values():
             if table.name == tablename:
-                table.drop(self.db)
+                table.drop(self.db_engine)
                 found_flag = True
                 print("Table: '{}' dropped".format(table.name))
         if found_flag is False:
             print("Table: '{}' not found".format(tablename), file=sys.stderr)
 
     def drop_all(self):
+        """Drops all tables in database"""
         meta_data = MetaData()
-        meta_data.reflect(self.db)
+        meta_data.reflect(self.db_engine)
         for table in meta_data.tables.values():
-            table.drop(self.db)
+            table.drop(self.db_engine)
             print("Table: '{}' dropped".format(table.name))
 
     def list_tables(self):
+        """Prints list of all tables"""
         meta_data = MetaData()
-        meta_data.reflect(self.db)
+        meta_data.reflect(self.db_engine)
         for table in meta_data.tables.values():
             print(table.name)
 
     def clean_table(self, days, tablename):
+        """Deletes all rows older than days in tablename"""
         meta_data = MetaData()
-        meta_data.reflect(self.db)
+        meta_data.reflect(self.db_engine)
         too_old = datetime.datetime.now() - datetime.timedelta(days=days)
         found_flag = False
         try:
             for table in reversed(meta_data.sorted_tables):
                 if table.name == tablename:
-                    self.db.execute(table.delete().where(table.columns.datetime <= too_old))
+                    self.db_engine.execute(table.delete().where(table.columns.datetime <= too_old))
                     print("Table '{}' was successfully cleaned".format(table.name))
                     found_flag = True
         except AttributeError:
@@ -229,12 +246,14 @@ class DataBaseCleaner(DataBase):
             print("Table '{}' was not found".format(tablename), file=sys.stderr)
 
 def clean_database(days):
+    """Deletes all rows older than days databases userstats and directorystats"""
     database_settings = export_settings()["DataBase_Settings"]
     database_cleaner = DataBaseCleaner(database_settings)
     database_cleaner.clean_table(days, "userstats")
     database_cleaner.clean_table(days, "directorystats")
 
 def get_args(args):
+    """Sets arguements for argparse"""
     description = ("The database command line interface is used to list, clean, and drop tables",
                    " in dkmonitor's database space manually")
     parser = argparse.ArgumentParser(description=description)
@@ -245,20 +264,36 @@ def get_args(args):
 
     clean_parser = subparser.add_parser("clean")
     clean_parser.set_defaults(which="clean")
-    clean_parser.add_argument("days", type=int, help="Delete database entries older than days")
+    clean_parser.add_argument("days",
+                              type=int,
+                              help="Delete database entries older than days")
     clean_name_group = clean_parser.add_mutually_exclusive_group()
-    clean_name_group.add_argument("--all", dest="all", action="store_true", help="Delete entries older than days in all tables")
-    clean_name_group.add_argument("--table", dest="table_name", type=str, help="Table to clean")
+    clean_name_group.add_argument("--all",
+                                  dest="all",
+                                  action="store_true",
+                                  help="Delete entries older than days in all tables")
+    clean_name_group.add_argument("--table",
+                                  dest="table_name",
+                                  type=str,
+                                  help="Table to clean")
 
     clear_parser = subparser.add_parser("drop")
     clear_parser.set_defaults(which="drop")
     clear_name_group = clear_parser.add_mutually_exclusive_group()
-    clear_name_group.add_argument("--all", dest="all", action="store_true", default=False, help="Clear all tables")
-    clear_name_group.add_argument("--table", dest="table_name", type=str, help="Name of table to clear")
+    clear_name_group.add_argument("--all",
+                                  dest="all",
+                                  action="store_true",
+                                  default=False,
+                                  help="Clear all tables")
+    clear_name_group.add_argument("--table",
+                                  dest="table_name",
+                                  type=str,
+                                  help="Name of table to clear")
 
     return parser.parse_args(args)
 
 def main(args=None):
+    """Command line interface for database cleaner"""
     if args is None:
         args = sys.argv[1:]
 
@@ -280,10 +315,5 @@ def main(args=None):
         elif args.table_name != None:
             database_cleaner.clean_table(args.days, args.table_name)
 
-
-
-
-
-
 if __name__ == '__main__':
-    pass
+    main()
