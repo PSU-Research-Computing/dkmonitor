@@ -63,6 +63,7 @@ class DkStat:
         self.directory.calculate_stats()
 
     def store(self):
+        """Stores all stats in the database"""
         print("Storing stats")
         database = DataBase(**self.settings["DataBase_Settings"])
 
@@ -71,14 +72,14 @@ class DkStat:
         database.store(rows)
 
     def email(self):
+        """Emails users if nessesary"""
         disk_use = get_disk_use_percent(self.task["target_path"])
         if (disk_use > self.task["usage_warning_threshold"]) and ((self.task["email_usage_warnings"] is True) or (self.task["email_data_alterations"] is True)):
             print("Emailing Users")
-        problem_lists = self.get_problem_users()
-        for user in self.users.items():
-            user[1].email_user(self.settings["Email_Settings"]["user_postfix"], problem_lists, self.task, disk_use)
-
         problem_users = self.get_problem_users()
+        for user in self.users.items():
+            user[1].email_user(self.settings["Email_Settings"]["user_postfix"], problem_users, self.task, disk_use)
+
 
     def get_problem_users(self):
         """
