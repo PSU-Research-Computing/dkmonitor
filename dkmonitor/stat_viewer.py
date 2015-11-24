@@ -85,6 +85,8 @@ class AdminStatViewer(DataBase):
         else:
             print("User '{}' Not found".format(username), file=sys.stderr)
 
+        session.close()
+
 
     def display_system(self, hostname):
         """
@@ -127,6 +129,8 @@ class AdminStatViewer(DataBase):
         else:
             print("System '{}' Not Found".format(hostname), file=sys.stderr)
 
+        session.close()
+
     @staticmethod
     def get_color(difference):
         """Returns color string based on the difference of two values"""
@@ -162,6 +166,7 @@ class AdminStatViewer(DataBase):
                                                            distinct()])
         if user_num == 0:
             print("There are currently no users in the userstats table")
+        session.close()
 
     def display_systems(self):
         """Displays all systems"""
@@ -170,6 +175,7 @@ class AdminStatViewer(DataBase):
                                                            distinct()])
         if host_num == 0:
             print("There are currently no systems in the directorystats table")
+        session.close()
 
 
 def get_args(args):
