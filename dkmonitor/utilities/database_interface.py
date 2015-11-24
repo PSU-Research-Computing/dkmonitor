@@ -93,11 +93,9 @@ class UserStats(StatObj, Base):
         email_info = self.build_email_stats(task)
         if current_use > task["usage_warning_threshold"]:
             send_flag = False
+            address = email_info["username"] + "@" + postfix
+            message = Email(address, email_info)
             if task["email_usage_warnings"] is True:
-
-                address = email_info["username"] + "@" + postfix
-                message = Email(address, email_info)
-
                 if self.username in problem_lists[0]:
                     message.add_message("top_use_warning.txt", email_info)
                 if self.username in problem_lists[1]:
@@ -124,7 +122,7 @@ class UserStats(StatObj, Base):
         for column in self.__table__.columns:
             email_info[column.name] = getattr(self, column.name)
 
-        stats_vars = {"total_old_file_size": self.total_file_size_count,
+        stats_vars = {"total_old_file_size": self.total_old_file_size_count/1024/1024/1024,
                       "number_of_old_files": self.number_of_old_files_count,
                       "usage_warning_threshold": task["usage_warning_threshold"],
                       "usage_critical_threshold": task["usage_critical_threshold"],
@@ -182,11 +180,12 @@ class DataBase:
         else:
             session.add(data)
         session.commit()
+        session.close()
 
 
     def create_session(self):
         """Short hand for creating database sessions"""
-        session = sessionmaker(bind=self.db_engine)
+        session = sessionmaker(bind=self.db_engine, expire_on_commit=False)
         return session()
 
 
