@@ -176,6 +176,7 @@ class DataBase:
         Session = sessionmaker(bind=self.db)
         return Session()
 
+
 class DataBaseCleaner(DataBase):
     def __init__(self, db_settings):
         super().__init__(hostname=db_settings["hostname"],
@@ -217,7 +218,7 @@ class DataBaseCleaner(DataBase):
         try:
             for table in reversed(meta_data.sorted_tables):
                 if table.name == tablename:
-                    print(self.db.execute(table.delete().where(table.columns.datetime <= too_old)))
+                    self.db.execute(table.delete().where(table.columns.datetime <= too_old))
                     print("Table '{}' was successfully cleaned".format(table.name))
                     found_flag = True
         except AttributeError:
