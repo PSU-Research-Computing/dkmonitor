@@ -113,7 +113,7 @@ class MonitorManager():
             scan_function = self.get_scan_function(scan_type)
             self.run_task(task, scan_function)
         except KeyError:
-            print("Task '{}' not found".format(task["task_name"]), file=sys.stderr)
+            print("Task '{}' not found".format(task_name), file=sys.stderr)
         except ScanTypeNotFound:
             print("Scan type '{}' is invalid, Please specify either 'quick' or 'full'".format(scan_type), file=sys.stderr)
         except IncorrectHostError:
