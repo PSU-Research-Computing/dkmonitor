@@ -139,15 +139,15 @@ def check_host_name(task):
     """
     host_name = socket.gethostname()
     if host_name != task["hostname"]:
-        raise IncorrectHostError("Hostname of task '{th}' does not match '{ch}'".format(task["hostname"], host_name))
+        raise IncorrectHostError("Hostname of task '{th}' does not match '{ch}'".format(th=task["hostname"], ch=host_name))
 
 def main(args=None):
     """Monitor Manager Command line interface"""
     if args is None:
         args = sys.argv[1:0]
 
-    monitor = MonitorManager()
-    parser = argparse.ArgumentParser(description="")
+    description = "The run command line interface is used to run tasks on the current machine"
+    parser = argparse.ArgumentParser(description=description)
     subparsers = parser.add_subparsers()
     all_parser = subparsers.add_parser("all")
     all_parser.set_defaults(which="all")
@@ -159,6 +159,7 @@ def main(args=None):
     task_parser.add_argument("scan_type", help="Specify scan type: 'quick' or 'full'")
 
     args = parser.parse_args(args)
+    monitor = MonitorManager()
     if args.which == "all":
         monitor.start_tasks(scan_type=args.scan_type)
     elif args.which == "task":
