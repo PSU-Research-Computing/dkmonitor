@@ -25,7 +25,7 @@ class ScanTypeNotFound(Exception):
 class IncorrectHostError(Exception):
     """Error thrown when task doesnt match current hostname"""
     def __init__(self, message):
-        super(ScanTypeNotFound, self).__in
+        super(IncorrectHostError, self).__init__(message)
 
 class MonitorManager():
     """This class is the main managing class for all other classes
