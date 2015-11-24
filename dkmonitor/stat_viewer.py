@@ -158,14 +158,18 @@ class AdminStatViewer(DataBase):
     def display_users(self):
         """Displays all users"""
         session = self.create_session()
-        for username in session.query(UserStats.username).distinct():
-            print(username)
+        user_num = len([print(username[0]) for username in session.query(UserStats.username).\
+                                                           distinct()])
+        if user_num == 0:
+            print("There are currently no users in the userstats table")
 
     def display_systems(self):
         """Displays all systems"""
         session = self.create_session()
-        for hostname in session.query(DirectoryStats.hostname).distinct():
-            print(hostname)
+        host_num = len([print(hostname[0]) for hostname in session.query(DirectoryStats.hostname).\
+                                                           distinct()])
+        if host_num == 0:
+            print("There are currently no systems in the directorystats table")
 
 
 def get_args(args):
