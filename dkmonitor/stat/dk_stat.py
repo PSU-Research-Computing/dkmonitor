@@ -3,12 +3,7 @@ This file contains the DkStat object that scans a given disk or directory
 and stores the data in user and directory objects
 """
 
-
-import shutil
-import time
-from pwd import getpwuid
-import operator
-import datetime
+import shutil, time, operator, datetime, pwd
 from collections import namedtuple
 
 import sys, os
@@ -23,6 +18,11 @@ from dkmonitor.utilities.database_interface import DataBase, UserStats, Director
 FileTuple = namedtuple('FileTuple', 'file_size last_access')
 
 class DkStat:
+    """
+    DkStat is a class used to build user and system statictics
+    as well as nofitications
+    """
+
     def __init__(self, task):
         self.task = task
         self.users = {}
@@ -36,18 +36,18 @@ class DkStat:
         #self.logger.info("Searching %s", task["target_path"])
         print("Scanning...")
         self.users = {}
-        settings = export_settings()
 
         self.directory = DirectoryStats(target_path=self.task["target_path"],
-                                       hostname=self.task["hostname"],
-                                       datetime=datetime.datetime.now()) #Creates dir_obj
+                                        hostname=self.task["hostname"],
+                                        datetime=datetime.datetime.now()) #Creates dir_obj
+
         for file_path in dir_scan(self.task["target_path"]):
             last_access = (time.time() - os.path.getatime(file_path)) / 86400
             file_size = int(os.path.getsize(file_path))
-            name = getpwuid(os.stat(file_path).st_uid).pw_name
+            name = pwd.getpwuid(os.stat(file_path).st_uid).pw_name
 
             file_tup = FileTuple(file_size, last_access)
-            self.directory.add_file(file_tup, self.task["old_file_threshold"]) #Add file to directory obj
+            self.directory.add_file(file_tup, self.task["old_file_threshold"])
 
             try:
                 self.users[name].add_file(file_tup, self.task["old_file_threshold"])
@@ -74,11 +74,17 @@ class DkStat:
     def email(self):
         """Emails users if nessesary"""
         disk_use = get_disk_use_percent(self.task["target_path"])
-        if (disk_use > self.task["usage_warning_threshold"]) and ((self.task["email_usage_warnings"] is True) or (self.task["email_data_alterations"] is True)):
+        if (disk_use > self.task["usage_warning_threshold"]) and \
+           ((self.task["email_usage_warnings"] is True) or \
+           (self.task["email_data_alterations"] is True)):
             print("Emailing Users")
+
         problem_users = self.get_problem_users()
         for user in self.users.items():
-            user[1].email_user(self.settings["Email_Settings"]["user_postfix"], problem_users, self.task, disk_use)
+            user[1].email_user(self.settings["Email_Settings"]["user_postfix"],
+                               problem_users,
+                               self.task,
+                               disk_use)
 
 
     def get_problem_users(self):
@@ -93,7 +99,8 @@ class DkStat:
         flag_user_number = int(len(self.users.keys()) * problem_threshold)
         for user in self.users.items():
             try:
-                bytes_per_access_time = user[1].total_file_size_count/user[1].total_access_time_count #Bytes per total access time 
+                bytes_per_access_time = user[1].total_file_size_count/\
+                                        user[1].total_access_time_count #Bytes per total access time
             except ZeroDivisionError:
                 bytes_per_access_time = 0
             stat_list.append([user[0], user[1].total_file_size_count, bytes_per_access_time])
@@ -107,10 +114,11 @@ class DkStat:
             large_names.append(large_list[i][0])
             old_names.append(old_list[i][0])
 
-        return [large_names, old_names] #TODO change to a named tuple
+        return [large_names, old_names]
 
 
 def scan_store_email(task):
+    """Function that runs entire scan routine on a task"""
     statobj = DkStat(task)
     statobj.scan()
     statobj.store()
