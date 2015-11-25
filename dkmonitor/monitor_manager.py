@@ -98,9 +98,9 @@ class MonitorManager():
         try:
             scan_function = self.get_scan_function(scan_type)
             scan_started_flag = False
-            for key, task in list(self.tasks.items()):
+            for task in list(self.tasks.items()):
                 try:
-                    self.run_task(task, scan_function)
+                    self.run_task(task[1], scan_function)
                     scan_started_flag = True
                 except IncorrectHostError:
                     pass
