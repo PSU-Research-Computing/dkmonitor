@@ -5,7 +5,6 @@ This class allows you to build customized messages that can be sent by a differe
 
 import sys, os
 sys.path.append(os.path.abspath("../.."))
-#sys.path.append(os.path.realpath(__file__)[:os.path.realpath(__file__).rfind("/")] + "/")
 from dkmonitor.utilities import log_setup
 
 import re
@@ -52,7 +51,7 @@ class Email:
                 message_str = mfile.read()
             self.body += message_str.format(**data_dict)
 
-        except IOError as err:
+        except IOError:
             self.logger.error("File %s does not exist", message_file)
         except KeyError as keyerr:
             m = re.search("'([^']*)'", keyerr.message) #TODO fix this broken line

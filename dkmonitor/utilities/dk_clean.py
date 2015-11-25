@@ -27,6 +27,7 @@ class DkClean:
 
 
     def build_file_que(self):
+        """Adds old file paths to a thread safe que"""
         print("Moving Files")
         for file_path in dir_scan(self.task["target_path"]):
             last_access = (time.time() - os.path.getatime(file_path)) / 86400
@@ -66,9 +67,10 @@ class DkClean:
             if self.task["delete_when_full"] is True:
                 os.remove(file_path)
             else:
-                raise(err)
+                raise err
 
-    def delete_file(self, file_path):
+    @staticmethod
+    def delete_file(file_path):
         """Deletes file"""
         #TODO Throw in some try excpets
         os.remove(file_path)
@@ -77,11 +79,11 @@ class DkClean:
         """Creates file tree after move_to with user ownership"""
 
         path = path.replace(self.task["relocation_path"], "")
-        dirs = path.split("/")
+        directory = path.split("/")
         current_path = self.task["relocation_path"]
-        for d in dirs:
+        for direct in directory:
             try:
-                new_dir = os.path.join(current_path, d)
+                new_dir = os.path.join(current_path, direct)
                 os.mkdir(new_dir)
                 os.chown(new_dir, uid, uid)
             except OSError:
@@ -108,6 +110,7 @@ class DkClean:
             thread.start()
 
     def clean_disk_threaded(self, clean_function):
+        """Starts the threaded cleaning routine"""
         self.build_pool(clean_function)
         self.build_file_que()
         self.que.join()
@@ -115,13 +118,18 @@ class DkClean:
 ####ITERATIVE###########################################
 
     def clean_disk_iterative(self, clean_function):
+        """Cleans disk iteratively"""
         self.build_file_que()
         while not self.que.empty():
             file_path = self.que.get()
-            clean_function(path[1])
+            clean_function(file_path[1])
 
 
 def check_then_clean(task):
+    """
+    Checks weather the disk should be cleaned based on task settings
+    and runs the correct routine (iterative/multithreaded
+    """
     if (task["relocation_path"] != "") or (task["delete_old_files"] is True):
         print("Checking if disk: '{}' needs to be cleaned".format(task["target_path"]))
 

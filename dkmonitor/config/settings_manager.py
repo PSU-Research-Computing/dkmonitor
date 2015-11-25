@@ -1,3 +1,7 @@
+"""
+This module loads the settings.cfg file and parses the settings into a dict
+"""
+
 import configparser
 
 import sys, os
@@ -16,18 +20,18 @@ def load_settings():
     file_not_found = False
     try:
         raw_settings.read("/etc/dkmonitor.cfg")
-    except IOError as e:
-        if (e[0] == errno.EPERM):
+    except IOError as err:
+        if (err[0] == errno.EPERM):
             print("You do not have permission to read /etc/dkmonitor.cfg", file=sys.stderr)
             file_not_found = True
 
     if (len(raw_settings) == 1) or (file_not_found is True):
         raw_settings.read(os.path.expanduser("~/.dkmonitor/settings.conf"))
 
-    if (len(raw_settings) == 1):
+    if len(raw_settings) == 1:
         try:
             raw_settings.read(os.path.join(os.environ["DKM_CONF"], "settings.cfg"))
-        except KeyError as e:
+        except KeyError:
             raise SettingsFileNotFoundError("DKM_CONF is not set, no settings file found")
 
     if len(raw_settings) == 1:

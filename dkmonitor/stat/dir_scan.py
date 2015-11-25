@@ -1,3 +1,7 @@
+"""
+This file is a single function that yeilds every path item in a directory
+"""
+
 import os
 
 def dir_scan(recursive_dir): #possibly divide into multiple fucntions
@@ -19,7 +23,7 @@ def dir_scan(recursive_dir): #possibly divide into multiple fucntions
         except PermissionError:
             pass
     else:
-        print (recursive_dir)
+        print(recursive_dir)
         raise OSError
 
 if __name__ == '__main__':

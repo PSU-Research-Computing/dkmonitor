@@ -1,3 +1,7 @@
+"""
+This module deals with loading, modifying and displaying tasks
+"""
+
 import argparse
 from sqlalchemy.exc import InvalidRequestError, DataError
 
@@ -19,7 +23,7 @@ class TaskDataBase(DataBase):
     def remove_task(self, taskname):
         """Removes a task forthe database"""
         session = self.create_session()
-        if session.query(Tasks).filter(Tasks.taskname==taskname).delete() == 1:
+        if session.query(Tasks).filter(Tasks.taskname == taskname).delete() == 1:
             session.commit()
             print("Task '{}' was deleted".format(taskname))
         else:
@@ -29,7 +33,8 @@ class TaskDataBase(DataBase):
         """Changes a column value in an existing row"""
         session = self.create_session()
         try:
-            if session.query(Tasks).filter(Tasks.taskname==taskname).update({column_name: update_value}) == 1:
+            if session.query(Tasks).filter(Tasks.taskname == taskname).\
+                                    update({column_name: update_value}) == 1:
                 session.commit()
                 print("Task: '{task}', column: '{cname}' was set to {val}".format(task=taskname,
                                                                                   cname=column_name,
@@ -50,7 +55,7 @@ class TaskDataBase(DataBase):
     def get_task_info(self, taskname):
         """Gets a task row based on task name"""
         session = self.create_session()
-        task = session.query(Tasks).filter(Tasks.taskname==taskname).all()
+        task = session.query(Tasks).filter(Tasks.taskname == taskname).all()
         task_info = {}
         try:
             task = task[0]
@@ -58,7 +63,7 @@ class TaskDataBase(DataBase):
                 task_info[column.name] = getattr(task, column.name)
             return task_info
 
-        except IndexError as e:
+        except IndexError:
             return None
 
     def display_task_info(self, taskname):
@@ -84,6 +89,7 @@ class TaskDataBase(DataBase):
             print("Task '{}' does not exist".format(taskname), file=sys.stderr)
 
     def display_tasks(self):
+        """Displays tasks nicely to the console"""
         session = self.create_session()
         tasks = [task for task in session.query(Tasks.taskname).distinct()]
         if tasks != []:
@@ -214,12 +220,13 @@ def export_tasks():
             formatted_tasks[task.taskname] = task_info
 
         return formatted_tasks
-    except IndexError as e:
+    except IndexError:
         return None
 
 def get_args(args):
     """Defines arguments for command line"""
-    description = "This command line interface is used to interface with the task database database of dkmonitor"
+    description = ("This command line interface is used to interface",
+                   " with the task database database of dkmonitor")
     parser = argparse.ArgumentParser(description=description)
 
     subparsers = parser.add_subparsers()

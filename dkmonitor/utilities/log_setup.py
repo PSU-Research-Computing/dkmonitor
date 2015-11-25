@@ -6,13 +6,12 @@ import os
 import logging
 import logging.handlers
 
-
 def setup_logger(log_file_name):
     """Takes log file name as input are returns a logger object"""
 
     try:
         log_path = os.environ["DKM_LOG"]
-    except KeyError as err:
+    except KeyError:
         print("ERROR: ***Could Not find log storage directory***")
         print("Logging to current working directory")
         log_path = os.path.abspath(".")
@@ -34,7 +33,4 @@ def setup_logger(log_file_name):
     handler.setFormatter(formatter)
     logger.addHandler(handler)
     return logger
-
-if __name__ == "__main__":
-    logger = setup_logger("hi.log")
 
