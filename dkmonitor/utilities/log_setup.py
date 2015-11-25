@@ -3,8 +3,7 @@ File containing simple function that returns log object
 """
 
 import os
-import logging
-import logging.handlers
+import logging, logging.handlers
 
 def setup_logger(log_file_name):
     """Takes log file name as input are returns a logger object"""

@@ -3,8 +3,7 @@ Admin interface is a Command Line interface for Administrators
 that want to view user and system information
 """
 
-import termcolor
-import argparse
+import termcolor, argparse
 
 import sys, os
 sys.path.append(os.path.abspath(".."))
