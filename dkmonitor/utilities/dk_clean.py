@@ -2,9 +2,7 @@
 dk_clean is used to move all old files from one directory to another"""
 
 import re, time, shutil, pwd
-
-import threading
-from queue import PriorityQueue
+import threading, queue
 
 import sys, os
 sys.path.append(os.path.abspath("../.."))
@@ -21,7 +19,7 @@ class DkClean:
     def __init__(self, task):
         self.task = task
         self.thread_settings = export_settings()["Thread_Settings"]
-        self.que = PriorityQueue()
+        self.que = queue.PriorityQueue()
 
         self.logger = log_setup.setup_logger(__name__)
 
