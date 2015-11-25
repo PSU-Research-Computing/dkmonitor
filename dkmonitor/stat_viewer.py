@@ -181,7 +181,7 @@ class AdminStatViewer(DataBase):
 def get_args(args):
     """Gets args from argparse"""
 
-    description = ("Administrator Interface is a program That allows you to view system and user",
+    description = ("Administrator Interface is a program That allows you to view system and user"
                    " data stored in a central database managed by the appilcation dkmonitor")
     parser = argparse.ArgumentParser(description=description)
 

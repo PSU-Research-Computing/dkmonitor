@@ -135,27 +135,34 @@ def creation_interface():
     task_input["taskname"] = input("Task name(unique): ")
     task_input["hostname"] = input("Target hostname: ")
     task_input["target_path"] = input("Target directory: ")
-    task_input["disk_warning_threshold"] = read_percent("Disk use warning threshold(percent)(int): ")
-    task_input["disk_critical_threshold"] = read_percent("Disk use cirtical threshold(percent)(int): ")
+    task_input["disk_warning_threshold"] = read_percent(("Disk use warning "
+                                                         "threshold(percent)(int): "))
+    task_input["disk_critical_threshold"] = read_percent(("Disk use cirtical "
+                                                          "threshold(percent)(int): "))
 
-    relocate_old = read_bool("Relocate old files when the disk is over it's critical threshold?(y/n): ")
+    relocate_old = read_bool(("Relocate old files when the disk"
+                              "is over it's critical threshold?(y/n): "))
     if relocate_old is True:
         relocation_path = input("Relocation path: ")
         task_input["relocation_path"] = relocation_path
-        task_input["delete_when_full"] = read_bool("Delete files when relocation path is full?(y/n): ")
+        task_input["delete_when_full"] = read_bool(("Delete files when relocation"
+                                                    "path is full?(y/n): "))
     elif relocate_old is False:
         task_input["delete_old_files"] = read_bool("Delete old files?(y/n): ")
 
     if (relocate_old is True) or (task_input["delete_old_files"] is True):
         task_input["old_file_threshold"] = read_int("Old file threshold(days)(int): ")
 
-    task_input["email_usage_warnings"] = read_bool("Send emails when the disk is over it's warning threshold?(y/n): ")
+    task_input["email_usage_warnings"] = read_bool(("Send emails when the disk is"
+                                                    "over it's warning threshold?(y/n): "))
 
     if task_input["email_usage_warnings"] is True:
-        task_input["email_top_percent"] = read_percent("Percent of top users to be emailed(percent)(int): ")
+        task_input["email_top_percent"] = read_percent(("Percent of top users "
+                                                        "to be emailed(percent)(int): "))
 
     if (relocate_old is True) or (task_input["delete_old_files"] is True):
-        task_input["email_data_alterations"] = read_bool("Send emails when data has been altered?(y/n): ")
+        task_input["email_data_alterations"] = read_bool(("Send emails when data"
+                                                          "has been altered?(y/n): "))
 
     task_input["enabled"] = read_bool("Would you like to enable this task?(y/n): ")
 
@@ -225,7 +232,7 @@ def export_tasks():
 
 def get_args(args):
     """Defines arguments for command line"""
-    description = ("This command line interface is used to interface",
+    description = ("This command line interface is used to interface"
                    " with the task database database of dkmonitor")
     parser = argparse.ArgumentParser(description=description)
 

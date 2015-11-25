@@ -253,7 +253,7 @@ def clean_database(days):
 
 def get_args(args):
     """Sets arguements for argparse"""
-    description = ("The database command line interface is used to list, clean, and drop tables",
+    description = ("The database command line interface is used to list, clean, and drop tables"
                    " in dkmonitor's database space manually")
     parser = argparse.ArgumentParser(description=description)
     subparser = parser.add_subparsers()
