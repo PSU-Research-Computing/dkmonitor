@@ -29,7 +29,7 @@ class IncorrectHostError(Exception):
 
 class MonitorManager():
     """
-    This class is the main managing class for all other classes
+    This class is the main managing class for all classes that scan, clean and email
     It runs preset tasks that are found in a database
     """
 
