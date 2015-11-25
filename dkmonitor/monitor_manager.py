@@ -28,8 +28,10 @@ class IncorrectHostError(Exception):
         super(IncorrectHostError, self).__init__(message)
 
 class MonitorManager():
-    """This class is the main managing class for all other classes
-    It runs preset tasks that are found in a database"""
+    """
+    This class is the main managing class for all other classes
+    It runs preset tasks that are found in a database
+    """
 
     def __init__(self):
         self.settings = export_settings()
@@ -56,7 +58,7 @@ class MonitorManager():
     @staticmethod
     def quick_scan(task):
         """
-        Ment to be run hourly
+        Meant to be run hourly
         Checks use percent on a task
         if over quota, email users / clean disk if neccessary
         """
