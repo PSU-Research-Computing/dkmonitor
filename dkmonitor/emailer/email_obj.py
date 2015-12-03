@@ -53,9 +53,7 @@ class Email:
         except IOError:
             self.logger.error("File %s does not exist", message_file)
         except KeyError as keyerr:
-            m = re.search("'([^']*)'", keyerr.message) #TODO fix this broken line
-            key = m.group(1)
-            self.logger.error("Key %s does not exist", key)
+            self.logger.error("Key %s does not exist", keyerr.args[0])
             raise keyerr
 
 
