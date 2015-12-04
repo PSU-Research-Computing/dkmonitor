@@ -155,6 +155,7 @@ def check_then_clean(task):
         disk_use = get_disk_use_percent(task["target_path"])
         if disk_use > task["usage_critical_threshold"]:
             clean_obj = DkClean(task)
+            clean_obj.logger.info("Cleaning disk %s on %s", task["target_path"], task["hostname"])
             if task["relocation_path"] != "":
                 clean_function = clean_obj.move_file
             elif task["delete_old_files"] is True:

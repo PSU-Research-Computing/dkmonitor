@@ -15,20 +15,23 @@ class SettingsFileNotFoundError(Exception):
         super(SettingsFileNotFoundError, self).__init__(message)
 
 
+logger = setup_logger(__name__)
+
 def load_settings():
     """Loads settings.cfg into a configparser object"""
     raw_settings = configparser.ConfigParser()
-    raw_settings.read("/etc/dkmonitor.cfg")
 
+    raw_settings.read("/etc/dkmonitor.cfg")
     if len(raw_settings) == 1:
         raw_settings.read(os.path.expanduser("~/.dkmonitor/settings.conf"))
     if len(raw_settings) == 1:
         try:
             raw_settings.read(os.path.join(os.environ["DKM_CONF"], "settings.cfg"))
         except KeyError:
+            logger.error("No configuration files found: DKM_CONF not set")
             raise SettingsFileNotFoundError("DKM_CONF is not set, no settings file found")
-
     if len(raw_settings) == 1:
+        logger.error("No configuration files found")
         raise SettingsFileNotFoundError("No settings file found at any designated locations")
 
     return raw_settings

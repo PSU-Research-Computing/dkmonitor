@@ -48,13 +48,18 @@ class MonitorManager():
         """Error catching wrapper for quick and full scan fucntions"""
         try:
             print("Running Task: '{}'".format(task["taskname"]))
+            self.logger.info("Running Task: %s", task["taskname"])
+
             scan(task)
-            print("Task: '{}' is complete".format(task["taskname"]))
+
+            print("Task: '{}' complete!".format(task["taskname"]))
             self.logger.info("Task: %s complete!", task["taskname"])
         except PermissionError:
             print("You do not have permissions to {}".format(task["target_path"]), file=sys.stderr)
+            self.logger.error("No permissions for %s", task["target_path"])
         except OSError:
             print("There is no directory: {}".format(task["target_path"]), file=sys.stderr)
+            self.logger.error("There is no directory: %s", task["target_path"])
 
     @staticmethod
     def quick_scan(task):

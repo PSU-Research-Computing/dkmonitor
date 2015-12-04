@@ -10,6 +10,7 @@ sys.path.append(os.path.abspath("../.."))
 
 from dkmonitor.database_manager import Tasks, DataBase
 from dkmonitor.config.settings_manager import export_settings
+from dkmonitor.utilities import log_setup
 
 class TaskDataBase(DataBase):
     """An interface used to create, display, edit, remove, and list tasks"""
@@ -21,12 +22,15 @@ class TaskDataBase(DataBase):
                          username=db_settings["username"],
                          db_type=db_settings["db_type"])
 
+        self.logger = log_setup.setup_logger(__name__)
+
     def remove_task(self, taskname):
         """Removes a task forthe database"""
         session = self.create_session()
         if session.query(Tasks).filter(Tasks.taskname == taskname).delete() == 1:
             session.commit()
             print("Task '{}' was deleted".format(taskname))
+            self.logger.info("Task %s was deleted", taskname)
         else:
             print("Task '{}' does not exist".format(taskname), file=sys.stderr)
 
@@ -40,6 +44,10 @@ class TaskDataBase(DataBase):
                 print("Task: '{task}', column: '{cname}' was set to {val}".format(task=taskname,
                                                                                   cname=column_name,
                                                                                   val=update_value))
+                self.logger.info("Task '%s', column: '%s' was set to %s",
+                                 taskname,
+                                 column_name,
+                                 update_value)
             else:
                 print("Task '{}' does not exist".format(taskname))
         except InvalidRequestError:

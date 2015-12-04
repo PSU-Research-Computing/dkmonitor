@@ -31,8 +31,9 @@ class DkStat:
 
     def scan(self):
         """Searches through the target_path for old files"""
-        #self.logger.info("Searching %s", task["target_path"])
         print("Scanning...")
+        self.logger.info("Scanning %s on %s", self.task["target_path"], self.task["hostname"])
+
         self.users = {}
 
         self.directory = DirectoryStats(target_path=self.task["target_path"],
@@ -63,6 +64,10 @@ class DkStat:
     def store(self):
         """Stores all stats in the database"""
         print("Storing stats")
+        self.logger.info("Storing stats from %s on %s",
+                         self.task["target_path"],
+                         self.task["hostname"])
+
         database = DataBase(**self.settings["DataBase_Settings"])
 
         rows = [x[1] for x in self.users.items()]
@@ -76,6 +81,7 @@ class DkStat:
            ((self.task["email_usage_warnings"] is True) or \
            (self.task["email_data_alterations"] is True)):
             print("Emailing Users")
+            self.logger.info("Emailing users on %s", self.task["hostname"])
 
         problem_users = self.get_problem_users()
         for user in self.users.items():
