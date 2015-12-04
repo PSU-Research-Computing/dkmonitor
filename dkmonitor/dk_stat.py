@@ -9,7 +9,7 @@ from collections import namedtuple
 import sys, os
 sys.path.append(os.path.abspath("../.."))
 
-from dkmonitor.stat.dir_scan import dir_scan
+from dkmonitor.utilities.dir_scan import dir_scan
 from dkmonitor.utilities import log_setup
 from dkmonitor.config.settings_manager import export_settings
 from dkmonitor.utilities.database_manager import DataBase, UserStats, DirectoryStats

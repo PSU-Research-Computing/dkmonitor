@@ -15,7 +15,7 @@ from dkmonitor.config.task_manager import export_tasks
 
 from dkmonitor.utilities.database_manager import clean_database
 from dkmonitor.utilities.dk_clean import check_then_clean
-from dkmonitor.stat.dk_stat import scan_store_email, get_disk_use_percent
+from dkmonitor.dk_stat import scan_store_email, get_disk_use_percent
 
 class ScanTypeNotFound(Exception):
     """Error thrown when scan type is invalid"""
