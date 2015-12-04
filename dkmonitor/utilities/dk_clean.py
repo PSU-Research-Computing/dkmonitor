@@ -102,7 +102,7 @@ class DkClean:
     def build_pool(self, clean_function):
         """Builds Pool of thread workers"""
 
-        for i in range(self.thread_settings["thread_number"]):
+        for _ in range(self.thread_settings["thread_number"]):
             thread = threading.Thread(target=self.worker, args=(clean_function,))
             thread.daemon = True
             thread.start()

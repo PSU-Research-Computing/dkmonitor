@@ -13,7 +13,7 @@ from dkmonitor.utilities import log_setup
 from dkmonitor.config.settings_manager import export_settings
 from dkmonitor.config.task_manager import export_tasks
 
-from dkmonitor.utilities.database_interface import clean_database
+from dkmonitor.utilities.database_manager import clean_database
 from dkmonitor.utilities.dk_clean import check_then_clean
 from dkmonitor.stat.dk_stat import scan_store_email, get_disk_use_percent
 

@@ -8,7 +8,7 @@ import termcolor, argparse
 import sys, os
 sys.path.append(os.path.abspath(".."))
 
-from dkmonitor.utilities.database_interface import DataBase, DirectoryStats, UserStats
+from dkmonitor.utilities.database_manager import DataBase, DirectoryStats, UserStats
 from dkmonitor.config.settings_manager import export_settings
 
 
