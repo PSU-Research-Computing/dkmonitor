@@ -1,3 +1,7 @@
+"""
+This script runs the main commandline interface for dkmonitor
+"""
+
 import argparse
 
 import sys, os
@@ -9,10 +13,12 @@ from dkmonitor.stat_viewer import main as admin_main
 from dkmonitor.utilities.database_manager import main as data_main
 
 def description():
+    """Returns the description string for command line interface"""
     return ("dkmonitor is a disk monitoring utility used to monitor, record and notify ",
             "idividual user's usage statistics on a shared storage space")
 
 def main(args=None):
+    """Run the main Commandline interface for Dkmonitor"""
     if args is None:
         args = sys.argv[1:]
 
