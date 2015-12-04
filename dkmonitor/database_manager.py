@@ -255,12 +255,12 @@ def get_args(args):
     description = ("The database command line interface is used to list, clean, and drop tables"
                    " in dkmonitor's database space manually")
     parser = argparse.ArgumentParser(description=description)
-    subparser = parser.add_subparsers()
+    subparsers = parser.add_subparsers()
 
-    list_parser = subparser.add_parser("list")
+    list_parser = subparsers.add_parser("list")
     list_parser.set_defaults(which="list")
 
-    clean_parser = subparser.add_parser("clean")
+    clean_parser = subparsers.add_parser("clean")
     clean_parser.set_defaults(which="clean")
     clean_parser.add_argument("days",
                               type=int,
@@ -275,7 +275,7 @@ def get_args(args):
                                   type=str,
                                   help="Table to clean")
 
-    clear_parser = subparser.add_parser("drop")
+    clear_parser = subparsers.add_parser("drop")
     clear_parser.set_defaults(which="drop")
     clear_name_group = clear_parser.add_mutually_exclusive_group()
     clear_name_group.add_argument("--all",
