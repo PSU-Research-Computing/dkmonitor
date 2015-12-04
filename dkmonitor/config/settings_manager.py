@@ -18,16 +18,10 @@ class SettingsFileNotFoundError(Exception):
 def load_settings():
     """Loads settings.cfg into a configparser object"""
     raw_settings = configparser.ConfigParser()
-    file_not_found = False
-    if os.access("/etc/dkmonitor.cfg", os.R_OK) is True:
-        raw_settings.read("/etc/dkmonitor.cfg")
-    else:
-        print("You do not have permission to read /etc/dkmonitor.cfg", file=sys.stderr)
-        file_not_found = True
+    raw_settings.read("/etc/dkmonitor.cfg")
 
-    if (len(raw_settings) == 1) or (file_not_found is True):
+    if len(raw_settings) == 1:
         raw_settings.read(os.path.expanduser("~/.dkmonitor/settings.conf"))
-
     if len(raw_settings) == 1:
         try:
             raw_settings.read(os.path.join(os.environ["DKM_CONF"], "settings.cfg"))
