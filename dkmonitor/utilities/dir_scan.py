@@ -5,6 +5,10 @@ This file is a single function that yeilds every file in a directory tree
 import os
 
 def dir_scan(recursive_dir):
+    """
+    Wrapper function for dir_scan_recursive that throws permission error
+    if permisssions are incorrect
+    """
     if os.access(recursive_dir, os.R_OK) is True:
         return dir_scan_recursive(recursive_dir)
     else:
