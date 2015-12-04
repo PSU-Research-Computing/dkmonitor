@@ -5,6 +5,12 @@ This file is a single function that yeilds every file in a directory tree
 import os
 
 def dir_scan(recursive_dir):
+    if os.access(recursive_dir, os.R_OK) is True:
+        return dir_scan_recursive(recursive_dir)
+    else:
+        raise PermissionError
+
+def dir_scan_recursive(recursive_dir):
     """
     Searches through entire directory tree recursively
     """
@@ -15,7 +21,7 @@ def dir_scan(recursive_dir):
             if os.path.isfile(current_path):
                 yield current_path
             elif os.path.isdir(current_path):
-                yield from dir_scan(current_path)
+                yield from dir_scan_recursive(current_path)
             else:
                 pass
     except PermissionError:

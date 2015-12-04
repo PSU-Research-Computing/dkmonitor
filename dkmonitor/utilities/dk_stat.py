@@ -38,7 +38,7 @@ class DkStat:
 
         self.directory = DirectoryStats(target_path=self.task["target_path"],
                                         hostname=self.task["hostname"],
-                                        datetime=datetime.datetime.now()) #Creates dir_obj
+                                        datetime=datetime.datetime.now())
 
         for file_path in dir_scan(self.task["target_path"]):
             last_access = (time.time() - os.path.getatime(file_path)) / 86400
