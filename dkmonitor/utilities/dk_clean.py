@@ -9,7 +9,7 @@ sys.path.append(os.path.abspath("../.."))
 
 from dkmonitor.utilities import log_setup
 from dkmonitor.utilities.dir_scan import dir_scan
-from dkmonitor.dk_stat import get_disk_use_percent
+from dkmonitor.utilities.dk_stat import get_disk_use_percent
 from dkmonitor.config.settings_manager import export_settings
 
 class DkClean:
