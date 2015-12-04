@@ -4,7 +4,7 @@ This file is a single function that yeilds every file in a directory tree
 
 import os
 
-def dir_scan(recursive_dir): #possibly divide into multiple fucntions
+def dir_scan(recursive_dir):
     """
     Searches through entire directory tree recursively
     """
