@@ -12,6 +12,11 @@ from dkmonitor.utilities.dir_scan import dir_scan
 from dkmonitor.utilities.dk_stat import get_disk_use_percent
 from dkmonitor.config.settings_manager import export_settings
 
+class ConflictingSettingsError(Exception):
+    """Error for when relocation path and delete files are both set is not found"""
+    def __init__(self, message):
+        super(ConflictingSettingsError, self).__init__(message)
+
 class DkClean:
     """The class dk_clean is used to move old files from one directory to an other.
     The process can be run with multithreading or just iterativly"""
@@ -139,8 +144,8 @@ def check_then_clean(task):
             elif task["delete_old_files"] is True:
                 clean_function = clean_obj.delete_file
             else:
-                #TODO Raise Error for incorrect settings
-                pass
+                raise ConflictingSettingsError(("Error both relocation_path ",
+                                                "and delete_old_files are set"))
             if clean_obj.thread_settings["thread_mode"] == 'yes':
                 clean_obj.clean_disk_threaded(clean_function)
             else:
