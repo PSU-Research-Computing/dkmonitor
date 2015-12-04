@@ -29,7 +29,6 @@ class AdminStatViewer(DataBase):
     @staticmethod
     def print_color_key():
         """Print the color key"""
-
         print("Color Key----------")
         green = termcolor.colored("green", "green")
         print("{} == Decrease".format(green))
@@ -39,13 +38,11 @@ class AdminStatViewer(DataBase):
         print("{} == Increase".format(red))
         print("-------------------")
 
-
     def display_user(self, username):
         """
         Displays user stats in color with information gathered by the
         DbViewer object from the dkmonitor database
         """
-
         session = self.create_session()
         disks_on_user = [disk[0] for disk in session.query(UserStats.target_path).\
                                              filter(UserStats.username == username).\
@@ -86,13 +83,11 @@ class AdminStatViewer(DataBase):
 
         session.close()
 
-
     def display_system(self, hostname):
         """
         Displays system stats in color with information gathered by the
         DbViewer object from the dkmonitor database
         """
-
         session = self.create_session()
         disks_on_system = [disk[0] for disk in session.query(DirectoryStats.target_path).\
                                                filter(DirectoryStats.hostname == hostname).\
@@ -179,7 +174,6 @@ class AdminStatViewer(DataBase):
 
 def get_args(args):
     """Gets args from argparse"""
-
     description = ("Administrator Interface is a program That allows you to view system and user"
                    " data stored in a central database managed by the appilcation dkmonitor")
     parser = argparse.ArgumentParser(description=description)
@@ -205,7 +199,6 @@ def get_args(args):
 
 def main(args=None):
     """Main function that runs the command line interface"""
-
     if args is None:
         args = sys.argv[1:]
 

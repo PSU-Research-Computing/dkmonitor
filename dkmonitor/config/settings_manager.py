@@ -14,6 +14,7 @@ class SettingsFileNotFoundError(Exception):
     def __init__(self, message):
         super(SettingsFileNotFoundError, self).__init__(message)
 
+
 def load_settings():
     """Loads settings.cfg into a configparser object"""
     raw_settings = configparser.ConfigParser()

@@ -29,7 +29,6 @@ class Email:
 
     def build_and_send_message(self):
         """Attaches all the body string to the message"""
-
         body = MIMEText(self.body, 'plain')
         self.msg.attach(body)
 
@@ -39,7 +38,6 @@ class Email:
 
     def add_message(self, message_file, data_dict):
         """Loads a pre-written message from external file and adds info to it from data_dict"""
-
         message_file = os.path.abspath(".") + "/emailer/messages/" + message_file
         for key, item in data_dict.items():
             if isinstance(item, float):
@@ -56,13 +54,11 @@ class Email:
             self.logger.error("Key %s does not exist", keyerr.args[0])
             raise keyerr
 
-
     def attach_file_stream(self, stream, attached_file_name):
         """
         This method allows you to attach a file to a message
         ***NOT USED***
         """
-
         stream.seek(0)
         attachment = MIMEText(stream.read())
         attachment.add_header('Content-Disposition', 'attachment', filename=attached_file_name)

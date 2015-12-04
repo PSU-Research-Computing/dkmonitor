@@ -31,7 +31,6 @@ class DkStat:
 
     def scan(self):
         """Searches through the target_path for old files"""
-
         #self.logger.info("Searching %s", task["target_path"])
         print("Scanning...")
         self.users = {}
@@ -85,14 +84,12 @@ class DkStat:
                                self.task,
                                disk_use)
 
-
     def get_problem_users(self):
         """
         Returns a list of lists
         List in item one is the largest users of space
         List two is the largest holders of old data
         """
-
         stat_list = []
         problem_threshold = self.task["email_top_percent"] / 100
         flag_user_number = int(len(self.users.keys()) * problem_threshold)
@@ -125,13 +122,6 @@ def scan_store_email(task):
 
 def get_disk_use_percent(path):
     """Returns the disk use percentage of searched_directory"""
-
     use = shutil.disk_usage(path)
     use_percentage = use.used / use.total
     return use_percentage * 100
-
-if __name__ == "__main__":
-    pass
-
-
-

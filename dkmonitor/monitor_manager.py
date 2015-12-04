@@ -27,6 +27,7 @@ class IncorrectHostError(Exception):
     def __init__(self, message):
         super(IncorrectHostError, self).__init__(message)
 
+
 class MonitorManager():
     """
     This class is the main managing class for all classes that scan, clean and email
@@ -45,6 +46,7 @@ class MonitorManager():
 
     def scan_wrapper(self, scan, task):
         """Error catching wrapper for quick and full scan fucntions"""
+
         try:
             print("Running Task: '{}'".format(task["taskname"]))
             scan(task)
@@ -62,6 +64,7 @@ class MonitorManager():
         Checks use percent on a task
         if over quota, email users / clean disk if neccessary
         """
+
         print("Starting Quick Scan of: {}".format(task["target_path"]))
 
         disk_use = get_disk_use_percent(task["target_path"])
@@ -77,6 +80,7 @@ class MonitorManager():
         saves disk statistics information in db
         if over quota, email users / clean disk if neccessary
         """
+
         print("Starting Full Scan of: {}".format(task["target_path"]))
 
         scan_store_email(task)
@@ -84,6 +88,7 @@ class MonitorManager():
 
     def run_task(self, task, scan_function):
         """Runs a single task"""
+
         check_host_name(task) #raises error if does not match
         if task["enabled"] is True:
             if self.settings["Thread_Settings"]["thread_mode"] == "yes":
@@ -95,6 +100,7 @@ class MonitorManager():
 
     def start_tasks(self, scan_type="full"):
         """Starts all tasks that are on current host"""
+
         try:
             scan_function = self.get_scan_function(scan_type)
             scan_started_flag = False
@@ -113,6 +119,7 @@ class MonitorManager():
 
     def start_task(self, task_name, scan_type='full'):
         """Starts a task givin by the user"""
+
         try:
             task = self.tasks[task_name]
             scan_function = self.get_scan_function(scan_type)
@@ -131,6 +138,7 @@ class MonitorManager():
         Checks if string is 'full' or 'quick' and returns the corrisponding function
         Raises error if string is neither
         """
+
         if scan_type == "full":
             scan_function = self.full_scan
         elif scan_type == "quick":
@@ -139,18 +147,20 @@ class MonitorManager():
             raise ScanTypeNotFound("Scan type '{}' was not found".format(scan_type))
         return scan_function
 
+
 def check_host_name(task):
     """
     Gets current hostname and compares with a task
     Raises error if hostname does not match
     """
+
     host_name = socket.gethostname()
     if host_name != task["hostname"]:
         raise IncorrectHostError("Hostname '{th}' does not match '{ch}'".format(th=task["hostname"],
                                                                                 ch=host_name))
-
 def main(args=None):
     """Monitor Manager Command line interface"""
+
     if args is None:
         args = sys.argv[1:0]
 

@@ -17,6 +17,7 @@ class ConflictingSettingsError(Exception):
     def __init__(self, message):
         super(ConflictingSettingsError, self).__init__(message)
 
+
 class DkClean:
     """The class dk_clean is used to move old files from one directory to an other.
     The process can be run with multithreading or just iterativly"""
@@ -27,7 +28,6 @@ class DkClean:
         self.que = queue.PriorityQueue()
 
         self.logger = log_setup.setup_logger(__name__)
-
 
     def build_file_que(self):
         """Adds old file paths to a thread safe que"""
@@ -40,10 +40,8 @@ class DkClean:
                 self.que.put((priority_num, file_path))
         print("Done")
 
-
     def move_file(self, file_path):
         """Moves individual file while still preseving its file path"""
-
         uid = os.stat(file_path).st_uid
         user = pwd.getpwuid(uid).pw_name
 
@@ -80,7 +78,6 @@ class DkClean:
 
     def create_file_tree(self, uid, path):
         """Creates file tree after move_to with user ownership"""
-
         path = path.replace(self.task["relocation_path"], "")
         directory = path.split("/")
         current_path = self.task["relocation_path"]
@@ -93,12 +90,9 @@ class DkClean:
                 pass
             current_path = new_dir
 
-
-####MULTI-THREADING######################################
-
+    #MULTI-THREADING######################################
     def worker(self, clean_function):
         """Worker Function"""
-
         while True:
             path = self.que.get()
             clean_function(path[1])
@@ -106,7 +100,6 @@ class DkClean:
 
     def build_pool(self, clean_function):
         """Builds Pool of thread workers"""
-
         for _ in range(self.thread_settings["thread_number"]):
             thread = threading.Thread(target=self.worker, args=(clean_function,))
             thread.daemon = True
@@ -118,8 +111,7 @@ class DkClean:
         self.build_file_que()
         self.que.join()
 
-####ITERATIVE###########################################
-
+    #ITERATIVE###########################################
     def clean_disk_iterative(self, clean_function):
         """Cleans disk iteratively"""
         self.build_file_que()
@@ -152,5 +144,3 @@ def check_then_clean(task):
                 clean_obj.clean_disk_iterative(clean_function)
         else:
             print("Disk: '{}' does not need to be cleaned".format(task["target_path"]))
-
-

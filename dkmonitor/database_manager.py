@@ -20,6 +20,7 @@ Base = declarative_base()
 
 class StatObj(object):
     """Object used to keep disk usage stats"""
+
     datetime = Column("datetime", DateTime, primary_key=True)
     hostname = Column("hostname", String)
     target_path = Column("target_path", String)
@@ -44,12 +45,10 @@ class StatObj(object):
 
     def get_total_space(self):
         """Calculates total file size of all files in file_list"""
-
         self.total_file_size = self.total_file_size_count
 
     def get_disk_use_percentage(self):
         """Calculates the disk use percentage of all files"""
-
         stat_tup = os.statvfs(self.target_path)
         total = stat_tup.f_blocks * stat_tup.f_frsize
 
@@ -59,7 +58,6 @@ class StatObj(object):
 
     def get_access_average(self):
         """Calculates the last access average for all stored files"""
-
         try: #possibly change this to an if statement
             average_last_access = self.total_access_time_count / self.number_of_old_files_count
         except ZeroDivisionError:
@@ -69,26 +67,26 @@ class StatObj(object):
 
     def calculate_stats(self):
         """Caclutes all stats and returns the object"""
-
         self.get_total_space()
         self.get_disk_use_percentage()
         self.get_access_average()
 
         return self
 
+
 class DirectoryStats(StatObj, Base):
     """extention of StatObj used for storing directory stats"""
     __tablename__ = "directorystats"
 
+
 class UserStats(StatObj, Base):
     """Extention of StatObj that is used for storing a user's stats"""
-    __tablename__ = "userstats"
 
+    __tablename__ = "userstats"
     username = Column("username", String)
 
     def email_user(self, postfix, problem_lists, task, current_use):
         """Emails the user associated with the object if they are flagged"""
-
         email_info = self.build_email_stats(task)
         if current_use > task["usage_warning_threshold"]:
             send_flag = False
@@ -114,7 +112,6 @@ class UserStats(StatObj, Base):
                 message.build_and_send_message()
                 print("Sending Message")
 
-
     def build_email_stats(self, task):
         """builds a dictionary with all of the stats needed for emailing the user"""
         email_info = {}
@@ -134,6 +131,7 @@ class UserStats(StatObj, Base):
 
 class Tasks(Base):
     """Table object for tasks"""
+
     __tablename__ = "tasks"
 
     taskname = Column("taskname", String, primary_key=True)
@@ -181,7 +179,6 @@ class DataBase:
         session.commit()
         session.close()
 
-
     def create_session(self):
         """Short hand for creating database sessions"""
         session = sessionmaker(bind=self.db_engine, expire_on_commit=False)
@@ -190,6 +187,7 @@ class DataBase:
 
 class DataBaseCleaner(DataBase):
     """A class used to modify the database from the commandline/clean when running tasks"""
+
     def __init__(self, db_settings):
         super().__init__(hostname=db_settings["hostname"],
                          database=db_settings["database"],
@@ -242,6 +240,7 @@ class DataBaseCleaner(DataBase):
 
         if found_flag is False:
             print("Table '{}' was not found".format(tablename), file=sys.stderr)
+
 
 def clean_database(days):
     """Deletes all rows older than days databases userstats and directorystats"""

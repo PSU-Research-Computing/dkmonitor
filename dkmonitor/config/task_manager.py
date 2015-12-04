@@ -13,6 +13,7 @@ from dkmonitor.config.settings_manager import export_settings
 
 class TaskDataBase(DataBase):
     """An interface used to create, display, edit, remove, and list tasks"""
+
     def __init__(self, db_settings):
         super().__init__(hostname=db_settings["hostname"],
                          database=db_settings["database"],
@@ -200,7 +201,6 @@ def read_percent(question):
         else:
             print("Please enter an integer between 1 and 100")
 
-
 def read_bool(question):
     """Reads in boolean, will not exit unless y or n is entered"""
     while True:
@@ -327,7 +327,6 @@ def get_args(args):
 
     return parser.parse_args(args)
 
-
 def main(args=None):
     """Commandline interface"""
     if args is None:
@@ -352,7 +351,6 @@ def main(args=None):
         taskdb.update_column(args.ditaskname, "enabled", False)
     elif args.which == "edit":
         taskdb.update_column(args.edtaskname, args.column_name.lower(), args.update_value)
-
 
 if __name__ == "__main__":
     main()

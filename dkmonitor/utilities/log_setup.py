@@ -7,7 +7,6 @@ import logging, logging.handlers
 
 def setup_logger(log_file_name):
     """Takes log file name as input are returns a logger object"""
-
     try:
         log_path = os.environ["DKM_LOG"]
     except KeyError:
@@ -31,5 +30,6 @@ def setup_logger(log_file_name):
     formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
     handler.setFormatter(formatter)
     logger.addHandler(handler)
+
     return logger
 
