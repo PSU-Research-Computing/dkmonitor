@@ -1,5 +1,7 @@
-"""This script contains the class dk_clean.
-dk_clean is used to move all old files from one directory to another"""
+"""
+This script contains the class dk_clean.
+dk_clean is used to move all old files from one directory to another
+"""
 
 import re, time, shutil, pwd
 import threading, queue
@@ -25,7 +27,10 @@ class DkClean:
     def __init__(self, task):
         self.task = task
         self.thread_settings = export_settings()["Thread_Settings"]
+
         self.que = queue.PriorityQueue()
+        self.permission_error_que = queue.PriorityQueue()
+        self.full_disk_que = queue.PriorityQueue()
 
         self.logger = log_setup.setup_logger(__name__)
 
@@ -65,16 +70,22 @@ class DkClean:
             #print("OLD {o} :: NEW {n}".format(o=file_path, n=new_file_path))
             pass
         except IOError as err:
-            if self.task["delete_when_full"] is True:
-                os.remove(file_path)
-            else:
-                raise err
+            if err.errno == 13:
+                self.permission_error_que.put(file_path)
+            if err.errno == 28: #Disk full
+                if self.task["delete_when_full"] is True:
+                    self.delete_file(file_path)
+                else:
+                    self.full_disk_que.put(file_path)
+                    raise err
 
-    @staticmethod
-    def delete_file(file_path):
+    def delete_file(self, file_path):
         """Deletes file"""
-        #TODO Throw in some try excpets
-        os.remove(file_path)
+        try:
+            os.remove(file_path)
+        except IOError as err:
+            if err.errno == 13:
+                self.permission_error_que.put(file_path)
 
     def create_file_tree(self, uid, path):
         """Creates file tree after move_to with user ownership"""
@@ -111,6 +122,8 @@ class DkClean:
         self.build_file_que()
         self.que.join()
 
+        self.log_file_errors()
+
     #ITERATIVE###########################################
     def clean_disk_iterative(self, clean_function):
         """Cleans disk iteratively"""
@@ -118,6 +131,17 @@ class DkClean:
         while not self.que.empty():
             file_path = self.que.get()
             clean_function(file_path[1])
+
+        self.log_file_errors()
+
+    def log_file_errors(self):
+        """Logs number of files that could not be moved or deleted"""
+        if len(self.permission_error_que) > 0:
+            self.logger.error("Permissions error on %s files.", len(self.permission_error_que))
+        if len(self.full_disk_que) > 0:
+            self.logger.error("Relocation_Path disk full. %s files could not be moved",
+                              len(self.full_disk_que))
+
 
 
 def check_then_clean(task):
