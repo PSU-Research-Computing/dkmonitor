@@ -184,18 +184,18 @@ def get_args(args):
                    " data stored in a central database managed by the appilcation dkmonitor")
     parser = argparse.ArgumentParser(description=description)
 
-    subparser = parser.add_subparsers()
-    system_parser = subparser.add_parser("system")
+    subparsers = parser.add_subparsers()
+    system_parser = subparsers.add_parser("system")
     system_parser.set_defaults(which="system")
     system_parser.add_argument("system_host_name",
                                help="Name of system you want to search for")
 
-    user_parser = subparser.add_parser("user")
+    user_parser = subparsers.add_parser("user")
     user_parser.set_defaults(which="user")
     user_parser.add_argument("user_name",
                              help="Name of user you want to search for")
 
-    all_parser = subparser.add_parser("all")
+    all_parser = subparsers.add_parser("all")
     all_parser.set_defaults(which="all")
     all_parser.add_argument("display_name",
                             help="Specify either 'systems' or 'users' to display all found matchs")
