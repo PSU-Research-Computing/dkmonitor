@@ -10,7 +10,7 @@ sys.path.append(os.path.abspath(".."))
 from dkmonitor.monitor_manager import main as monitor_main
 from dkmonitor.config.task_manager import main as task_main
 from dkmonitor.stat_viewer import main as admin_main
-from dkmonitor.utilities.database_manager import main as data_main
+from dkmonitor.database_manager import main as data_main
 
 def description():
     """Returns the description string for command line interface"""

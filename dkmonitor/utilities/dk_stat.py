@@ -12,7 +12,7 @@ sys.path.append(os.path.abspath("../.."))
 from dkmonitor.utilities.dir_scan import dir_scan
 from dkmonitor.utilities import log_setup
 from dkmonitor.config.settings_manager import export_settings
-from dkmonitor.utilities.database_manager import DataBase, UserStats, DirectoryStats
+from dkmonitor.database_manager import DataBase, UserStats, DirectoryStats
 
 FileTuple = namedtuple('FileTuple', 'file_size last_access')
 
