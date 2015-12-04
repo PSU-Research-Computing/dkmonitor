@@ -78,19 +78,19 @@ class TaskDataBase(DataBase):
     def display_task_info(self, taskname):
         """Displays task varibales to console based on a taskname"""
         task_info = self.get_task_info(taskname)
-        display_format = """Task_Name: {taskname}
-        Host_Name: {hostname}
-        Target_Path: {target_path}
-        Relocation_Path: {relocation_path}
-        Delete_Old_Files: {delete_old_files}
-        Delete_When_Full: {delete_when_full}
-        Disk_Usage_Warning_Threshold: {usage_warning_threshold} %
-        Disk_Usage_Critical_Threshold: {usage_critical_threshold} %
-        Old_File_Threshold: {old_file_threshold} days
-        Email_Usage_Warnings: {email_usage_warnings}
-        Email_Data_Alerations: {email_data_alterations}
-        Email_Top_Percent: {email_top_percent} %
-        Enabled: {enabled}"""
+        display_format = """taskname: {taskname}
+        hostname................: {hostname}
+        target_path.............: {target_path}
+        relocation_path.........: {relocation_path}
+        delete_old_files........: {delete_old_files}
+        delete_when_full........: {delete_when_full}
+        usage_warning_threshold.: {usage_warning_threshold} %
+        usage_critical_threshold: {usage_critical_threshold} %
+        old_file_threshold......: {old_file_threshold} days
+        email_usage_warnings....: {email_usage_warnings}
+        email_data_alterations..: {email_data_alterations}
+        email_top_percent.......: {email_top_percent} %
+        enabled.................: {enabled}"""
 
         if task_info is not None:
             print(display_format.format(**task_info))
