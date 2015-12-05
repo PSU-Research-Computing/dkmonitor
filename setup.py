@@ -11,9 +11,15 @@ import os, sys
 long_description = "open file here"
 
 class BuildDkm(install):
-    install.user_options.append(("log-path=", None, "Specify the directory to store log files in"))
-    install.user_options.append(("conf-path=", None, "Specify the directory where config files are stored"))
-    install.user_options.append(("root-path=", None, "Specify the directory with both config and log fils are stored"))
+    install.user_options.append(("log-path=",
+                                 None,
+                                 "Specify the directory to store log files in"))
+    install.user_options.append(("conf-path=",
+                                 None,
+                                 "Specify the directory where config files are stored"))
+    install.user_options.append(("root-path=",
+                                 None,
+                                 "Specify the directory with both config and log fils are stored"))
 
     def initialize_options(self):
         super().initialize_options()
@@ -39,7 +45,8 @@ class BuildDkm(install):
             if self.conf_path is not None:
                 raise DistutilsOptionError("Cannot combine conf-path and root-path options")
 
-            self.root_path = os.path.abspath(os.path.join(os.path.expanduser(self.root_path), "dkmonitor")
+            self.root_path = os.path.abspath(os.path.join(os.path.expanduser(self.root_path),
+                                                          "dkmonitor"))
             self.log_path = os.path.join(self.root_path, "log")
             self.conf_path = os.path.join(self.root_path, "conf")
 
@@ -49,11 +56,11 @@ class BuildDkm(install):
             if self.root_path is None:
                 os.makedirs(self.log_path)
                 os.makedirs(self.conf_path)
-                shutil.copyfile("./dkmonitor/config/settings.cfg", conf_path)
+                shutil.copyfile("./dkmonitor/config/settings.cfg", self.conf_path)
             else:
                 os.makedirs(self.root_path)
                 os.makedirs(self.conf_path)
-                shutil.copyfile("./dkmonitor/config/settings.cfg", conf_path)
+                shutil.copyfile("./dkmonitor/config/settings.cfg", self.conf_path)
                 os.mkdir(self.log_path)
         except OSError:
             print("warning: conf and log paths exist")
