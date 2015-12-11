@@ -14,6 +14,7 @@ sys.path.append(os.path.abspath("../.."))
 
 from dkmonitor.emailer.email_obj import Email
 from dkmonitor.config.settings_manager import export_settings
+#from dkmonitor.utilities.dk_stat import get_disk_use_percent
 
 
 Base = declarative_base()
@@ -77,13 +78,31 @@ class StatObj(object):
 class DirectoryStats(StatObj, Base):
     """extention of StatObj used for storing directory stats"""
     __tablename__ = "directorystats"
+    disk_use_percent = None
 
+    def display_stats(self):
+        print("+================================")
+        print("|Directory..............: {}".format(self.target_path))
+        print("|Disk use percent.......: {}%".format(round(self.disk_use_percent, 2)))
+        print("|Total size of files....: {} GB".format(round(self.total_file_size/1024/1024/1024, 2)))
+        print("|Total size of old files: {} GB".format(round(self.total_old_file_size_count/1024/1024/1024, 2)))
+        print("|Number of files........: {}".format(self.number_of_files_count))
+        print("|Number of old files....: {}".format(self.number_of_old_files_count))
+        print("+==============================")
 
 class UserStats(StatObj, Base):
     """Extention of StatObj that is used for storing a user's stats"""
 
     __tablename__ = "userstats"
     username = Column("username", String)
+
+    def display_stats(self):
+        print("+--------------------------------")
+        print("|Username...............: {}".format(self.username))
+        print("|Total size of files....: {} GB".format(round(self.total_file_size/1024/1024/1024, 2)))
+        print("|Total size of old files: {} GB".format(round(self.total_old_file_size_count/1024/1024/1024, 2)))
+        print("|Number of files........: {}".format(self.number_of_files_count))
+        print("|Number of old files....: {}".format(self.number_of_old_files_count))
 
     def email_user(self, postfix, problem_lists, task, current_use):
         """Emails the user associated with the object if they are flagged"""
@@ -110,7 +129,7 @@ class UserStats(StatObj, Base):
 
             if send_flag is True:
                 message.build_and_send_message()
-                print("Sending Message")
+                print("Sending Message to: {}".format(self.username))
 
     def build_email_stats(self, task):
         """builds a dictionary with all of the stats needed for emailing the user"""
