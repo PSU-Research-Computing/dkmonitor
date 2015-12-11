@@ -70,7 +70,7 @@ class DkClean:
             #print("OLD {o} :: NEW {n}".format(o=file_path, n=new_file_path))
             pass
         except IOError as err:
-            if err.errno == 13:
+            if err.errno == 13: #Permission error
                 self.permission_error_que.put(file_path)
             if err.errno == 28: #Disk full
                 if self.task["delete_when_full"] is True:
