@@ -54,11 +54,13 @@ class BuildDkm(install):
             try:
                 os.makedirs("/etc/dkmonitor/")
                 os.makedirs("/var/log/dkmonitor/")
+                shutil.copyfile("./dkmonitor/config/settings.cfg", "/etc/dkmonitor/")
             except OSError as err:
                 if err.errno == 13: #Permission error
                     try:
                         os.makedirs("~/.dkmonitor/conf/")
                         os.makedirs("~/.dkmonitor/log")
+                        shutil.copyfile("./dkmonitor/config/settings.cfg", "~/.dkmonitor/conf/")
                     except OSError as oserr:
                         if oserr.errno == 17: #File exists
                             print("Warning: ~/.dkmonitor already exists")
