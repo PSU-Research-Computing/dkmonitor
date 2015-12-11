@@ -54,6 +54,7 @@ If you want to specify your own config and log file locations you can use one of
 1. --root-path: specifes a directory where both log and config files should be stored
 2. --log-path and --conf-path: Use both of these options to configure separate locations for log and config files
 
+``dkmonitor`` uses ``PostgreSQL`` as the default database on installation. The setup.py script will install ``psycopg2`` as the default interface for ``sqlalchemy``. If you plan on using a different database like ``MySQL`` or ``SQLlite`` you will need to install the nessary python module for ``sqlalchemy`` to interface with that type of database.
 Example: ::
     
     $> python setup.py install --root-path="/yourpath/goes/here/"
