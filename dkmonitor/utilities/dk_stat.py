@@ -39,6 +39,7 @@ class DkStat:
         self.directory = DirectoryStats(target_path=self.task["target_path"],
                                         hostname=self.task["hostname"],
                                         datetime=datetime.datetime.now())
+        self.directory.disk_use_percent = get_disk_use_percent(self.task["target_path"])
 
         for file_path in dir_scan(self.task["target_path"]):
             last_access = (time.time() - os.path.getatime(file_path)) / 86400
@@ -76,19 +77,22 @@ class DkStat:
 
     def email(self):
         """Emails users if nessesary"""
-        disk_use = get_disk_use_percent(self.task["target_path"])
-        if (disk_use > self.task["usage_warning_threshold"]) and \
-           ((self.task["email_usage_warnings"] is True) or \
-           (self.task["email_data_alterations"] is True)):
-            print("Emailing Users")
-            self.logger.info("Emailing users on %s", self.task["hostname"])
+        if self.task["email_usage_warnings"] or self.task["email_data_alterations"]:
+            print("Checking if emails need to be sent")
 
-        problem_users = self.get_problem_users()
-        for user in self.users.items():
-            user[1].email_user(self.settings["Email_Settings"]["user_postfix"],
-                               problem_users,
-                               self.task,
-                               disk_use)
+            disk_use = get_disk_use_percent(self.task["target_path"])
+            if disk_use > self.task["usage_warning_threshold"]:
+                print("Emailing Users")
+                self.logger.info("Emailing users on %s", self.task["hostname"])
+
+                problem_users = self.get_problem_users()
+                for user in self.users.items():
+                    user[1].email_user(self.settings["Email_Settings"]["user_postfix"],
+                                       problem_users,
+                                       self.task,
+                                       disk_use)
+            else:
+                print("No emails to be sent")
 
     def get_problem_users(self):
         """
@@ -118,6 +122,14 @@ class DkStat:
 
         return [large_names, old_names]
 
+    def display_stats(self):
+        """Displays all stats collected durring the scan"""
+        self.directory.display_stats()
+        sorted_user_keys = sorted(self.users,
+                                  key=lambda user: self.users[user].total_file_size_count,
+                                  reverse=True)
+        for user in sorted_user_keys:
+            self.users[user].display_stats()
 
 def scan_store_email(task):
     """Function that runs entire scan routine on a task"""
@@ -125,6 +137,14 @@ def scan_store_email(task):
     statobj.scan()
     statobj.store()
     statobj.email()
+
+def scan_store_email_display(task):
+    """Function that runs entire scan routine and displays the stats"""
+    statobj = DkStat(task)
+    statobj.scan()
+    statobj.store()
+    statobj.email()
+    statobj.display_stats()
 
 def get_disk_use_percent(path):
     """Returns the disk use percentage of searched_directory"""
