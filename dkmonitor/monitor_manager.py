@@ -11,11 +11,14 @@ sys.path.append(os.path.abspath(".."))
 
 from dkmonitor.utilities import log_setup
 from dkmonitor.config.settings_manager import export_settings
-from dkmonitor.config.task_manager import export_tasks
+from dkmonitor.config.task_manager import export_tasks, create_quick_task
 
 from dkmonitor.database_manager import clean_database
 from dkmonitor.utilities.dk_clean import check_then_clean
-from dkmonitor.utilities.dk_stat import scan_store_email, get_disk_use_percent
+
+from dkmonitor.utilities.dk_stat import scan_store_email
+from dkmonitor.utilities.dk_stat import scan_store_email_display
+from dkmonitor.utilities.dk_stat import get_disk_use_percent
 
 class ScanTypeNotFound(Exception):
     """Error thrown when scan type is invalid"""
@@ -85,7 +88,7 @@ class MonitorManager():
         """
         print("Starting Full Scan of: {}".format(task["target_path"]))
 
-        scan_store_email(task)
+        scan_store_email_display(task)
         check_then_clean(task)
 
     def run_task(self, task, scan_function):
@@ -172,12 +175,67 @@ def main(args=None):
     task_parser.add_argument("task_name", help="Name of task to run")
     task_parser.add_argument("scan_type", help="Specify scan type: 'quick' or 'full'")
 
+    qtask_parser = subparsers.add_parser("quick_task")
+    qtask_parser.set_defaults(which="quick_task")
+    qtask_parser.add_argument("target_directory", help="Name of directory to scan")
+    qtask_parser.add_argument("-m",
+                              "--move-files",
+                              dest="relocation_path",
+                              type=str,
+                              help=("Specify if you want to move files"
+                                    " when over disk cirtical threshold"))
+    qtask_parser.add_argument("-w",
+                              "--usage_warning_threshold",
+                              dest="usage_warning_threshold",
+                              type=int,
+                              required=True,
+                              help="Specify the usage warning threshold")
+    qtask_parser.add_argument("-c",
+                              "--usage_critical_threshold",
+                              dest="usage_critical_threshold",
+                              type=int,
+                              required=True,
+                              help="Specify the usage cirtical threshold")
+    qtask_parser.add_argument("-f",
+                              "--file_age_theshold",
+                              dest="file_age_theshold",
+                              type=int,
+                              required=True,
+                              help="Specify the age of files to be flagged")
+    qtask_parser.add_argument("-e",
+                              "--email_usage_warnings",
+                              dest="email_usage_warnings",
+                              action="store_true",
+                              default=False,
+                              help="Specify weather to send usage warning emails to users")
+    qtask_parser.add_argument("-a",
+                              "--email_data_alterations",
+                              dest="email_data_alterations",
+                              action="store_true",
+                              default=False,
+                              help="Specify weather to email users when their data is moved")
+    qtask_parser.add_argument("-p",
+                              "--email_top_percent",
+                              dest="email_top_percent",
+                              type=int,
+                              help="Specify the percent of users to be flagged as top users")
+
     args = parser.parse_args(args)
     monitor = MonitorManager()
     if args.which == "all":
         monitor.start_tasks(scan_type=args.scan_type)
     elif args.which == "task":
         monitor.start_task(args.task_name, scan_type=args.scan_type)
+    elif args.which == "quick_task":
+        if ((args.email_usage_warnings) or (args.email_data_alterations)) and \
+           (args.email_top_percent is None):
+            print(("Error: If you want to email users you must specify "
+                   "what percentage to flag as top users with the -p option"),
+                  file=sys.stderr)
+            sys.exit(1)
+
+        task = create_quick_task(args)
+        monitor.run_task(task, monitor.full_scan)
 
 if __name__ == "__main__":
     main()
