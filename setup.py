@@ -11,6 +11,7 @@ import os, sys
 long_description = "open file here"
 
 class BuildDkm(install):
+    """Custom install class"""
     install.user_options.append(("log-path=",
                                  None,
                                  "Specify the directory to store log files in"))
