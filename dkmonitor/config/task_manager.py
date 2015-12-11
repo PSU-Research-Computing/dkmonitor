@@ -2,7 +2,7 @@
 This module deals with loading, modifying and displaying tasks
 """
 
-import argparse
+import argparse, datetime, socket
 from sqlalchemy.exc import InvalidRequestError, DataError
 
 import sys, os
@@ -237,6 +237,24 @@ def export_tasks():
         return formatted_tasks
     except IndexError:
         return None
+
+def create_quick_task(args):
+    """Creates a quick task dict from parsed arguments"""
+    quick_task = {"taskname":"_".join(["quick_task", str(datetime.datetime.now())]),
+                  "hostname":socket.gethostname(),
+                  "target_path":args.target_directory,
+                  "relocation_path":args.relocation_path,
+                  "delete_old_files":False,
+                  "delete_when_full":False,
+                  "usage_warning_threshold":args.usage_warning_threshold,
+                  "usage_critical_threshold":args.usage_critical_threshold,
+                  "old_file_threshold":args.file_age_theshold,
+                  "email_usage_warnings":args.email_usage_warnings,
+                  "email_data_alterations":args.email_data_alterations,
+                  "email_top_percent":args.email_top_percent,
+                  "enabled":True}
+    return quick_task
+
 
 def get_args(args):
     """Defines arguments for command line"""
