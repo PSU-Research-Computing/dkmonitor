@@ -20,6 +20,13 @@ def description():
 def main(args=None):
     """Run the main Commandline interface for Dkmonitor"""
     if args is None:
+        if (sys.argv[1] == "-h") or (sys.argv[1] == "--help"):
+            print("""USAGE:
+       run      -- Task running interface
+       view     -- Database stat viewing interface
+       task     -- Task manager interface
+       database -- Database manager interface""")
+            sys.exit(1)
         args = sys.argv[1:]
 
     parser = argparse.ArgumentParser(description=description())
@@ -50,6 +57,10 @@ def main(args=None):
             data_main(args[1:])
     except IndexError:
         print("First argument required (run, view, task, database)", file=sys.stderr)
+    """
+    except TypeError:
+        parser.print_help()
+        """
 
 if __name__ == "__main__":
     main()
