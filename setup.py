@@ -31,27 +31,13 @@ class BuildDkm(install):
     def finalize_options(self):
         super().finalize_options()
 
-        if self.root_path is None:
-            if (self.log_path is None):
-                self.log_path = os.path.abspath(os.path.expanduser("~/.dkmonitor/log/"))
-            else:
-                self.log_path = os.path.abspath(os.path.expanduser(self.log_path))
-            if self.conf_path is None:
-                self.conf_path = os.path.abspath(os.path.expanduser("~/.dkmonitor/conf/"))
-            else:
-                self.conf_path = os.path.abspath(os.path.expanduser(self.conf_path))
-        else:
-            if self.log_path is not None:
-                raise DistutilsOptionError("Cannot combine log-path and root-path options")
-            if self.conf_path is not None:
-                raise DistutilsOptionError("Cannot combine conf-path and root-path options")
-
-            self.root_path = os.path.abspath(os.path.join(os.path.expanduser(self.root_path),
-                                                          "dkmonitor"))
-            self.log_path = os.path.join(self.root_path, "log")
-            self.conf_path = os.path.join(self.root_path, "conf")
+        if ((self.log_path is not None) or (self.conf_path is not None)) \
+           and (self.root_path is not None):
+            raise DistutilsOptionError("Cannot combine log-path/conf-path and root-path options")
 
     def run(self):
+
+        set_path_flag = False
         try:
             print("creating config and log directories")
             if self.root_path is None:
@@ -63,19 +49,36 @@ class BuildDkm(install):
                 os.makedirs(self.conf_path)
                 shutil.copyfile("./dkmonitor/config/settings.cfg", self.conf_path)
                 os.mkdir(self.log_path)
-        except OSError:
-            print("warning: conf and log paths exist")
+            set_path_flag = True
+        except AttributeError: #If paths are None
+            try:
+                os.makedirs("/etc/dkmonitor/")
+                os.makedirs("/var/log/dkmonitor/")
+            except OSError as err:
+                if err.errno == 13: #Permission error
+                    try:
+                        os.makedirs("~/.dkmonitor/conf/")
+                        os.makedirs("~/.dkmonitor/log")
+                    except OSError as oserr:
+                        if oserr.errno == 17: #File exists
+                            print("Warning: ~/.dkmonitor already exists")
+                elif err.errno == 17: #File exists
+                    print("Warning: /etc/dkmonitor and /var/log/dkmonitor already exist")
+        except OSError as err:
+            if err.errno == 13: #Permission error
+                raise err
+            elif err.errno == 17: #File exists
+                print("warning: conf and log paths already exist")
 
-
-        #install.run(self)
         install.do_egg_install(self)
 
-        print("""
+        if set_path_flag is True:
+            print("""
 
-              Add these lines to your bashrc file:
-              export DKM_LOG={log}
-              export DKM_CONF={conf}
-              """.format(log=self.log_path, conf=self.conf_path))
+            Add these lines to your bashrc file:
+            export DKM_LOG={log}
+            export DKM_CONF={conf}
+                  """.format(log=self.log_path, conf=self.conf_path))
 
 
 setup(name="dkmonitor",
