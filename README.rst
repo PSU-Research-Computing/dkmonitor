@@ -60,6 +60,8 @@ Example: ::
 
 .. note:: ``dkmonitor`` uses ``PostgreSQL`` as the default database on installation. The setup.py script will install ``psycopg2`` as the default interface for ``sqlalchemy``. If you plan on using a different database like ``MySQL`` or ``SQLlite`` you will need to install the nessary python module for ``sqlalchemy`` to interface with that type of database.
 
+.. note:: test
+
 **Exporting Config and Log path variables:**
 If you chose a different location to store your settings or log files you will need to export that path in your environment.
 
