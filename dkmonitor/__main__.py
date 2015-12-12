@@ -15,12 +15,13 @@ from dkmonitor.database_manager import main as data_main
 def description():
     """Returns the description string for command line interface"""
     return ("dkmonitor is a disk monitoring utility used to monitor, record and notify ",
-            "idividual user's usage statistics on a shared storage space")
+            "individual user's usage statistics on a shared storage space")
 
 def main(args=None):
     """Run the main Commandline interface for Dkmonitor"""
     if args is None:
         if (sys.argv[1] == "-h") or (sys.argv[1] == "--help"):
+            print(description())
             print("""USAGE:
        run      -- Task running interface
        view     -- Database stat viewing interface
