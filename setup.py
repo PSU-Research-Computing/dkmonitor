@@ -6,7 +6,10 @@ from setuptools.command.install import install
 
 import shutil, os
 
-long_description = "open file here"
+def long_description():
+    """Opens Readme for long description"""
+    with open("README.rst", "r") as readme:
+        return readme.readlines()
 
 class BuildDkm(install):
     """Custom install class"""
@@ -61,6 +64,6 @@ setup(name="dkmonitor",
       package_data={'dkmonitor.config': ['*.cfg'],
                     'dkmonitor.emailer.messages': ['*.txt']},
       install_requires=["sqlalchemy", "psycopg2", "termcolor"],
-      long_description="long_description",
+      long_description=long_description(),
       cmdclass={'install': BuildDkm},
       entry_points={"console_scripts": ["dkmonitor=dkmonitor.__main__:main"],})
