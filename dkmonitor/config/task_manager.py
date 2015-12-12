@@ -255,6 +255,18 @@ def create_quick_task(args):
                   "enabled":True}
     return quick_task
 
+#Short Cut methods for checking weather data will be altereded or not
+def check_relocate(task):
+    if (task["relocation_path"] is not None) and (task["relocation_path"] != ""):
+        return True
+    else:
+        return False
+
+def check_alteration_settings(task):
+    if (check_relocate(task) is True) or (task["delete_old_files"] is True):
+        return True
+    else:
+        return False
 
 def get_args(args):
     """Defines arguments for command line"""
