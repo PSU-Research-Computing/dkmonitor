@@ -104,8 +104,46 @@ class UserStats(StatObj, Base):
         print("|Number of files........: {}".format(self.number_of_files_count))
         print("|Number of old files....: {}".format(self.number_of_old_files_count))
 
+    def email_usage_warning(self, task, postfix, problem_users):
+        email_info = self.build_email_stats(task)
+        address = '@'.join([email_info["username"], postfix])
+        message = Email(address, email_info, "usage_warning")
+
+        top_use_flag = False
+        if self.username in problem_users[0]:
+            message.add_message("top_use_warning", email_info)
+            top_use_flag = True
+        if self.username in problem_users[1]:
+            message.add_message("top_old_warning", email_info)
+            top_use_flag = True
+
+        if top_use_flag is False:
+            message.add_message("general_warning", email_info)
+
+        if (self.number_of_old_files_count > 0) and \
+           (task["email_data_alterations"] is True):
+            if task["delete_old_files"] is True:
+                message.add_message("file_deletion_warning", email_info)
+            elif (task["relocation_path"] is not None) or \
+                 (task["relocation_path"] != ""):
+                message.add_message("file_move_warning", email_info)
+
+        message.build_and_send_message()
+
+    def email_alteration_notice(self, task, postfix):
+        if self.number_of_old_files_count > 0:
+            print("Emailing data alteration notice to: {}".format(self.username))
+            email_info = self.build_email_stats(task)
+            address = '@'.join([email_info["username"], postfix])
+            if (task["relocation_path"] is not None) or (task["relocation_path"] != ""):
+                message = Email(address, email_info, "file_move_notice")
+            elif task["delete_old_files"] is True:
+                message = Email(address, email_info, "file_deletion_notice")
+
+            message.build_and_send_message()
+
+    """
     def email_user(self, postfix, problem_lists, task, current_use):
-        """Emails the user associated with the object if they are flagged"""
         email_info = self.build_email_stats(task)
         if current_use > task["usage_warning_threshold"]:
             send_flag = False
@@ -130,6 +168,7 @@ class UserStats(StatObj, Base):
             if send_flag is True:
                 message.build_and_send_message()
                 print("Sending Message to: {}".format(self.username))
+    """
 
     def build_email_stats(self, task):
         """builds a dictionary with all of the stats needed for emailing the user"""
