@@ -1,0 +1,6 @@
+WARNING: {target_path} on {hostname} is over it's use threshold. Please reduce your data usage.
+
+Your Data:
+Total size of all files: {total_file_size} GBs
+Total disk use: {disk_use_percent} %
+
