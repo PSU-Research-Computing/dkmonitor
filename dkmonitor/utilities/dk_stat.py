@@ -77,22 +77,22 @@ class DkStat:
 
     def email(self):
         """Emails users if nessesary"""
-        if self.task["email_usage_warnings"] or self.task["email_data_alterations"]:
-            print("Checking if emails need to be sent")
-
-            disk_use = get_disk_use_percent(self.task["target_path"])
-            if disk_use > self.task["usage_warning_threshold"]:
-                print("Emailing Users")
-                self.logger.info("Emailing users on %s", self.task["hostname"])
-
-                problem_users = self.get_problem_users()
-                for user in self.users.items():
-                    user[1].email_user(self.settings["Email_Settings"]["user_postfix"],
-                                       problem_users,
-                                       self.task,
-                                       disk_use)
-            else:
-                print("No emails to be sent")
+        disk_use = get_disk_use_percent(self.task["target_path"])
+        if (disk_use > self.task["usage_critical_threshold"]) and \
+           (self.task["email_data_alterations"] is True):
+            print("Emailing Data alteration notices")
+            for _, user in self.users.items():
+                user.email_data_alterations(self.task,
+                                            self.settings["Email_Settings"]["user_postfix"])
+        elif (disk_use > self.task["usage_warning_threshold"]) and \
+             (self.task["email_usage_warnings"] is True):
+            print("Emailing Usage Warnings")
+            problem_users = self.get_problem_users()
+            for _, user in self.users.items():
+                user.email_usage_warning(self.task,
+                                         self.settings["Email_Settings"]["user_postfix"],
+                                         problem_users)
+            self.logger.info("Emailing users on %s", self.task["hostname"])
 
     def get_problem_users(self):
         """
@@ -101,15 +101,19 @@ class DkStat:
         List two is the largest holders of old data
         """
         stat_list = []
-        problem_threshold = self.task["email_top_percent"] / 100
+        try:
+            problem_threshold = self.task["email_top_percent"] / 100
+        except TypeError:
+            problem_threshold = .25 #Set default to 25% if email_top_percent not specifed
+
         flag_user_number = int(len(self.users.keys()) * problem_threshold)
-        for user in self.users.items():
+        for username, user in self.users.items():
             try:
-                bytes_per_access_time = user[1].total_file_size_count/\
-                                        user[1].total_access_time_count #Bytes per total access time
+                bytes_per_access_time = user.total_file_size_count/\
+                                        user.total_access_time_count #Bytes per total access time
             except ZeroDivisionError:
                 bytes_per_access_time = 0
-            stat_list.append([user[0], user[1].total_file_size_count, bytes_per_access_time])
+            stat_list.append([username, user.total_file_size_count, bytes_per_access_time])
 
         large_list = sorted(stat_list, key=operator.itemgetter(1), reverse=True)[:flag_user_number]
         old_list = sorted(stat_list, key=operator.itemgetter(2), reverse=True)[:flag_user_number]
