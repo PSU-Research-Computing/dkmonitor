@@ -25,7 +25,7 @@ class BuildDkm(install):
             if err.errno == 13: #Permission error
                 try:
                     os.makedirs(os.path.expanduser("~/.dkmonitor/log"))
-                    shutil.copyfile(os.path.realpath("./dkmonitor/settings.cfg"),
+                    shutil.copyfile(os.path.realpath("./dkmonitor/conf/settings.cfg"),
                                     os.path.expanduser("~/.dkmonitor"))
                     home_flag = True
                 except OSError as err2:
