@@ -13,6 +13,7 @@ from dkmonitor.utilities import log_setup
 from dkmonitor.utilities.dir_scan import dir_scan
 from dkmonitor.utilities.dk_stat import get_disk_use_percent
 from dkmonitor.config.settings_manager import export_settings
+from dkmonitor.config.task_manager import check_alteration_settings, check_relocate
 
 class ConflictingSettingsError(Exception):
     """Error for when relocation path and delete files are both set is not found"""
@@ -43,7 +44,6 @@ class DkClean:
                 old_file_size = int(os.path.getsize(file_path))
                 priority_num = - (old_file_size * last_access)
                 self.que.put((priority_num, file_path))
-        print("Done")
 
     def move_file(self, file_path):
         """Moves individual file while still preseving its file path"""
@@ -123,6 +123,7 @@ class DkClean:
         self.que.join()
 
         self.log_file_errors()
+        print("Done")
 
     #ITERATIVE###########################################
     def clean_disk_iterative(self, clean_function):
@@ -133,15 +134,26 @@ class DkClean:
             clean_function(file_path[1])
 
         self.log_file_errors()
+        print("Done")
 
     def log_file_errors(self):
         """Logs number of files that could not be moved or deleted"""
-        if len(self.permission_error_que) > 0:
-            self.logger.error("Permissions error on %s files.", len(self.permission_error_que))
-        if len(self.full_disk_que) > 0:
-            self.logger.error("Relocation_Path disk full. %s files could not be moved",
-                              len(self.full_disk_que))
+        perror_count = 0
+        try:
+            while True:
+                self.permission_error_que.get_nowait()
+                perror_count += 1
+        except queue.Empty:
+            self.logger.error("Permissions error on %s files.", perror_count)
 
+        dferror_count = 0
+        try:
+            while True:
+                self.full_disk_que.get_nowait()
+                perror_count += 1
+        except queue.Empty:
+            self.logger.error("Relocation_Path disk full. %s files could not be moved",
+                              dferror_count)
 
 
 def check_then_clean(task):
@@ -149,14 +161,14 @@ def check_then_clean(task):
     Checks weather the disk should be cleaned based on task settings
     and runs the correct routine (iterative/multithreaded
     """
-    if (task["relocation_path"] != "") or (task["delete_old_files"] is True):
+    if check_alteration_settings(task) is True:
         print("Checking if disk: '{}' needs to be cleaned".format(task["target_path"]))
 
         disk_use = get_disk_use_percent(task["target_path"])
         if disk_use > task["usage_critical_threshold"]:
             clean_obj = DkClean(task)
             clean_obj.logger.info("Cleaning disk %s on %s", task["target_path"], task["hostname"])
-            if task["relocation_path"] != "":
+            if check_relocate(task) is True:
                 clean_function = clean_obj.move_file
             elif task["delete_old_files"] is True:
                 clean_function = clean_obj.delete_file
