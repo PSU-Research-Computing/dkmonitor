@@ -124,22 +124,18 @@ class UserStats(StatObj, Base):
            (task["email_data_alterations"] is True):
             if task["delete_old_files"] is True:
                 message.add_message("file_deletion_warning", email_info)
-            elif (task["relocation_path"] is not None) or \
+            elif (task["relocation_path"] is not None) and \
                  (task["relocation_path"] != ""):
                 message.add_message("file_move_warning", email_info)
 
         message.build_and_send_message()
 
-    def email_alteration_notice(self, task, postfix):
+    def email_alteration_notice(self, task, postfix, notice_type):
         if self.number_of_old_files_count > 0:
             print("Emailing data alteration notice to: {}".format(self.username))
             email_info = self.build_email_stats(task)
             address = '@'.join([email_info["username"], postfix])
-            if (task["relocation_path"] is not None) or (task["relocation_path"] != ""):
-                message = Email(address, email_info, "file_move_notice")
-            elif task["delete_old_files"] is True:
-                message = Email(address, email_info, "file_deletion_notice")
-
+            message = Email(address, email_info, notice_type)
             message.build_and_send_message()
 
     """

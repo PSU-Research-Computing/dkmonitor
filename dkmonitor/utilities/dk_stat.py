@@ -13,6 +13,7 @@ from dkmonitor.utilities.dir_scan import dir_scan
 from dkmonitor.utilities import log_setup
 from dkmonitor.config.settings_manager import export_settings
 from dkmonitor.database_manager import DataBase, UserStats, DirectoryStats
+from dkmonitor.config.task_manager import check_alteration_settings, check_relocate
 
 FileTuple = namedtuple('FileTuple', 'file_size last_access')
 
@@ -78,14 +79,24 @@ class DkStat:
     def email_users(self):
         """Emails users if nessesary"""
         disk_use = get_disk_use_percent(self.task["target_path"])
-        if (disk_use > self.task["usage_critical_threshold"]) and \
-           (self.task["email_data_alterations"] is True):
+        notice_sent = False
+        #if (disk_use > self.task["usage_critical_threshold"]) and (self.task["email_data_alterations"] is True):
+        if (check_alteration_settings(self.task) is True) and \
+           (self.task["email_data_alterations"] is True) and \
+           (disk_use > self.task["usage_critical_threshold"]):
+
             print("Emailing Data alteration notices")
             for _, user in self.users.items():
-                user.email_data_alterations(self.task,
-                                            self.settings["Email_Settings"]["user_postfix"])
-        elif (disk_use > self.task["usage_warning_threshold"]) and \
-             (self.task["email_usage_warnings"] is True):
+                if check_relocate(self.task) is True:
+                    user.email_alteration_notice(self.task,
+                                                 self.settings["Email_Settings"]["user_postfix"],
+                                                 "file_move_notice")
+                elif self.task["delete_old_files"] is True:
+                    user.email_alteration_notice(self.task,
+                                                 self.settings["Email_Settings"]["user_postfix"],
+                                                 "file_deletion_notice")
+
+        elif (disk_use > self.task["usage_warning_threshold"]) and (self.task["email_usage_warnings"] is True):
             print("Emailing Usage Warnings")
             problem_users = self.get_problem_users()
             for _, user in self.users.items():
@@ -93,6 +104,9 @@ class DkStat:
                                          self.settings["Email_Settings"]["user_postfix"],
                                          problem_users)
             self.logger.info("Emailing users on %s", self.task["hostname"])
+
+
+
 
     def get_problem_users(self):
         """
