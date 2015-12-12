@@ -75,7 +75,7 @@ class DkStat:
         rows.append(self.directory)
         database.store(rows)
 
-    def email(self):
+    def email_users(self):
         """Emails users if nessesary"""
         disk_use = get_disk_use_percent(self.task["target_path"])
         if (disk_use > self.task["usage_critical_threshold"]) and \
@@ -140,14 +140,14 @@ def scan_store_email(task):
     statobj = DkStat(task)
     statobj.scan()
     statobj.store()
-    statobj.email()
+    statobj.email_users()
 
 def scan_store_email_display(task):
     """Function that runs entire scan routine and displays the stats"""
     statobj = DkStat(task)
     statobj.scan()
     statobj.store()
-    statobj.email()
+    statobj.email_users()
     statobj.display_stats()
 
 def get_disk_use_percent(path):
