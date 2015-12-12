@@ -49,21 +49,12 @@ This does two things:
 1. Installs dkmonitor and its dependcies to your current python version
 2. Creates a directory called dkmonitor in ~/.dkmonitor/ (/etc/dkmonitor and /var/log/dkmonitor if you are root) where it will save a settings file with default settings and store log files
 
-If you want to specify your own config and log file locations you can use one of these two options:
-
-1. --root-path: specifes a directory where both log and config files should be stored
-2. --log-path and --conf-path: Use both of these options to configure separate locations for log and config files
-
-Example: ::
-    
-    $> python setup.py install --root-path="/yourpath/goes/here/"
-
 .. note:: ``dkmonitor`` uses ``PostgreSQL`` as the default database on installation. The setup.py script will install ``psycopg2`` as the default interface for ``sqlalchemy``. If you plan on using a different database like ``MySQL`` or ``SQLlite`` you will need to install the nessary python module for ``sqlalchemy`` to interface with that type of database.
 
 **Exporting Config and Log path variables:**
-If you chose a different location to store your settings or log files you will need to export that path in your environment.
+If you want to specify your own config and log file locations you can use one of these two options you need to create you own directories for log/config files and specify their location(s) with the ``DKM_CONF`` (settings file) and ``DKM_LOG`` (log files) environemnt variables in your ``rc`` or ``profile`` config files
 
-When ``dkmonitor`` is done installing it will output the two lines you need to add to your ``profile`` or ``rc`` (``.bashrc, .zshrc``) file.
+``dkmonitor`` will look for these locations before looking in the default locations created when its installed
 
 **Setup postgresql database:**
 Create your database with the standard method of the database type you are using. After you create the database, fill out the DataBase_Settings in the settings.cfg file.
