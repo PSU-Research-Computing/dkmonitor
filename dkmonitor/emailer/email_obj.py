@@ -11,17 +11,21 @@ import sys, os
 sys.path.append(os.path.abspath("../.."))
 from dkmonitor.utilities import log_setup
 
+class MessageTypeNotFoundError(Exception):
+    def __init__(self, message):
+        super(MessageTypeNotFoundError, self).__init__(message)
+
 class Email:
     """
     Them Email class allows the program to build customized messages automatically.
     The objects are meant to be sent to an emailer object as a string to be mailed
     """
 
-    def __init__(self, address, data_dict):
+    def __init__(self, address, data_dict, message_type):
         self.logger = log_setup.setup_logger(__name__)
 
         self.body = ""
-        self.add_message("main_message.txt", data_dict)
+        self.add_message(".".join([message_type, "txt"]), data_dict)
 
         self.msg = MIMEMultipart()
         self.msg["To"] = address
@@ -36,9 +40,11 @@ class Email:
         #server.sendmail("Do-Not-Reply", self.msg["To"], self.msg.as_string())
         server.sendmail("Do-Not-Reply", "wpatt2@pdx.edu", self.msg.as_string())
 
-    def add_message(self, message_file, data_dict):
+    def add_message(self, message_type, data_dict):
         """Loads a pre-written message from external file and adds info to it from data_dict"""
-        message_file = os.path.abspath(".") + "/emailer/messages/" + message_file
+        #message_file = os.path.abspath(".") + "/emailer/messages/" + message_file
+        message_file = os.path.join(os.path.abspath("./emailer/message_file"),
+                                    ".".join([message_type, 'txt']))
         for key, item in data_dict.items():
             if isinstance(item, float):
                 data_dict[key] = round(data_dict[key], 2)
@@ -49,7 +55,7 @@ class Email:
             self.body += message_str.format(**data_dict)
 
         except IOError:
-            self.logger.error("File %s does not exist", message_file)
+            raise MessageTypeNotFoundError("Message type '{}' not found".format(message_type))
         except KeyError as keyerr:
             self.logger.error("Key %s does not exist", keyerr.args[0])
             raise keyerr
