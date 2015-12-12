@@ -25,7 +25,7 @@ class Email:
         self.logger = log_setup.setup_logger(__name__)
 
         self.body = ""
-        self.add_message(".".join([message_type, "txt"]), data_dict)
+        self.add_message(message_type, data_dict)
 
         self.msg = MIMEMultipart()
         self.msg["To"] = address
@@ -42,8 +42,7 @@ class Email:
 
     def add_message(self, message_type, data_dict):
         """Loads a pre-written message from external file and adds info to it from data_dict"""
-        #message_file = os.path.abspath(".") + "/emailer/messages/" + message_file
-        message_file = os.path.join(os.path.abspath("./emailer/message_file"),
+        message_file = os.path.join(os.path.abspath("./emailer/messages"),
                                     ".".join([message_type, 'txt']))
         for key, item in data_dict.items():
             if isinstance(item, float):
