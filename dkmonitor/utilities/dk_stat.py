@@ -58,8 +58,8 @@ class DkStat:
                                              datetime=datetime.datetime.now())
                 self.users[name].add_file(file_tup, self.task["old_file_threshold"])
 
-        for user in self.users.items():
-            user[1].calculate_stats()
+        for _, user in self.users.items():
+            user.calculate_stats()
         self.directory.calculate_stats()
 
     def store(self):
