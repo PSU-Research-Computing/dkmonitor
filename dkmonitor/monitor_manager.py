@@ -227,12 +227,14 @@ def main(args=None):
     elif args.which == "task":
         monitor.start_task(args.task_name, scan_type=args.scan_type)
     elif args.which == "quick_task":
+        """
         if ((args.email_usage_warnings) or (args.email_data_alterations)) and \
            (args.email_top_percent is None):
             print(("Error: If you want to email users you must specify "
                    "what percentage to flag as top users with the -p option"),
                   file=sys.stderr)
             sys.exit(1)
+        """
 
         task = create_quick_task(args)
         monitor.run_task(task, monitor.full_scan)
