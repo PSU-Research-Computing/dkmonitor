@@ -4,7 +4,7 @@ Setup script
 from setuptools import setup, find_packages
 from setuptools.command.install import install
 
-import shutil, os
+import shutil, os, errno
 
 def long_description():
     """Opens Readme for long description"""
@@ -25,18 +25,18 @@ class BuildDkm(install):
             shutil.copyfile(os.path.realpath("./dkmonitor/conf/settings.cfg"), "/etc/dkmonitor")
             root_flag = True
         except OSError as err:
-            if err.errno == 13: #Permission error
+            if err.errno == errno.EACCES: #Permission error
                 try:
                     os.makedirs(os.path.expanduser("~/.dkmonitor/log"))
                     shutil.copyfile(os.path.realpath("./dkmonitor/conf/settings.cfg"),
                                     os.path.expanduser("~/.dkmonitor"))
                     home_flag = True
                 except OSError as err2:
-                    if err2.errno == 17: #File not exsists error
+                    if err2.errno == errno.EEXIST: #File not exsists error
                         print("Warning: ~/.dkmonitor already exists")
                     else:
                         raise err2
-            if err.errno == 17: #File exsists error
+            if err.errno == errno.EEXIST: #File exsists error
                 print("Warning /etc/dkmonitor or /var/log/dkmonitor already exsist")
 
 
