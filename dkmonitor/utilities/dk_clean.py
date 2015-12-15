@@ -47,23 +47,6 @@ class DkClean:
 
     def move_file(self, file_path):
         """Moves individual file while still preseving its file path"""
-        uid = os.stat(file_path).st_uid
-        user = pwd.getpwuid(uid).pw_name
-
-        root_dir = os.path.join(self.task["relocation_path"],
-                                user,
-                                self.task["hostname"],
-                                self.task["target_path"].replace("/", "_")[1:])
-
-        self.create_file_tree(uid, root_dir)
-
-        new_file_path = re.sub(r"^{old_path}".format(old_path=self.task["target_path"]),
-                               root_dir,
-                               file_path)
-
-        last_slash = new_file_path.rfind('/')
-        dir_path = new_file_path[:last_slash]
-
         try:
             new_file_path = self.create_dir_tree(file_path)
             #shutil.move(file_path, new_file_path)
@@ -101,6 +84,7 @@ class DkClean:
             current_path = new_dir
 
     def create_dir_tree(self, file_path):
+        """Creates file tree with correct permissions and returns the newfile path"""
         new_path = os.path.join(self.task["relocation_path"], self.task["hostname"])
 
         dir_path = file_path[:file_path.rfind('/')]
@@ -112,9 +96,11 @@ class DkClean:
                 dir_stat_info = os.stat(current_path)
                 uid = dir_stat_info.st_uid
                 gid = dir_stat_info.st_gid
+                mod = dir_stat_info.si_mode
 
                 new_path = os.path.join(new_path, directory)
                 os.mkdir(new_path)
+                os.chmod(new_path, mod)
                 os.chown(new_path, uid, gid)
             except OSError as err:
                 if err.errno == 17:
