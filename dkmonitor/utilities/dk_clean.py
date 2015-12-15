@@ -115,23 +115,20 @@ class DkClean:
 
 
     #MULTI-THREADING######################################
-    def worker(self, clean_function):
+    def async_worker(self, clean_function):
         """Worker Function"""
         while True:
             path = self.que.get()
             clean_function(path[1])
             self.que.task_done()
 
-    def build_pool(self, clean_function):
-        """Builds Pool of thread workers"""
-        for _ in range(self.thread_settings["thread_number"]):
-            thread = threading.Thread(target=self.worker, args=(clean_function,))
-            thread.daemon = True
-            thread.start()
-
-    def clean_disk_threaded(self, clean_function):
+    def clean_disk_async(self, clean_function):
         """Starts the threaded cleaning routine"""
-        self.build_pool(clean_function)
+        #Start async worker thread
+        thread = threading.Thread(target=self.async_worker, args=(clean_function,))
+        thread.daemon = True
+        thread.start()
+
         self.build_file_que()
         self.que.join()
 
@@ -189,7 +186,7 @@ def check_then_clean(task):
                 raise ConflictingSettingsError(("Error both relocation_path ",
                                                 "and delete_old_files are set"))
             if clean_obj.thread_settings["thread_mode"] == 'yes':
-                clean_obj.clean_disk_threaded(clean_function)
+                clean_obj.clean_disk_async(clean_function)
             else:
                 clean_obj.clean_disk_iterative(clean_function)
         else:
