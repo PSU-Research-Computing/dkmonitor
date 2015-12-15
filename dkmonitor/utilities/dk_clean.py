@@ -65,10 +65,9 @@ class DkClean:
         dir_path = new_file_path[:last_slash]
 
         try:
-            #self.create_file_tree(uid, dir_path)
+            new_file_path = self.create_dir_tree(file_path)
             #shutil.move(file_path, new_file_path)
-            #print("OLD {o} :: NEW {n}".format(o=file_path, n=new_file_path))
-            pass
+            #print("OLD {o}\nNEW {n}".format(o=file_path, n=new_file_path))
         except IOError as err:
             if err.errno == 13: #Permission error
                 self.permission_error_que.put(file_path)
@@ -100,6 +99,34 @@ class DkClean:
             except OSError:
                 pass
             current_path = new_dir
+
+    def create_dir_tree(self, file_path):
+        new_path = os.path.join(self.task["relocation_path"], self.task["hostname"])
+
+        dir_path = file_path[:file_path.rfind('/')]
+        split_dir_path = dir_path.split("/")
+        current_path = "/"
+        for directory in split_dir_path:
+            current_path = os.path.join(current_path, directory)
+            try:
+                dir_stat_info = os.stat(current_path)
+                uid = dir_stat_info.st_uid
+                gid = dir_stat_info.st_gid
+
+                new_path = os.path.join(new_path, directory)
+                os.mkdir(new_path)
+                os.chown(new_path, uid, gid)
+            except OSError as err:
+                if err.errno == 17:
+                    pass
+                else:
+                    print(err.errno)
+                    raise err
+
+        new_file_path = file_path.replace(dir_path, new_path)
+        return new_file_path
+
+
 
     #MULTI-THREADING######################################
     def worker(self, clean_function):
