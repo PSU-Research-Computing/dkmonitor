@@ -24,6 +24,7 @@ class StatObj(object):
 
     datetime = Column("datetime", DateTime, primary_key=True)
     hostname = Column("hostname", String)
+    taskname = Column("taskname", String)
     target_path = Column("target_path", String)
     total_file_size = Column("total_file_size", BigInteger)
     disk_use_percent = Column("disk_use_percent", Float)

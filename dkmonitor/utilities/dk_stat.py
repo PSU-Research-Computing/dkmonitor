@@ -39,6 +39,7 @@ class DkStat:
 
         self.directory = DirectoryStats(target_path=self.task["target_path"],
                                         hostname=self.task["hostname"],
+                                        taskname=self.task["taskname"],
                                         datetime=datetime.datetime.now())
         self.directory.disk_use_percent = get_disk_use_percent(self.task["target_path"])
 
@@ -56,6 +57,7 @@ class DkStat:
                 self.users[name] = UserStats(username=name,
                                              target_path=self.task["target_path"],
                                              hostname=self.task["hostname"],
+                                             taskname=self.task["taskname"],
                                              datetime=datetime.datetime.now())
                 self.users[name].add_file(file_tup, self.task["old_file_threshold"])
 
@@ -79,7 +81,6 @@ class DkStat:
     def email_users(self):
         """Emails users if nessesary"""
         disk_use = get_disk_use_percent(self.task["target_path"])
-        notice_sent = False
         #if (disk_use > self.task["usage_critical_threshold"]) and (self.task["email_data_alterations"] is True):
         if (check_alteration_settings(self.task) is True) and \
            (self.task["email_data_alterations"] is True) and \
