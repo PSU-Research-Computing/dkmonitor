@@ -3,7 +3,7 @@ This script contains the class dk_clean.
 dk_clean is used to move all old files from one directory to another
 """
 
-import re, time, shutil, pwd
+import re, time, shutil, pwd, errno
 import threading, queue
 
 import sys, os
@@ -52,9 +52,9 @@ class DkClean:
             #shutil.move(file_path, new_file_path)
             #print("OLD {o}\nNEW {n}".format(o=file_path, n=new_file_path))
         except IOError as err:
-            if err.errno == 13: #Permission error
+            if err.errno == errno.EACCES: #Permission error
                 self.permission_error_que.put(file_path)
-            if err.errno == 28: #Disk full
+            if err.errno == errno.ENOSPC: #Disk full
                 if self.task["delete_when_full"] is True:
                     self.delete_file(file_path)
                 else:
@@ -66,7 +66,7 @@ class DkClean:
         try:
             os.remove(file_path)
         except IOError as err:
-            if err.errno == 13:
+            if err.errno == errno.EACCES:
                 self.permission_error_que.put(file_path)
 
     def create_file_tree(self, uid, path):
@@ -96,18 +96,19 @@ class DkClean:
                 dir_stat_info = os.stat(current_path)
                 uid = dir_stat_info.st_uid
                 gid = dir_stat_info.st_gid
-                mod = dir_stat_info.si_mode
+                mod = dir_stat_info.st_mode
 
                 new_path = os.path.join(new_path, directory)
                 os.mkdir(new_path)
                 os.chmod(new_path, mod)
                 os.chown(new_path, uid, gid)
             except OSError as err:
-                if err.errno == 17:
+                if err.errno == errno.EEXIST:
                     pass
-                else:
-                    print(err.errno)
-                    raise err
+                elif err.errno == errno.EACCES:
+                    print("ERROR: You must have rootly powers to move files", file=sys.stderr)
+                    self.logger.error("Could not move files because user does not have root access")
+                    os._exit(1)
 
         new_file_path = file_path.replace(dir_path, new_path)
         return new_file_path
@@ -132,7 +133,7 @@ class DkClean:
         self.build_file_que()
         self.que.join()
 
-        self.log_file_errors()
+        self.print_and_log_file_errors()
         print("Done")
 
     #ITERATIVE###########################################
@@ -143,10 +144,10 @@ class DkClean:
             file_path = self.que.get()
             clean_function(file_path[1])
 
-        self.log_file_errors()
+        self.print_and_log_file_errors()
         print("Done")
 
-    def log_file_errors(self):
+    def print_and_log_file_errors(self):
         """Logs number of files that could not be moved or deleted"""
         perror_count = 0
         try:
@@ -154,6 +155,7 @@ class DkClean:
                 self.permission_error_que.get_nowait()
                 perror_count += 1
         except queue.Empty:
+            print("Permission errors on {} files.".format(perror_count), file=sys.stderr)
             self.logger.error("Permissions error on %s files.", perror_count)
 
         dferror_count = 0
@@ -162,6 +164,8 @@ class DkClean:
                 self.full_disk_que.get_nowait()
                 perror_count += 1
         except queue.Empty:
+            print("Relocation_Path disk full. {} files could not be moved".format(dferror_count),
+                  file=sys.stderr)
             self.logger.error("Relocation_Path disk full. %s files could not be moved",
                               dferror_count)
 
