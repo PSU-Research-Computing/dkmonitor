@@ -245,7 +245,7 @@ def create_quick_task(args):
                   "hostname":socket.gethostname(),
                   "target_path":args.target_directory,
                   "relocation_path":args.relocation_path,
-                  "delete_old_files":False,
+                  "delete_old_files":args.delete_old_files,
                   "delete_when_full":False,
                   "usage_warning_threshold":args.usage_warning_threshold,
                   "usage_critical_threshold":args.usage_critical_threshold,

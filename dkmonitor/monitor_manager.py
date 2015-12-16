@@ -178,12 +178,19 @@ def main(args=None):
     qtask_parser = subparsers.add_parser("quick_task")
     qtask_parser.set_defaults(which="quick_task")
     qtask_parser.add_argument("target_directory", help="Name of directory to scan")
-    qtask_parser.add_argument("-m",
-                              "--move-files",
-                              dest="relocation_path",
-                              type=str,
-                              help=("Specify if you want to move files"
-                                    " when over disk cirtical threshold"))
+    file_handling_group = qtask_parser.add_mutually_exclusive_group()
+    file_handling_group.add_argument("-m",
+                                     "--move-files",
+                                     dest="relocation_path",
+                                     type=str,
+                                     help=("Specify if you want to move files"
+                                           " when over disk cirtical threshold"))
+    file_handling_group.add_argument("-d",
+                                     "--delete-files",
+                                     dest="delete_old_files",
+                                     action="store_true",
+                                     default=False,
+                                     help="Use this flag to delete all old files found")
     qtask_parser.add_argument("-w",
                               "--usage_warning_threshold",
                               dest="usage_warning_threshold",
@@ -227,15 +234,6 @@ def main(args=None):
     elif args.which == "task":
         monitor.start_task(args.task_name, scan_type=args.scan_type)
     elif args.which == "quick_task":
-        """
-        if ((args.email_usage_warnings) or (args.email_data_alterations)) and \
-           (args.email_top_percent is None):
-            print(("Error: If you want to email users you must specify "
-                   "what percentage to flag as top users with the -p option"),
-                  file=sys.stderr)
-            sys.exit(1)
-        """
-
         task = create_quick_task(args)
         monitor.run_task(task, monitor.full_scan)
 
