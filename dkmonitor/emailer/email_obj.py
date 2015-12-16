@@ -3,6 +3,7 @@ This file contains the Email class. Each class acts as a separate message
 This class allows you to build customized messages that can be sent by a different object
 """
 
+import glob
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
