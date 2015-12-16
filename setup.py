@@ -32,7 +32,7 @@ class BuildDkm(install):
                                     os.path.expanduser("~/.dkmonitor"))
                     home_flag = True
                 except OSError as err2:
-                    if err2.errno == errno.EEXIST: #File not exsists error
+                    if err2.errno == errno.EEXIST: #File exsists error
                         print("Warning: ~/.dkmonitor already exists")
                     else:
                         raise err2
