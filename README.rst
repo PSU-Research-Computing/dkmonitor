@@ -145,50 +145,74 @@ Example Emails:
 ===============
 These are examples of the emails that dkmonitor would send if it found usage warnings on a system. These email messages will be combined into one email if a user is flagged for multiple things in one scan. The statements enclosed in the curly braces ({}) will be replaced with the proper data at runtime.
 
-Email sent if data might be moved: ::
+**Usage Warnings:** 
 
-    Dear {user_name},
-    You have been flagged for improper use of {searched_directory} on {system}.
+Message header: ::
+    
+    Dear {username},
+    You have been flagged for improper use of {target_path} on {hostname}.
     Please address the message(s) below to fix the problem.
 
-    WARNING: Disk {directory_path} on {system_host_name} is over it's warning quota of {disk_use_percent_warning_threshold} %
-    If {directory_path} is over its critical threshold of {disk_use_percent_critical_threshold} % all files accessed more than {last_access_threshold} days ago will be moved to {file_relocation_path} 
+General warning: ::
 
-    Number of old files: {number_of_old_files}
-    Combined size of old files: {total_old_file_size} GBs
+    If {target_path} is over its critical threshold of {usage_critical_threshold} % all files accessed more than {old_file_threshold} days ago will be moved to {relocation_path} 
 
-Email sent if data will be moved: ::
+    Your Data:
+    Number of old files that will be moved: {number_of_old_files}
+    Combined size of old files............: {total_old_file_size} GBs
 
-    Dear {user_name},
-    You have been flagged for improper use of {searched_directory} on {system}.
-    Please address the message(s) below to fix the problem.
+Top Space Use: ::
 
-    IMPORTANT WARNING: Disk {directory_path} on {system_host_name} is over it's critical quota of {disk_use_percent_critical_threshold} %
-    All files older than {last_access_threshold} days are being moved to {file_relocation_path}
-
-    Number of old files you own: {number_of_old_files}
-    Combined size of your old files: {total_old_file_size} GBs
-
-Email sent if user is a top consumer of diskspace: ::
-
-    Dear {user_name},
-    You have been flagged for improper use of {searched_directory} on {system}.
-    Please address the message(s) below to fix the problem.
-
-    WARNING: You have been flagged as a top space user of {searched_directory} on
-    {system}.
-    {searched_directory} is over it's use threshold. Please reduce your data usage.
+    WARNING: You have been flagged as a top space user of {target_path} on {hostname}.
+    {target_path} is over it's use threshold. Please reduce your data usage.
     Total size of all files: {total_file_size} GBs
     Total disk use: {disk_use_percent} %
 
-Email sent if user is a top holder of old data: ::
+Top Number of Old files to space Use: ::
 
-    Dear {user_name},
-    You have been flagged for improper use of {searched_directory} on {system}.
-    Please address the message(s) below to fix the problem.
+    WARNING: {target_path} on {hostname} is over it's use threshold. Please reduce your data usage.
 
-    WARNING: You have been flagged as a top owner of old files in {searched_directory} on {system}.
-    Please use or remove all of your old files or they will be removed for you.
-    Average age of all your files: {last_access_average} days
+    Your Data:
+    Total size of all files: {total_file_size} GBs
+    Total disk use: {disk_use_percent} %
 
+
+**Data Alteration Notices:**
+
+Deletion Warning: ::
+
+    WARNING: Disk {target_path} on {hostname} is over it's warning quota of {usage_warning_threshold} %
+    When {target_path} is over it's critical threshold of {usage_critical_threshold} % all files accessed more than {old_file_threshold} days ago will be deleted.
+
+    Your Data:
+    Number of old files that will be deleted.......: {number_of_old_files}
+    Combined size of old files that will be deleted: {total_old_file_size} GBs
+
+Deletion Notice: ::
+
+    IMPORTANT NOTICE: Disk {target_path} on {hostname} is over it's critical quota of {usage_critical_threshold} %
+    All files older than {old_file_threshold} days have been moved DELETED.
+
+    Your Data:
+    Number of old files you own that were deleted: {number_of_old_files}
+    Combined size of your old deleted files......: {total_old_file_size} GBs
+
+Move Warning: ::
+
+    If {target_path} is over its critical threshold of {usage_critical_threshold} % all files accessed more than {old_file_threshold} days ago will be moved to {relocation_path} 
+
+    Your Data:
+    Number of old files that will be moved: {number_of_old_files}
+    Combined size of old files............: {total_old_file_size} GBs
+
+Move Notice: ::
+
+    IMPORTANT NOTICE: Disk {target_path} on {hostname} is over it's critical quota of {usage_critical_threshold} %
+    All files older than {old_file_threshold} days have been moved to {relocation_path}
+
+    Your Data:
+    Number of old files you own that have been moved: {number_of_old_files}
+    Combined size of your old moved files...........: {total_old_file_size} GBs
+
+    
 
