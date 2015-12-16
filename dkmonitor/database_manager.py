@@ -82,11 +82,17 @@ class DirectoryStats(StatObj, Base):
     disk_use_percent = None
 
     def display_stats(self):
+        """Displays stats for the directory"""
         print("+================================")
         print("|Directory..............: {}".format(self.target_path))
         print("|Disk use percent.......: {}%".format(round(self.disk_use_percent, 2)))
-        print("|Total size of files....: {} GB".format(round(self.total_file_size/1024/1024/1024, 2)))
-        print("|Total size of old files: {} GB".format(round(self.total_old_file_size_count/1024/1024/1024, 2)))
+        print("|Total size of files....: {} GB".format(round(self.total_file_size/1024\
+                                                                                 /1024\
+                                                                                 /1024, 2)))
+        print("|Total size of old files: {} GB".format(round(self.total_old_file_size_count/1024\
+                                                                                           /1024\
+                                                                                           /1024,
+                                                             2)))
         print("|Number of files........: {}".format(self.number_of_files_count))
         print("|Number of old files....: {}".format(self.number_of_old_files_count))
         print("+==============================")
@@ -98,14 +104,21 @@ class UserStats(StatObj, Base):
     username = Column("username", String)
 
     def display_stats(self):
+        """Displays stats for the user"""
         print("+--------------------------------")
         print("|Username...............: {}".format(self.username))
-        print("|Total size of files....: {} GB".format(round(self.total_file_size/1024/1024/1024, 2)))
-        print("|Total size of old files: {} GB".format(round(self.total_old_file_size_count/1024/1024/1024, 2)))
+        print("|Total size of files....: {} GB".format(round(self.total_file_size/1024\
+                                                                                 /1024\
+                                                                                 /1024, 2)))
+        print("|Total size of old files: {} GB".format(round(self.total_old_file_size_count/1024\
+                                                                                           /1024\
+                                                                                           /1024,
+                                                             2)))
         print("|Number of files........: {}".format(self.number_of_files_count))
         print("|Number of old files....: {}".format(self.number_of_old_files_count))
 
     def email_usage_warning(self, task, postfix, problem_users):
+        """Method that sends a usage warning email to the user"""
         email_info = self.build_email_stats(task)
         address = '@'.join([email_info["username"], postfix])
         message = Email(address, email_info, "usage_warning")
@@ -132,6 +145,7 @@ class UserStats(StatObj, Base):
         message.build_and_send_message()
 
     def email_alteration_notice(self, task, postfix, notice_type):
+        """Sends data alteration notice to user"""
         if self.number_of_old_files_count > 0:
             print("Emailing data alteration notice to: {}".format(self.username))
             email_info = self.build_email_stats(task)
