@@ -147,13 +147,13 @@ These are examples of the emails that dkmonitor would send if it found usage war
 
 **Usage Warnings:** 
 
-Message header: ::
+Message Header: ::
     
     Dear {username},
     You have been flagged for improper use of {target_path} on {hostname}.
     Please address the message(s) below to fix the problem.
 
-General warning: ::
+General Warning: ::
 
     If {target_path} is over its critical threshold of {usage_critical_threshold} % all files accessed more than {old_file_threshold} days ago will be moved to {relocation_path} 
 
@@ -168,7 +168,7 @@ Top Space Use: ::
     Total size of all files: {total_file_size} GBs
     Total disk use: {disk_use_percent} %
 
-Top Number of Old files to space Use: ::
+Top Number of Old Files to Space Use: ::
 
     WARNING: {target_path} on {hostname} is over it's use threshold. Please reduce your data usage.
 
