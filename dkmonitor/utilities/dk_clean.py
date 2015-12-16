@@ -148,26 +148,28 @@ class DkClean:
         print("Done")
 
     def print_and_log_file_errors(self):
-        """Logs number of files that could not be moved or deleted"""
+        """Logs and prints the number of files that could not be moved or deleted"""
         perror_count = 0
         try:
             while True:
                 self.permission_error_que.get_nowait()
                 perror_count += 1
         except queue.Empty:
-            print("Permission errors on {} files.".format(perror_count), file=sys.stderr)
-            self.logger.error("Permissions error on %s files.", perror_count)
+            if perror_count > 0:
+                print("Permission errors on {} files.".format(perror_count), file=sys.stderr)
+                self.logger.error("Permissions error on %s files.", perror_count)
 
         dferror_count = 0
         try:
             while True:
                 self.full_disk_que.get_nowait()
-                perror_count += 1
+                dferror_count += 1
         except queue.Empty:
-            print("Relocation_Path disk full. {} files could not be moved".format(dferror_count),
-                  file=sys.stderr)
-            self.logger.error("Relocation_Path disk full. %s files could not be moved",
-                              dferror_count)
+            if dferror_count > 0:
+                print("Relocation_Path is full. {} files could not be moved".format(dferror_count),
+                      file=sys.stderr)
+                self.logger.error("Relocation_Path is full. %s files could not be moved",
+                                  dferror_count)
 
 
 def check_then_clean(task):
