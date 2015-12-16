@@ -49,8 +49,7 @@ class DkClean:
         """Moves individual file while still preseving its file path"""
         try:
             new_file_path = self.create_dir_tree(file_path)
-            #shutil.move(file_path, new_file_path)
-            #print("OLD {o}\nNEW {n}".format(o=file_path, n=new_file_path))
+            shutil.move(file_path, new_file_path)
         except IOError as err:
             if err.errno == errno.EACCES: #Permission error
                 self.permission_error_que.put(file_path)
