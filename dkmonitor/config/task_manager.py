@@ -240,7 +240,8 @@ def export_tasks():
 
 def create_quick_task(args):
     """Creates a quick task dict from parsed arguments"""
-    quick_task = {"taskname":"_".join(["quick_task", str(datetime.datetime.now())]),
+    quick_task = {"taskname":"_".join(["quick_task", str(datetime.datetime.now())])\
+                                .replace(" ", "_"),
                   "hostname":socket.gethostname(),
                   "target_path":args.target_directory,
                   "relocation_path":args.relocation_path,
