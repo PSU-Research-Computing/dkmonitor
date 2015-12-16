@@ -81,7 +81,6 @@ class DkStat:
     def email_users(self):
         """Emails users if nessesary"""
         disk_use = get_disk_use_percent(self.task["target_path"])
-        #if (disk_use > self.task["usage_critical_threshold"]) and (self.task["email_data_alterations"] is True):
         if (check_alteration_settings(self.task) is True) and \
            (self.task["email_data_alterations"] is True) and \
            (disk_use > self.task["usage_critical_threshold"]):
@@ -97,7 +96,8 @@ class DkStat:
                                                  self.settings["Email_Settings"]["user_postfix"],
                                                  "file_deletion_notice")
 
-        elif (disk_use > self.task["usage_warning_threshold"]) and (self.task["email_usage_warnings"] is True):
+        elif (disk_use > self.task["usage_warning_threshold"]) and \
+             (self.task["email_usage_warnings"] is True):
             print("Emailing Usage Warnings")
             problem_users = self.get_problem_users()
             for _, user in self.users.items():
