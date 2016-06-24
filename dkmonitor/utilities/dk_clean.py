@@ -1,147 +1,198 @@
-"""This script contains the class dk_clean.
-dk_clean is used to move all old files from one directory to another"""
+"""
+This script contains the class dk_clean.
+dk_clean is used to move all old files from one directory to another
+"""
 
-import re
-import time
-import shutil
-import pwd
-
-import threading
-from queue import PriorityQueue
+import re, time, shutil, pwd, errno
+import threading, queue
 
 import sys, os
 sys.path.append(os.path.abspath("../.."))
+
 from dkmonitor.utilities import log_setup
-from dkmonitor.stat.dir_scan import dir_scan
+from dkmonitor.utilities.dir_scan import dir_scan
+from dkmonitor.utilities.dk_stat import get_disk_use_percent
+from dkmonitor.config.settings_manager import export_settings
+from dkmonitor.config.task_manager import check_alteration_settings, check_relocate
+
+class ConflictingSettingsError(Exception):
+    """Error for when relocation path and delete files are both set is not found"""
+    def __init__(self, message):
+        super(ConflictingSettingsError, self).__init__(message)
+
 
 class DkClean:
     """The class dk_clean is used to move old files from one directory to an other.
     The process can be run with multithreading or just iterativly"""
 
-    def __init__(self, search_dir='', move_to='', access_threshold='', host_name='127.0.0.1'):
-        self.search_dir = search_dir
-        self.move_to = move_to
-        self.access_threshold = access_threshold
-        self.host_name=host_name
-        self.que = PriorityQueue()
+    def __init__(self, task):
+        self.task = task
+        self.thread_settings = export_settings()["Thread_Settings"]
+
+        self.que = queue.PriorityQueue()
+        self.permission_error_que = queue.PriorityQueue()
+        self.full_disk_que = queue.PriorityQueue()
 
         self.logger = log_setup.setup_logger(__name__)
 
-
     def build_file_que(self):
+        """Adds old file paths to a thread safe que"""
         print("Moving Files")
-        for file_path in dir_scan(self.search_dir):
+        for file_path in dir_scan(self.task["target_path"]):
             last_access = (time.time() - os.path.getatime(file_path)) / 86400
-            if last_access > self.access_threshold:
+            if last_access > self.task["old_file_threshold"]:
                 old_file_size = int(os.path.getsize(file_path))
                 priority_num = - (old_file_size * last_access)
                 self.que.put((priority_num, file_path))
-        print("Done")
 
-
-    def move_file(self, file_path, delete_if_full=False):
+    def move_file(self, file_path):
         """Moves individual file while still preseving its file path"""
-
-        uid = os.stat(file_path).st_uid
-        user = pwd.getpwuid(uid).pw_name
-
-        root_dir = self.move_to + '/' + user +  '/' + self.host_name + '/' + self.search_dir.replace('/', '.')[1:]
-        self.create_file_tree(uid, root_dir)
-
-        new_file_path = re.sub(r"^{old_path}".format(old_path=self.search_dir),
-                                                     root_dir,
-                                                     file_path)
-        last_slash = new_file_path.rfind('/')
-        dir_path = new_file_path[:last_slash]
-
         try:
-            self.create_file_tree(uid, dir_path)
+            new_file_path = self.create_dir_tree(file_path)
             shutil.move(file_path, new_file_path)
-            pass
         except IOError as err:
-            if delete_if_full is True:
-                os.remove(file_path)
-            raise(err)
+            if err.errno == errno.EACCES: #Permission error
+                self.permission_error_que.put(file_path)
+            if err.errno == errno.ENOSPC: #Disk full
+                if self.task["delete_when_full"] is True:
+                    self.delete_file(file_path)
+                else:
+                    self.full_disk_que.put(file_path)
+                    raise err
 
     def delete_file(self, file_path):
         """Deletes file"""
-        os.remove(file_path)
+        try:
+            os.remove(file_path)
+        except IOError as err:
+            if err.errno == errno.EACCES:
+                self.permission_error_que.put(file_path)
 
     def create_file_tree(self, uid, path):
         """Creates file tree after move_to with user ownership"""
-
-        path = path.replace(self.move_to, "")
-        dirs = path.split("/")
-        current_path = self.move_to
-        for d in dirs:
+        path = path.replace(self.task["relocation_path"], "")
+        directory = path.split("/")
+        current_path = self.task["relocation_path"]
+        for direct in directory:
             try:
-                new_dir = current_path + '/' + d
+                new_dir = os.path.join(current_path, direct)
                 os.mkdir(new_dir)
                 os.chown(new_dir, uid, uid)
             except OSError:
                 pass
             current_path = new_dir
 
+    def create_dir_tree(self, file_path):
+        """Creates file tree with correct permissions and returns the newfile path"""
+        new_path = os.path.join(self.task["relocation_path"], self.task["hostname"])
 
-####MULTI-THREADING######################################
-    def worker(self, delete_or_move, delete_if_full):
+        dir_path = file_path[:file_path.rfind('/')]
+        split_dir_path = dir_path.split("/")
+        current_path = "/"
+        for directory in split_dir_path:
+            current_path = os.path.join(current_path, directory)
+            try:
+                dir_stat_info = os.stat(current_path)
+                uid = dir_stat_info.st_uid
+                gid = dir_stat_info.st_gid
+                mod = dir_stat_info.st_mode
+
+                new_path = os.path.join(new_path, directory)
+                os.mkdir(new_path)
+                os.chmod(new_path, mod)
+                os.chown(new_path, uid, gid)
+            except OSError as err:
+                if err.errno == errno.EEXIST:
+                    pass
+                elif err.errno == errno.EACCES:
+                    print("ERROR: You must have rootly powers to move files", file=sys.stderr)
+                    self.logger.error("Could not move files because user does not have root access")
+                    os._exit(1)
+
+        new_file_path = file_path.replace(dir_path, new_path)
+        return new_file_path
+
+
+
+    #MULTI-THREADING######################################
+    def async_worker(self, clean_function):
         """Worker Function"""
-
         while True:
             path = self.que.get()
-            if delete_or_move == "delete":
-                self.delete_file(path[1])
-            elif delete_or_move == "move":
-                self.move_file(path[1], delete_if_full=delete_if_full)
+            clean_function(path[1])
             self.que.task_done()
 
-    def build_pool(self, thread_number, delete_or_move, delete_if_full=False):
-        """Builds Pool of thread workers"""
+    def clean_disk_async(self, clean_function):
+        """Starts the threaded cleaning routine"""
+        #Start async worker thread
+        thread = threading.Thread(target=self.async_worker, args=(clean_function,))
+        thread.daemon = True
+        thread.start()
 
-        for i in range(thread_number):
-            thread = threading.Thread(target=self.worker,
-                                      args=(delete_or_move, delete_if_full))
-            thread.daemon = True
-            thread.start()
-
-    def move_all_threaded(self, thread_number, delete_if_full=False):
-        """Moves all files with multithreading"""
-
-        self.build_pool(thread_number, "move", delete_if_full=delete_if_full)
-        self.build_file_que()
-        self.que.join() #waits for threads to finish
-
-    def delete_all_threaded(self, thread_number):
-        """Deletes all old files multithreaded"""
-
-        self.build_pool(thread_number, "delete")
         self.build_file_que()
         self.que.join()
 
+        self.print_and_log_file_errors()
+        print("Done")
 
-####ITERATIVE###########################################
-    def move_all(self, delete_if_full=False):
-        """Moves all files sequentailly"""
+    #ITERATIVE###########################################
+    def clean_disk_iterative(self, clean_function):
+        """Cleans disk iteratively"""
         self.build_file_que()
-        self.move_que(delete_if_full=delete_if_full)
-
-    def delete_all(self):
-        """Deletes all files iterativley"""
-        self.build_file_que()
-        self.delete_que()
-
-    def move_que(self, delete_if_full=False):
-        """Moves all files in queue sequentailly"""
-
         while not self.que.empty():
             file_path = self.que.get()
-            self.move_file(file_path[1], delete_if_full=delete_if_full)
+            clean_function(file_path[1])
 
-    def delete_que(self):
-        """Deletes files in the que"""
+        self.print_and_log_file_errors()
+        print("Done")
 
-        while not self.que.empty():
-            file_path = self.que.get()
-            self.delete_file(file_path[1])
+    def print_and_log_file_errors(self):
+        """Logs and prints the number of files that could not be moved or deleted"""
+        perror_count = 0
+        try:
+            while True:
+                self.permission_error_que.get_nowait()
+                perror_count += 1
+        except queue.Empty:
+            if perror_count > 0:
+                print("Permission errors on {} files.".format(perror_count), file=sys.stderr)
+                self.logger.error("Permissions error on %s files.", perror_count)
+
+        dferror_count = 0
+        try:
+            while True:
+                self.full_disk_que.get_nowait()
+                dferror_count += 1
+        except queue.Empty:
+            if dferror_count > 0:
+                print("Relocation_Path is full. {} files could not be moved".format(dferror_count),
+                      file=sys.stderr)
+                self.logger.error("Relocation_Path is full. %s files could not be moved",
+                                  dferror_count)
 
 
+def check_then_clean(task):
+    """
+    Checks weather the disk should be cleaned based on task settings
+    and runs the correct routine (iterative/multithreaded
+    """
+    if check_alteration_settings(task) is True:
+        print("Checking if disk: '{}' needs to be cleaned".format(task["target_path"]))
+
+        disk_use = get_disk_use_percent(task["target_path"])
+        if disk_use > task["usage_critical_threshold"]:
+            clean_obj = DkClean(task)
+            clean_obj.logger.info("Cleaning disk %s on %s", task["target_path"], task["hostname"])
+            if check_relocate(task) is True:
+                clean_function = clean_obj.move_file
+            elif task["delete_old_files"] is True:
+                clean_function = clean_obj.delete_file
+            else:
+                raise ConflictingSettingsError(("Error both relocation_path ",
+                                                "and delete_old_files are set"))
+            if clean_obj.thread_settings["thread_mode"] == 'yes':
+                clean_obj.clean_disk_async(clean_function)
+            else:
+                clean_obj.clean_disk_iterative(clean_function)
+        else:
+            print("Disk: '{}' does not need to be cleaned".format(task["target_path"]))

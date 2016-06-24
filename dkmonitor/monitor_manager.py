@@ -4,201 +4,238 @@ This script is indented to be run as a cron job to monitor actions on any
 given disk or directory that is set by the adminstrator
 """
 
-import threading
-import argparse
-import socket
+import threading, argparse, socket
 
 import sys, os
 sys.path.append(os.path.abspath(".."))
 
-from dkmonitor.utilities.db_interface import DbEditor
-from dkmonitor.utilities.dk_clean import DkClean
 from dkmonitor.utilities import log_setup
-from dkmonitor.config.config_reader import ConfigReader
+from dkmonitor.config.settings_manager import export_settings
+from dkmonitor.config.task_manager import export_tasks, create_quick_task
 
-from dkmonitor.stat.dk_stat import DkStat
+from dkmonitor.database_manager import clean_database
+from dkmonitor.utilities.dk_clean import check_then_clean
+
+from dkmonitor.utilities.dk_stat import scan_store_email
+from dkmonitor.utilities.dk_stat import scan_store_email_display
+from dkmonitor.utilities.dk_stat import get_disk_use_percent
+
+class ScanTypeNotFound(Exception):
+    """Error thrown when scan type is invalid"""
+    def __init__(self, message):
+        super(ScanTypeNotFound, self).__init__(message)
+
+class IncorrectHostError(Exception):
+    """Error thrown when task doesnt match current hostname"""
+    def __init__(self, message):
+        super(IncorrectHostError, self).__init__(message)
+
 
 class MonitorManager():
-    """This class is the main managing class for all other classes
-    It runs preset tasks that are found in the json settings file"""
+    """
+    This class is the main managing class for all classes that scan, clean and email
+    It runs preset tasks that are found in a database
+    """
 
     def __init__(self):
-        config_reader = ConfigReader()
-        self.settings = config_reader.configs_to_dict()
+        self.settings = export_settings()
+        self.tasks = export_tasks()
 
         self.logger = log_setup.setup_logger(__name__)
 
-        #Configures database
-        self.database = DbEditor(host_name=self.settings["DataBase_Settings"]["host"],
-                                 database=self.settings["DataBase_Settings"]["database"],
-                                 user_name=self.settings["DataBase_Settings"]["user_name"],
-                                 password=self.settings["DataBase_Settings"]["password"])
-
-        if self.settings["DataBase_Settings"]["purge_database"] == "yes":
+        if self.settings["DataBase_Cleaning_Settings"]["purge_database"] == "yes":
             self.logger.info("Cleaning Database")
-            self.database.clean_data_base(self.settings["DataBase_Settings"]["purge_after_day_number"])
+            clean_database(self.settings["DataBase_Cleaning_Settings"]["purge_after_day_number"])
 
-    def quick_scan(self, task):
+    def scan_wrapper(self, scan, task):
+        """Error catching wrapper for quick and full scan fucntions"""
+        try:
+            print("Running Task: '{}'".format(task["taskname"]))
+            self.logger.info("Running Task: %s", task["taskname"])
+
+            scan(task)
+
+            print("Task: '{}' complete!".format(task["taskname"]))
+            self.logger.info("Task: %s complete!", task["taskname"])
+        except PermissionError:
+            print("You do not have permissions to {}".format(task["target_path"]), file=sys.stderr)
+            self.logger.error("No permissions for %s", task["target_path"])
+        except OSError:
+            print("There is no directory: {}".format(task["target_path"]), file=sys.stderr)
+            self.logger.error("There is no directory: %s", task["target_path"])
+
+    @staticmethod
+    def quick_scan(task):
         """
-        Ment to be run hourly
+        Meant to be run hourly
         Checks use percent on a task
         if over quota, email users / clean disk if neccessary
         """
+        print("Starting Quick Scan of: {}".format(task["target_path"]))
 
-        dk_stat_obj = DkStat(system=task["System_Settings"]["system_host_name"],
-                             search_dir=task["System_Settings"]["directory_path"])
-
-        disk_use = dk_stat_obj.get_disk_use_percent()
-        if disk_use > task["Threshold_Settings"]["disk_use_percent_warning_threshold"]:
-            dk_stat_obj.dir_search(task["Threshold_Settings"]["last_access_threshold"])
-            dk_stat_obj.export_data(self.database)
-            dk_stat_obj.email_users(self.settings["Email_Settings"]["user_postfix"], task, disk_use)
-
-        if disk_use > task["Threshold_Settings"]["disk_use_percent_critical_threshold"]:
-            self.clean_disk(task)
-
-    def full_scan(self, task):
-        """
-        Performs full scan of directory by default
-        logs disk statistics information in db
-        if over quota, email users / clean disk if neccessary
-        """
-
-        try:
-            dk_stat_obj = DkStat(system=task["System_Settings"]["system_host_name"],
-                                 search_dir=task["System_Settings"]["directory_path"])
-
-            self.logger.info("Searching %s", task["System_Settings"]["directory_path"])
-            dk_stat_obj.dir_search(task["Threshold_Settings"]["last_access_threshold"]) #Searches the Directory
-
-            self.logger.info("Exporting %s data to database", task["System_Settings"]["directory_path"])
-            dk_stat_obj.export_data(self.database) #Exports data from dk_stat_obj to the database
-
-            self.logger.info("Emailing Users for %s", task["System_Settings"]["directory_path"])
-            disk_use = dk_stat_obj.get_disk_use_percent()
-            if disk_use > task["Threshold_Settings"]["disk_use_percent_warning_threshold"]:
-                dk_stat_obj.email_users(self.settings["Email_Settings"]["user_postfix"], task, disk_use)
-
-            if disk_use > task["Threshold_Settings"]["disk_use_percent_critical_threshold"]:
-                self.clean_disk(task)
-
-
-            self.logger.info("%s scan task complete", task["System_Settings"]["directory_path"])
-        except PermissionError:
-            print("You do not have permission to {}".format(task["System_Settings"]["directory_path"]))
-        except OSError:
-            print("There is no directory: {}".format(task["System_Settings"]["directory_path"]))
-
-    def clean_disk(self, task):
-        """Cleaning routine function"""
-
-        print("CLeaning Disk")
-
-        self.logger.info("Cleaning %s", task["System_Settings"]["directory_path"])
-        thread_settings = self.settings["Thread_Settings"]
-        clean_obj = DkClean(search_dir=task["System_Settings"]["directory_path"],
-                            move_to=task["Scan_Settings"]["file_relocation_path"],
-                            access_threshold=task["Threshold_Settings"]["last_access_threshold"],
-                            host_name=task["System_Settings"]["system_host_name"])
-
-
-        if task["Scan_Settings"]["relocate_old_files"] == "yes":
-            if task["Scan_Settings"]["delete_when_relocation_is_full"] == "yes":
-                if thread_settings["thread_mode"] == "yes":
-                    clean_obj.move_all_threaded(thread_settings["thread_number"], delete_if_full=True)
-                else:
-                    clean_obj.move_all(delete_if_full=True)
-            else:
-                if thread_settings["thread_mode"] == "yes":
-                    clean_obj.move_all_threaded(thread_settings["thread_number"])
-                else:
-                    clean_obj.move_all()
-
-        elif task["Scan_Settings"]["delete_old_files"] == "yes":
-            if thread_settings["thread_mode"] == "yes":
-                clean_obj.delete_all_threaded(thread_settings["thread_number"])
-            else:
-                clean_obj.delete_all()
+        disk_use = get_disk_use_percent(task["target_path"])
+        if disk_use > task["usage_warning_threshold"]:
+            print("Disk use over threshold, Starting full scan of {}".format(task["target_path"]))
+            scan_store_email(task)
+            check_then_clean(task)
 
     @staticmethod
-    def build_query_str(task):
-        """Builds query string used to determine if disk needs to be cleaned"""
-
-        query_str = "searched_directory = '{directory_path}' AND system = '{system_host_name}'"
-        query_str = query_str.format(**task)
-        return query_str
-
-
-    def start_full_scans(self):
-        """starts full scan on tasks"""
-
-        print("Starting Full Scan")
-
-        for key, task in list(self.settings["Scheduled_Tasks"].items()):
-            if self.check_host_name(task) is True:
-                if self.settings["Thread_Settings"]["thread_mode"] == "yes":
-                    thread = threading.Thread(target=self.full_scan, args=(task,))
-                    thread.daemon = False
-                    thread.start()
-                else:
-                    self.full_scan(task)
-
-
-    def start_quick_scans(self):
-        """Starts quick scan on tasks"""
-
-        print("Starting Quick Scan")
-
-        for key, task in list(self.settings["Scheduled_Tasks"].items()):
-            if self.check_host_name(task) is True:
-                if self.settings["Thread_Settings"]["thread_mode"] == "yes":
-                    thread = threading.Thread(target=self.quick_scan, args=(task,))
-                    thread.daemon = False
-                    thread.start()
-                else:
-                    self.quick_scan(task)
-
-    def check_clean_task(self, task):
+    def full_scan(task):
         """
-        Checks if directory needs to be cleaned
-        Starts cleaning routine if flagged
+        Performs full scan of directory by default
+        saves disk statistics information in db
+        if over quota, email users / clean disk if neccessary
         """
+        print("Starting Full Scan of: {}".format(task["target_path"]))
 
-        if task["relocate_old_files"] == "yes":
-            query_str = self.build_query_str(task)
-            collumn_names = "disk_use_percent"
+        scan_store_email_display(task)
+        check_then_clean(task)
 
-            query_data = self.database.query_date_compare("directory_stats",
-                                                          query_str,
-                                                          collumn_names)
-            if query_data == None:
-                pass
-            elif query_data[0] > task["disk_use_percent_threshold"]:
-                self.clean_disk(task)
+    def run_task(self, task, scan_function):
+        """Runs a single task"""
+        check_host_name(task) #raises error if does not match
+        if task["enabled"] is True:
+            if self.settings["Thread_Settings"]["thread_mode"] == "yes":
+                thread = threading.Thread(target=self.scan_wrapper, args=(scan_function, task,))
+                thread.daemon = False
+                thread.start()
+            else:
+                self.scan_wrapper(scan_function, task)
+
+    def start_tasks(self, scan_type="full"):
+        """Starts all tasks that are on current host"""
+        try:
+            scan_function = self.get_scan_function(scan_type)
+            scan_started_flag = False
+            for task in list(self.tasks.items()):
+                try:
+                    self.run_task(task[1], scan_function)
+                    scan_started_flag = True
+                except IncorrectHostError:
+                    pass
+
+            if scan_started_flag is False:
+                print("No tasks to preform")
+        except ScanTypeNotFound:
+            print("Scan type '{}' is invalid, specify either 'quick' or 'full'".format(scan_type),
+                  file=sys.stderr)
+
+    def start_task(self, task_name, scan_type='full'):
+        """Starts a task givin by the user"""
+        try:
+            task = self.tasks[task_name]
+            scan_function = self.get_scan_function(scan_type)
+            self.run_task(task, scan_function)
+        except KeyError:
+            print("Task '{}' not found".format(task_name), file=sys.stderr)
+        except ScanTypeNotFound:
+            print("Scan type '{}' is invalid, specify either 'quick' or 'full'".format(scan_type),
+                  file=sys.stderr)
+        except IncorrectHostError:
+            print("Task '{}' hostname does not match current host".format(task["hostname"]),
+                  file=sys.stderr)
+
+    def get_scan_function(self, scan_type):
+        """
+        Checks if string is 'full' or 'quick' and returns the corrisponding function
+        Raises error if string is neither
+        """
+        if scan_type == "full":
+            scan_function = self.full_scan
+        elif scan_type == "quick":
+            scan_function = self.quick_scan
+        else:
+            raise ScanTypeNotFound("Scan type '{}' was not found".format(scan_type))
+        return scan_function
 
 
-    def check_host_name(self, task):
-        host_name = socket.gethostname()
-        if host_name == task["System_Settings"]["system_host_name"]:
-            return True
-        return False
+def check_host_name(task):
+    """
+    Gets current hostname and compares with a task
+    Raises error if hostname does not match
+    """
+    host_name = socket.gethostname()
+    if host_name != task["hostname"]:
+        raise IncorrectHostError("Hostname '{th}' does not match '{ch}'".format(th=task["hostname"],
+                                                                                ch=host_name))
+def main(args=None):
+    """Monitor Manager Command line interface"""
+    if args is None:
+        args = sys.argv[1:0]
 
+    description = "The run command line interface is used to run tasks on the current machine"
+    parser = argparse.ArgumentParser(description=description)
+    subparsers = parser.add_subparsers()
+    all_parser = subparsers.add_parser("all")
+    all_parser.set_defaults(which="all")
+    all_parser.add_argument("scan_type", help="Specify scan type: 'quick' or 'full'")
 
+    task_parser = subparsers.add_parser("task")
+    task_parser.set_defaults(which="task")
+    task_parser.add_argument("task_name", help="Name of task to run")
+    task_parser.add_argument("scan_type", help="Specify scan type: 'quick' or 'full'")
 
-def main():
-    """Runs monitor_manager"""
+    qtask_parser = subparsers.add_parser("quick_task")
+    qtask_parser.set_defaults(which="quick_task")
+    qtask_parser.add_argument("target_directory", help="Name of directory to scan")
+    file_handling_group = qtask_parser.add_mutually_exclusive_group()
+    file_handling_group.add_argument("-m",
+                                     "--move-files",
+                                     dest="relocation_path",
+                                     type=str,
+                                     help=("Specify if you want to move files"
+                                           " when over disk cirtical threshold"))
+    file_handling_group.add_argument("-d",
+                                     "--delete-files",
+                                     dest="delete_old_files",
+                                     action="store_true",
+                                     default=False,
+                                     help="Use this flag to delete all old files found")
+    qtask_parser.add_argument("-w",
+                              "--usage_warning_threshold",
+                              dest="usage_warning_threshold",
+                              type=int,
+                              required=True,
+                              help="Specify the usage warning threshold")
+    qtask_parser.add_argument("-c",
+                              "--usage_critical_threshold",
+                              dest="usage_critical_threshold",
+                              type=int,
+                              required=True,
+                              help="Specify the usage cirtical threshold")
+    qtask_parser.add_argument("-f",
+                              "--file_age_theshold",
+                              dest="file_age_theshold",
+                              type=int,
+                              required=True,
+                              help="Specify the age of files to be flagged")
+    qtask_parser.add_argument("-e",
+                              "--email_usage_warnings",
+                              dest="email_usage_warnings",
+                              action="store_true",
+                              default=False,
+                              help="Specify weather to send usage warning emails to users")
+    qtask_parser.add_argument("-a",
+                              "--email_data_alterations",
+                              dest="email_data_alterations",
+                              action="store_true",
+                              default=False,
+                              help="Specify weather to email users when their data is moved")
+    qtask_parser.add_argument("-p",
+                              "--email_top_percent",
+                              dest="email_top_percent",
+                              type=int,
+                              help="Specify the percent of users to be flagged as top users")
+
+    args = parser.parse_args(args)
     monitor = MonitorManager()
-    parser = argparse.ArgumentParser(description="")
-    parser.add_argument("scan_type", help="Specify scan type: quick or full")
-    args = parser.parse_args()
-    if args.scan_type == "quick":
-        monitor.start_quick_scans()
-    elif args.scan_type == "full":
-        monitor.start_full_scans()
-    else:
-        raise "Error: scan_type must be either 'full' or 'quick'"
-
-
+    if args.which == "all":
+        monitor.start_tasks(scan_type=args.scan_type)
+    elif args.which == "task":
+        monitor.start_task(args.task_name, scan_type=args.scan_type)
+    elif args.which == "quick_task":
+        task = create_quick_task(args)
+        monitor.run_task(task, monitor.full_scan)
 
 if __name__ == "__main__":
     main()

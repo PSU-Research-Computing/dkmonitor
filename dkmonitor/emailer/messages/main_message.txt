@@ -1,4 +1,0 @@
-Dear {user_name},
-You have been flagged for improper use of {searched_directory} on {system}.
-Please address the message(s) below to fix the problem.
-

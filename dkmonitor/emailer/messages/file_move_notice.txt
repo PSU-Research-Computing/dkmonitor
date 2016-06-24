@@ -1,5 +1,6 @@
-IMPORTANT WARNING: Disk {directory_path} on {system_host_name} is over it's critical quota of {disk_use_percent_critical_threshold} %
-All files older than {last_access_threshold} days are being moved to {file_relocation_path}
+IMPORTANT NOTICE: Disk {target_path} on {hostname} is over it's critical quota of {usage_critical_threshold} %
+All files older than {old_file_threshold} days have been moved to {relocation_path}
 
-Number of old files you own: {number_of_old_files}
-Combined size of your old files: {total_old_file_size} GBs
+Your Data:
+Number of old files you own that have been moved: {number_of_old_files}
+Combined size of your old moved files...........: {total_old_file_size} GBs

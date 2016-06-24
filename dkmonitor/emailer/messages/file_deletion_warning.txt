@@ -1,0 +1,7 @@
+WARNING: Disk {target_path} on {hostname} is over it's warning quota of {usage_warning_threshold} %
+When {target_path} is over it's critical threshold of {usage_critical_threshold} % all files accessed more than {old_file_threshold} days ago will be deleted.
+
+Your Data:
+Number of old files that will be deleted.......: {number_of_old_files}
+Combined size of old files that will be deleted: {total_old_file_size} GBs
+
