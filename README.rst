@@ -3,7 +3,9 @@ Disk Monitor
 ************
 
 Disk Monitor (dkmonitor) is a python application that allows a system adminstrator to monitor and log disk or directory usage on a multiuser system.
-Disk monitor is primarily suited for use on research severs with short term fast storage drives (scratch) that are commonly missused.
+Disk monitor is primarily suited for use on research computing resources with short term fast storage drives (scratch) that are commonly missused.
+
+**DkMonitor is pre-release software, and is currently being refactored** 
 
 Features:
 =========
