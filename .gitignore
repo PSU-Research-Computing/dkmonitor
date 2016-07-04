@@ -1,1 +1,11 @@
 settings.json
+
+.env/
+*.swp
+*.pyc
+.DS_Store
+__pycache__/
+
+logopipe.egg-info/
+build/
+dist/
