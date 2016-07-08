@@ -20,13 +20,13 @@ class BuildDkm(install):
         try:
             os.makedirs("/etc/dkmonitor")
             os.makedirs("/var/log/dkmonitor")
-            shutil.copyfile(os.path.realpath("./dkmonitor/conf/settings.cfg"), "/etc/dkmonitor")
+            shutil.copyfile(os.path.realpath("./dkmonitor/config/settings.cfg"), "/etc/dkmonitor")
             root_flag = True
         except OSError as err:
             if err.errno == errno.EACCES: #Permission error
                 try:
                     os.makedirs(os.path.expanduser("~/.dkmonitor/log"))
-                    shutil.copyfile(os.path.realpath("./dkmonitor/conf/settings.cfg"),
+                    shutil.copyfile(os.path.realpath("./dkmonitor/config/settings.cfg"),
                                     os.path.expanduser("~/.dkmonitor"))
                     home_flag = True
                 except OSError as err2:
