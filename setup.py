@@ -47,13 +47,14 @@ class BuildDkm(install):
 
 setup(name="dkmonitor",
       version="1.0.0",
-      description="Monitors specified disks or directories for user and general stats",
+      description="Monitors disks and directories for user and general stats",
       license="MIT",
       author="William Patterson",
       packages=find_packages(),
       package_data={'dkmonitor.config': ['*.cfg'],
                     'dkmonitor.emailer.messages': ['*.txt']},
       install_requires=["sqlalchemy", "psycopg2", "termcolor"],
-      long_description=long_description(),
-      entry_points={"console_scripts": ["dkmonitor = dkmonitor.__main__:main",],})
-      #cmdclass={'install': BuildDkm},
+      long_description=long_description())
+
+#entry_points={"console_scripts": ["dkmonitor = dkmonitor.__main__:main",],})
+#cmdclass={'install': BuildDkm},
