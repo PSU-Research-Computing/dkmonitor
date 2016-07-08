@@ -10,7 +10,13 @@ class TestUtilities(unittest.TestCase):
     """Tests for dir_scan fucntions"""
 
     def test_dir_scan(self):
-        """test dir scan"""
+        """
+        test dir scan
+        TODO:
+            Test Errors
+        """
+
+        #Test basic directory
         test_files = tuple(dir_scan(DIR_SCAN_DIR))
         assert(test_files == (os.path.join(DIR_SCAN_DIR, 'test1.1'),
                               os.path.join(DIR_SCAN_DIR, 'test1.2'),
