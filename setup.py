@@ -11,8 +11,8 @@ def long_description():
     with open("README.rst", "r") as readme:
         return readme.readlines()
 
+"""
 class BuildDkm(install):
-    """Custom install class"""
 
     def run(self):
         root_flag = False
@@ -39,19 +39,11 @@ class BuildDkm(install):
 
 
         if root_flag is True:
-            print("""
-
-            Your settings file is located at /etc/dkmonitor/settings.cfg
-            Your log files will be saved at /var/log/dkmonitor
-            """)
+            pass
 
         if home_flag is True:
-            print("""
-
-            Your settings file is located at ~/.dkmonitor/conf/settings.cfg
-            Your log files will be saved at ~/.dkmonitor/log/
-            """)
-
+            pass
+"""
 
 setup(name="dkmonitor",
       version="1.0.0",
@@ -63,5 +55,5 @@ setup(name="dkmonitor",
                     'dkmonitor.emailer.messages': ['*.txt']},
       install_requires=["sqlalchemy", "psycopg2", "termcolor"],
       long_description=long_description(),
-      cmdclass={'install': BuildDkm},
       entry_points={"console_scripts": ["dkmonitor=dkmonitor.__main__:main"],})
+      #cmdclass={'install': BuildDkm},
