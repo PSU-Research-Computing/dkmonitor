@@ -18,13 +18,13 @@ Features:
   stats
 - Stores directory and user stats in a database (SQLite, postgres, MySQL) for 
   later analisys.
-- Can view usage stats on specific users or systems via the command line
-- Can to push email notifications to users who are not following the speficied 
+- View disk usage statisticts of users and systems via the command line
+- Email notifications to users who are not following the speficied 
   usage rules
-- Can automatically move all old files to a new location, mirroring the 
+- Automatically move all old files to a new location, mirroring the 
   directory structure
-- Can automatically delete old files on a disk
-- Works accross multiple separate systems 
+- Automatically delete old files
+- Works accross multiple separate systems through shared database
 
 Installation and Setup:
 =======================
