@@ -15,8 +15,6 @@ class BuildDkm(install):
     """Custom install class"""
 
     def run(self):
-        install.do_egg_install(self) #installs required packages
-
         root_flag = False
         home_flag = False
         try:
