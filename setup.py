@@ -53,8 +53,8 @@ setup(name="dkmonitor",
       packages=find_packages(),
       package_data={'dkmonitor.config': ['*.cfg'],
                     'dkmonitor.emailer.messages': ['*.txt']},
-      install_requires=["sqlalchemy", "psycopg2", "termcolor"],
-      long_description=long_description())
+      install_requires=["sqlalchemy", "termcolor"])
+      #long_description=long_description())
 
 #entry_points={"console_scripts": ["dkmonitor = dkmonitor.__main__:main",],})
 #cmdclass={'install': BuildDkm},
