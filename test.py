@@ -1,4 +1,21 @@
 import unittest
+import os
+
+from dkmonitor.utilities.dir_scan import dir_scan
+
+
+DIR_SCAN_DIR = 'test/dir_scan_test'
+
+class TestUtilities(unittest.TestCase):
+    """Tests for dir_scan fucntions"""
+
+    def test_dir_scan(self):
+        """test dir scan"""
+        test_files = tuple(dir_scan(DIR_SCAN_DIR))
+        assert(test_files == (os.path.join(DIR_SCAN_DIR, 'test1.1'),
+                              os.path.join(DIR_SCAN_DIR, 'test1.2'),
+                              os.path.join(DIR_SCAN_DIR, 'tl2/test2.1'),
+                              os.path.join(DIR_SCAN_DIR, 'tl2/test2.2')))
 
 if __name__ == '__main__':
     test_classes = ()
