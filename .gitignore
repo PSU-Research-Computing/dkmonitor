@@ -6,6 +6,6 @@ settings.json
 .DS_Store
 __pycache__/
 
-logopipe.egg-info/
+dkmonitor.egg-info/
 build/
 dist/
