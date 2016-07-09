@@ -3,36 +3,35 @@ File containing simple function that returns log object
 """
 
 import os
-import logging, logging.handlers
+import warnings
+import logging
+from logging import handlers
+
+FIRST_CHOICE = '/var/log/dkmonitor'
+SECOND_CHOICE = os.path.expanduser('~/.dkmonitor/log')
 
 def setup_logger(log_file_name):
     """
     Takes log file name as input are returns a logger object
     TODO:
         Replace print warnings with warnings library
+        Move DKM_LOG abstraction outside of setup_logger
     """
-    try:
-        log_path = os.environ["DKM_LOG"]
-    except KeyError:
-        print("ERROR: ***Could Not find log storage directory***")
-        print("Logging to current working directory")
-        log_path = os.path.abspath(".")
-
-    if not os.path.exists(log_path):
-        print("ERROR: The path specified in DKM_LOG does not exist")
-        print("Logging to current working directory")
-        log_path = os.path.abspath(".")
-    if os.path.isfile(log_path):
-        print("ERROR: The path specifed in DKM_LOG points to a file")
-        print("Logging to current working directory")
-        log_path = os.path.abspath(".")
+    if os.path.isdir(FIRST_CHOICE) and os.access(FIRST_CHOICE, os.R_OK):
+        log_path = os.path.join(FIRST_CHOICE, log_file_name)
+    elif os.path.isdir(SECOND_CHOICE) and os.access(SECOND_CHOICE, os.R_OK):
+        log_path = os.path.join(SECOND_CHOICE, log_file_name)
+    else:
+        warnings.warn(("Could Not find log storage directory, Logging to"
+                       "current working directory"))
+        log_path = os.path.join(os.path.abspath("."), log_file_name)
 
     log_path = os.path.join(log_path, '{}.log'.format(log_file_name))
     logger = logging.getLogger(log_path)
     logger.setLevel(logging.INFO)
-    handler = logging.handlers.RotatingFileHandler(log_path,
-                                                   maxBytes=1048576,
-                                                   backupCount=5)
+    handler = handlers.RotatingFileHandler(log_path,
+                                           maxBytes=1048576,
+                                           backupCount=5)
     formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
     handler.setFormatter(formatter)
     logger.addHandler(handler)
