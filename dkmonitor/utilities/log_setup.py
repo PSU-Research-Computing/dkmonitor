@@ -6,7 +6,11 @@ import os
 import logging, logging.handlers
 
 def setup_logger(log_file_name):
-    """Takes log file name as input are returns a logger object"""
+    """
+    Takes log file name as input are returns a logger object
+    TODO:
+        Replace print warnings with warnings library
+    """
     try:
         log_path = os.environ["DKM_LOG"]
     except KeyError:
@@ -23,10 +27,12 @@ def setup_logger(log_file_name):
         print("Logging to current working directory")
         log_path = os.path.abspath(".")
 
-    log_path = log_path + '/' + log_file_name + ".log"
+    log_path = os.path.join(log_path, '{}.log'.format(log_file_name))
     logger = logging.getLogger(log_path)
     logger.setLevel(logging.INFO)
-    handler = logging.handlers.RotatingFileHandler(log_path, maxBytes=1048576, backupCount=5)
+    handler = logging.handlers.RotatingFileHandler(log_path,
+                                                   maxBytes=1048576,
+                                                   backupCount=5)
     formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
     handler.setFormatter(formatter)
     logger.addHandler(handler)
