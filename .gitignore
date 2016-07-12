@@ -9,3 +9,5 @@ __pycache__/
 dkmonitor.egg-info/
 build/
 dist/
+
+test/test_log_file*
