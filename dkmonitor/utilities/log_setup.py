@@ -12,8 +12,6 @@ def setup_logger(log_file_path):
     """
     Takes log file name as input are returns a logger object
     TODO:
-        Replace print warnings with warnings library
-        Move DKM_LOG abstraction outside of setup_logger
     """
 
     logger = logging.getLogger(log_file_path)
