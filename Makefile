@@ -9,7 +9,7 @@ init:
 
 
 test:
-	python -m unittest discover
+	coverage -m unittest discover
 
 clean:
 	$(CLEAN)

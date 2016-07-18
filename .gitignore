@@ -11,3 +11,4 @@ build/
 dist/
 
 test/test_log_file*
+.coverage
