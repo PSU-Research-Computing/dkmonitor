@@ -3,9 +3,9 @@
 init:
 	-mkdir .env
 	virtualenv .env
-	pip install --upgrade pip
-	pip install --upgrade setuptools
-	python setup.py develop
+	.env/bin/pip install --upgrade pip
+	.env/bin/pip install --upgrade setuptools
+	.env/bin/python setup.py develop
 
 
 test:
