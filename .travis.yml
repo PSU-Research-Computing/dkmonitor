@@ -4,3 +4,4 @@ python:
 install:
     - python setup.py install
 script: make test
+after_success: coveralls
