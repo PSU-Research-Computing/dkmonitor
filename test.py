@@ -6,25 +6,27 @@ from dkmonitor.utilities.dir_scan import dir_scan
 from dkmonitor.utilities.log_setup import setup_logger
 
 
-DIR_SCAN_DIR = 'test/dir_scan_test'
+SCAN_DIR = 'test/dir_scan_test'
 LOG_FILE_NAME = 'test/test_log_file.log'
 
 class TestUtilities(unittest.TestCase):
-    """Tests for dir_scan fucntions"""
+    """
+    Tests for dir_scan fucntions
+    TODO:
+        Test Errors
+    """
 
     def test_dir_scan(self):
         """
         test dir scan
-        TODO:
-            Test Errors
         """
 
         #Test basic directory
-        test_files = tuple(dir_scan(DIR_SCAN_DIR))
-        assert(test_files == (os.path.join(DIR_SCAN_DIR, 'test1.1'),
-                              os.path.join(DIR_SCAN_DIR, 'test1.2'),
-                              os.path.join(DIR_SCAN_DIR, 'tl2/test2.1'),
-                              os.path.join(DIR_SCAN_DIR, 'tl2/test2.2')))
+        test_files = tuple(dir_scan(SCAN_DIR))
+        self.assertEqual(test_files, (os.path.join(SCAN_DIR, 'test1.1'),
+                                      os.path.join(SCAN_DIR, 'test1.2'),
+                                      os.path.join(SCAN_DIR, 'tl2/test2.1'),
+                                      os.path.join(SCAN_DIR, 'tl2/test2.2')))
 
     def test_setup_logger(self):
         """Test logging setup function"""
