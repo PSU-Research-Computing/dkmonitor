@@ -1,5 +1,5 @@
-.. image:: https://travis-ci.org/willpatterson/DkMonitor.svg?branch=master
-    :target: https://travis-ci.org/willpatterson/DkMonitor
+.. image:: https://travis-ci.org/willpatterson/dkmonitor.svg?branch=master
+    :target: https://travis-ci.org/willpatterson/dkmonitor
 
 ************
 Disk Monitor
