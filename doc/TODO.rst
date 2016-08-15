@@ -2,6 +2,8 @@
 TODO
 ****
 
+* Add codacy support
+* Fix travis-ci
 * Add ldap email lookup
 * Test for MySQL and SQLite compatibility
 * Update readme
